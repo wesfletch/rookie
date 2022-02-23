@@ -7,6 +7,7 @@ target_link_libraries(rover_peri
         pico_stdlib 
         hardware_uart
         hardware_i2c
+        hardware_pwm
         )
 
 # enable usb output, disable uart output

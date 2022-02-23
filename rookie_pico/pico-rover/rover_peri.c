@@ -3,6 +3,7 @@
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 #include "hardware/i2c.h"
+#include "hardware/pwm.h"
 
 // define UART connection
 #define UART_ID     uart0
@@ -15,13 +16,15 @@
 // datasheet for information on which other pins can be used.
 #define UART_TX_PIN 0
 #define UART_RX_PIN 1
+#define PWM_1_PIN   16
+#define PWM_2_PIN   17
 
 static int chars_rxed = 0;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
 // RX interrupt handler
-void on_uart_rx() {
-
+void on_uart_rx() 
+{
     gpio_put(LED_PIN, 1);
 
     char buffer[1024];
@@ -37,10 +40,8 @@ void on_uart_rx() {
     gpio_put(LED_PIN, 0);
 }
 
-int main() 
+void configure_UART()
 {
-    stdio_init_all();
-
     // Set up our UART with the baudrate defined in NEO-6 datasheet
     uart_init(UART_ID, BAUD_RATE);
 
@@ -69,6 +70,44 @@ int main()
 
     // Now enable the UART to send interrupts - RX only
     uart_set_irq_enables(UART_ID, true, false);
+}
+
+int configure_PWM()
+{
+    // configure pins for PWM
+    gpio_set_function(PWM_1_PIN, GPIO_FUNC_PWM);
+    gpio_set_function(PWM_2_PIN, GPIO_FUNC_PWM);
+
+    uint slice1 = pwm_gpio_to_slice_num(PWM_1_PIN);
+    uint slice2 = pwm_gpio_to_slice_num(PWM_2_PIN);
+    if (slice1 != slice2)
+    {
+        printf("ERROR: PWM slice mismatch, slice1: %d, slice2: %d", slice1, slice2);
+        return -1;
+    }
+
+    // set "wrap": number of cycles for each pulse
+    pwm_set_wrap(slice1, 100);
+
+    // start PWMs at 50 = STOP
+    pwm_set_chan_level(slice1, PWM_CHAN_A, 75);     // right
+    pwm_set_chan_level(slice1, PWM_CHAN_B, 25);     // left
+
+    // set the PWM running
+    pwm_set_enabled(slice1, true);
+
+    return 1;
+}
+
+int main() 
+{
+    stdio_init_all();
+
+    int status = 0;
+
+    configure_UART();
+
+    status = configure_PWM();
 
     // configure status LED
     gpio_init(LED_PIN);
