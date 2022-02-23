@@ -1,4 +1,8 @@
+// general includes
 #include <stdio.h>
+#include <string.h>
+
+// hardware includes
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
@@ -18,6 +22,11 @@
 #define UART_RX_PIN 1
 #define PWM_1_PIN   16
 #define PWM_2_PIN   17
+
+// for string parsing
+#define ENDSTDIN	255
+#define NL          10
+#define CR		    13
 
 static int chars_rxed = 0;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
@@ -40,6 +49,7 @@ void on_uart_rx()
     gpio_put(LED_PIN, 0);
 }
 
+// initialize a UART to handle our GPS
 void configure_UART()
 {
     // Set up our UART with the baudrate defined in NEO-6 datasheet
@@ -99,9 +109,20 @@ int configure_PWM()
     return 1;
 }
 
+void setPWM()
+{
+
+}
+
 int main() 
 {
     stdio_init_all();
+
+    // STDIN/STDOUT IO
+    char ch;
+    int idx;
+    char in_string[255];
+    char out_string[255];
 
     int status = 0;
 
@@ -116,8 +137,26 @@ int main()
     // spin
     while (1)
     {
+        // attempt to read char from stdin
+        // no timeout makes it non-blocking
+        ch = getchar_timeout_us(0);
+        while (ch != ENDSTDIN)
+        {
+            in_string[idx++] = ch;
+
+            // if the string ends or we run out of space, we're done with this string
+            if (ch == CR || ch == NL || idx == (sizeof(in_string)-1))
+            {
+                in_string[idx] = 0; // terminate the string
+                idx = 0;    // reset index
+                printf("This is the string I received: %s\n", in_string);
+                break;
+            }
+
+            ch = getchar_timeout_us(0);
+        }
+
+
         tight_loop_contents();
     }
-
-
 }
