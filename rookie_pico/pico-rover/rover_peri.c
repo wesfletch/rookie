@@ -133,7 +133,7 @@ int process_string(char *in)
 
     // tokenize string
     token = strtok(in, delim);
-    printf("Got this as first token: %s\n", token);
+    // printf("Got this as first token: %s\n", token);
 
     // "switch" on first token == message type
     if (strcmp(token, MSG_ACK) == 0)
@@ -145,22 +145,22 @@ int process_string(char *in)
         // printf("Got an ACK message. SEQ: %d\n", seq);
         return 1;
     }
-    else if (strcmp(token, MSG_CMD))
+    else if (strcmp(token, MSG_CMD) == 0)
     {
         // not sure yet, maybe nothing
         return 1;
     }
-    else if (strcmp(token, MSG_MOTORS))
+    else if (strcmp(token, MSG_MOTORS) == 0)
     {
         // setPWM()
         return 1;
     }
-    else if (strcmp(token, MSG_REQ))
+    else if (strcmp(token, MSG_REQ) == 0)
     {
         // will depend
         return 1;
     }
-    else if (strcmp(token, MSG_TX))
+    else if (strcmp(token, MSG_TX) == 0)
     {
         // transmit over UART
         return 1;
