@@ -1,5 +1,6 @@
 // general includes
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // hardware includes
@@ -27,6 +28,13 @@
 #define ENDSTDIN	255
 #define NL          10
 #define CR		    13
+
+// message definitions
+static const char * MSG_MOTORS = "MOTORS";     // command for motor controller
+static const char * MSG_TX     = "TX";         // transmit a string on the LoRa
+static const char * MSG_CMD    = "CMD";        // generic command
+static const char * MSG_REQ    = "REQ";        // a request for data update, new rate, etc...
+static const char * MSG_ACK    = "ACK";        // an acknowledgement that a message was received
 
 static int chars_rxed = 0;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
@@ -114,6 +122,54 @@ void setPWM()
 
 }
 
+// process a given string, dispatch based on contents
+int process_string(char *in)
+{
+    // for tokenizing input string
+    char * delim = " ";
+    char * token;
+
+    int seq;
+
+    // tokenize string
+    token = strtok(in, delim);
+    printf("Got this as first token: %s\n", token);
+
+    // "switch" on first token == message type
+    if (strcmp(token, MSG_ACK) == 0)
+    {
+        // check the seq number
+        token = strtok(NULL, delim);
+        // printf("Next token: %s", token);
+        seq = atoi(token);
+        // printf("Got an ACK message. SEQ: %d\n", seq);
+        return 1;
+    }
+    else if (strcmp(token, MSG_CMD))
+    {
+        // not sure yet, maybe nothing
+        return 1;
+    }
+    else if (strcmp(token, MSG_MOTORS))
+    {
+        // setPWM()
+        return 1;
+    }
+    else if (strcmp(token, MSG_REQ))
+    {
+        // will depend
+        return 1;
+    }
+    else if (strcmp(token, MSG_TX))
+    {
+        // transmit over UART
+        return 1;
+    }
+
+    // something went wrong
+    return 0;
+}
+
 int main() 
 {
     stdio_init_all();
@@ -149,7 +205,13 @@ int main()
             {
                 in_string[idx] = 0; // terminate the string
                 idx = 0;    // reset index
-                printf("This is the string I received: %s\n", in_string);
+                // printf("This is the string I received: %s\n", in_string);
+                
+                status = process_string(in_string);
+                if (!status)
+                {
+                    printf("Failed to process string: %s\n", in_string);
+                }
                 break;
             }
 
