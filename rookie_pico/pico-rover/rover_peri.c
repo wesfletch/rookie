@@ -58,7 +58,7 @@ void on_uart_rx()
 }
 
 // initialize a UART to handle our GPS
-void configure_UART()
+void configure_UART_GPS()
 {
     // Set up our UART with the baudrate defined in NEO-6 datasheet
     uart_init(UART_ID, BAUD_RATE);
@@ -83,7 +83,7 @@ void configure_UART()
     int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
     // And set up and enable the interrupt handlers
-    irq_set_exclusive_handler(UART_IRQ, on_uart_rx);
+    irq_set_exclusive_handler(UART_IRQ, on_UART_GPS_rx);
     irq_set_enabled(UART_IRQ, true);
 
     // Now enable the UART to send interrupts - RX only
@@ -182,7 +182,7 @@ int main()
 
     int status = 0;
 
-    configure_UART();
+    configure_UART_GPS();
 
     status = configure_PWM();
 
