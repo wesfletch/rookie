@@ -25,36 +25,77 @@
 #define PWM_2_PIN   17
 
 // for string parsing
-#define ENDSTDIN	255
-#define NL          10
-#define CR		    13
+#define ENDSTDIN	255 // NULL
+#define NL          10  // NEWLINE
+#define CR		    13  // CARRIAGE RETURN
 
 // message definitions
-static const char * MSG_MOTORS = "MOTORS";     // command for motor controller
-static const char * MSG_TX     = "TX";         // transmit a string on the LoRa
-static const char * MSG_CMD    = "CMD";        // generic command
-static const char * MSG_REQ    = "REQ";        // a request for data update, new rate, etc...
-static const char * MSG_ACK    = "ACK";        // an acknowledgement that a message was received
+static const char * MSG_MOTORS = "$MOTORS\0";     // command for motor controller
+static const char * MSG_TX     = "$TX\0";         // transmit a string on the LoRa
+static const char * MSG_CMD    = "$CMD\0";        // generic command
+static const char * MSG_REQ    = "$REQ\0";        // a request for data update, new rate, etc...
+static const char * MSG_ACK    = "$ACK\0";        // an acknowledgement that a message was received
+
+// for later
+typedef struct MESSAGE {
+    uint32_t timestamp;
+    char *msg;
+} MESSAGE;
+
+// function defs
+int handle_input(char *in);
 
 static int chars_rxed = 0;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
-// RX interrupt handler
-void on_uart_rx() 
+// RX interrupt for GPS over UART
+// expected freq.: 
+void on_UART_GPS_rx() 
 {
-    gpio_put(LED_PIN, 1);
+    // gpio_put(LED_PIN, 1);
 
-    char buffer[1024];
-    int cnt = 0;
-    while (uart_is_readable(UART_ID)) {
-        uint8_t ch = uart_getc(UART_ID);        
-        printf("%c", ch);
-        // buffer[cnt++] = ch;
-        // snprintf(buffer, sizeof(buffer), "%uZZZ", ch);
+    char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183)
+    int idx = 0;
+    while (uart_is_readable(UART_ID)) 
+    {
+        uint8_t ch = uart_getc(UART_ID);
+        while (ch != ENDSTDIN)
+        {
+            buffer[idx++] = ch;
 
+            // if the string ends or we run out of space, we're done with this string
+            if (ch == CR || ch == NL || idx == (sizeof(buffer)-1))
+            {
+                buffer[idx] = 0; // terminate the string
+                idx = 0;    // reset index
+                // printf("This is the string I received: %s\n", in_string);
+                
+                break;
+            }
+            ch = uart_getc(UART_ID);
+
+        }
+        printf("%s", buffer);
     }
-    // printf("\n%s---", *buffer);
-    gpio_put(LED_PIN, 0);
+}
+
+// RX interrupt for LORA over UART
+// BLOCKING
+// expected freq.: as needed
+void on_UART_LORA_rx()
+{
+    // larger than the max size of a LoRa transmission
+    char buffer[255];
+    
+    // 0 if no bytes available, otherwise the size
+    int size = uart_is_readable(UART_ID);
+    if (size)
+    {
+        // make sure to completely read the UART before allowing interrupts
+        uart_read_blocking(UART_ID, buffer, size);
+        printf("Received this buffer from LORA: %s\n", buffer);
+        handle_input(buffer);
+    }
 }
 
 // initialize a UART to handle our GPS
@@ -119,11 +160,24 @@ int configure_PWM()
 
 void setPWM()
 {
+}
 
+// provided a string to be transmitted, sends it over LORA (via UART connection)
+// string must end w/ \r\n
+// BLOCKING
+void LORA_tx(char *tx, int buffer_size)
+{
+    // wait for TX fifo to be empty
+    uart_tx_wait_blocking(UART_ID);
+
+    if (uart_is_writable(UART_ID))
+    {
+        uart_write_blocking(UART_ID, tx, buffer_size);
+    }
 }
 
 // process a given string, dispatch based on contents
-int process_string(char *in)
+int handle_input(char *in)
 {
     // for tokenizing input string
     char * delim = " ";
@@ -131,25 +185,30 @@ int process_string(char *in)
 
     int seq;
 
-    // tokenize string
+    // tokenize string (strtok modifies the original string)
     token = strtok(in, delim);
-    // printf("Got this as first token: %s\n", token);
+    printf("Got this as first token: %s\n", token);
 
     // "switch" on first token == message type
+    // ACK messages are used for confirmation that sent data was received
     if (strcmp(token, MSG_ACK) == 0)
     {
         // check the seq number
         token = strtok(NULL, delim);
-        // printf("Next token: %s", token);
+        printf("Next token: %s", token);
         seq = atoi(token);
-        // printf("Got an ACK message. SEQ: %d\n", seq);
+        printf("Got an ACK message. SEQ: %d\n", seq);
         return 1;
     }
+    // CMD messages come from the GS, are to be passed up to the SBC
     else if (strcmp(token, MSG_CMD) == 0)
-    {
-        // not sure yet, maybe nothing
+    {        
+        token = strtok(NULL, delim);
+        // to avoid having to copy the string, just re-adding '$CMD' manually
+        printf("$CMD %s\n", token);
         return 1;
     }
+    // MOTOR messages are used for PWM commands through the Pico
     else if (strcmp(token, MSG_MOTORS) == 0)
     {
         // setPWM()
@@ -160,6 +219,7 @@ int process_string(char *in)
         // will depend
         return 1;
     }
+    // TX messages are from the SBC, meant to be transmitted on LORA to the GS
     else if (strcmp(token, MSG_TX) == 0)
     {
         // transmit over UART
@@ -184,11 +244,11 @@ int main()
 
     configure_UART_GPS();
 
-    status = configure_PWM();
+    // status = configure_PWM();
 
     // configure status LED
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+    // gpio_init(LED_PIN);
+    // gpio_set_dir(LED_PIN, GPIO_OUT);
 
     // spin
     while (1)
@@ -207,7 +267,7 @@ int main()
                 idx = 0;    // reset index
                 // printf("This is the string I received: %s\n", in_string);
                 
-                status = process_string(in_string);
+                status = handle_input(in_string);
                 if (!status)
                 {
                     printf("Failed to process string: %s\n", in_string);
