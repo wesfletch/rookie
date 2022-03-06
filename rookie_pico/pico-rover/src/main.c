@@ -1,46 +1,4 @@
-// general includes
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-// hardware includes
-#include "pico/stdlib.h"
-#include "hardware/uart.h"
-#include "hardware/irq.h"
-#include "hardware/i2c.h"
-#include "hardware/pwm.h"
-
-// define UART connection
-#define UART_ID     uart0
-#define BAUD_RATE   9600
-#define DATA_BITS   8
-#define STOP_BITS   1
-#define PARITY      UART_PARITY_NONE
-
-// We are using pins 0 and 1, but see the GPIO function select table in the
-// datasheet for information on which other pins can be used.
-#define UART_TX_PIN 0
-#define UART_RX_PIN 1
-#define PWM_1_PIN   16
-#define PWM_2_PIN   17
-
-// for string parsing
-#define ENDSTDIN	255 // NULL
-#define NL          10  // NEWLINE
-#define CR		    13  // CARRIAGE RETURN
-
-// message definitions
-static const char * MSG_MOTORS = "$MOTORS\0";     // command for motor controller
-static const char * MSG_TX     = "$TX\0";         // transmit a string on the LoRa
-static const char * MSG_CMD    = "$CMD\0";        // generic command
-static const char * MSG_REQ    = "$REQ\0";        // a request for data update, new rate, etc...
-static const char * MSG_ACK    = "$ACK\0";        // an acknowledgement that a message was received
-
-// for later
-typedef struct MESSAGE {
-    uint32_t timestamp;
-    char *msg;
-} MESSAGE;
+#include "../include/definitions.h"
 
 // function defs
 int handle_input(char *in);
@@ -52,13 +10,11 @@ const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 // expected freq.: 
 void on_UART_GPS_rx() 
 {
-    // gpio_put(LED_PIN, 1);
-
-    char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183)
+    char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183) + 1 for termination (\0)
     int idx = 0;
-    while (uart_is_readable(UART_ID)) 
+    while (uart_is_readable(UART_ID_GPS)) 
     {
-        uint8_t ch = uart_getc(UART_ID);
+        uint8_t ch = uart_getc(UART_ID_GPS);
         while (ch != ENDSTDIN)
         {
             buffer[idx++] = ch;
@@ -72,37 +28,41 @@ void on_UART_GPS_rx()
                 
                 break;
             }
-            ch = uart_getc(UART_ID);
+            ch = uart_getc(UART_ID_GPS);
 
         }
-        printf("%s", buffer);
+        // don't send empty buffers
+        if (strlen(buffer) > 1)
+        {
+            printf("$GPS %s\n", buffer);
+        }
     }
 }
 
 // RX interrupt for LORA over UART
 // BLOCKING
 // expected freq.: as needed
-void on_UART_LORA_rx()
-{
-    // larger than the max size of a LoRa transmission
-    char buffer[255];
+// void on_UART_LORA_rx()
+// {
+//     // larger than the max size of a LoRa transmission
+//     char buffer[255];
     
-    // 0 if no bytes available, otherwise the size
-    int size = uart_is_readable(UART_ID);
-    if (size)
-    {
-        // make sure to completely read the UART before allowing interrupts
-        uart_read_blocking(UART_ID, buffer, size);
-        printf("Received this buffer from LORA: %s\n", buffer);
-        handle_input(buffer);
-    }
-}
+//     // 0 if no bytes available, otherwise the size
+//     int size = uart_is_readable(UART_ID);
+//     if (size)
+//     {
+//         // make sure to completely read the UART before allowing interrupts
+//         uart_read_blocking(UART_ID, buffer, size);
+//         printf("Received this buffer from LORA: %s\n", buffer);
+//         handle_input(buffer);
+//     }
+// }
 
 // initialize a UART to handle our GPS
 void configure_UART_GPS()
 {
     // Set up our UART with the baudrate defined in NEO-6 datasheet
-    uart_init(UART_ID, BAUD_RATE);
+    uart_init(UART_ID_GPS, BAUD_RATE_GPS);
 
     // Set the TX and RX pins by using the function select on the GPIO
     // Set datasheet for more information on function select
@@ -110,25 +70,25 @@ void configure_UART_GPS()
     gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
 
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
-    uart_set_hw_flow(UART_ID, false, false);
+    uart_set_hw_flow(UART_ID_GPS, false, false);
 
     // Set our data format
-    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+    uart_set_format(UART_ID_GPS, DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS);
 
     // Turn off FIFO's - we want to do this character by character
-    uart_set_fifo_enabled(UART_ID, false);
+    uart_set_fifo_enabled(UART_ID_GPS, false);
 
     // Set up a RX interrupt
     // We need to set up the handler first
     // Select correct interrupt for the UART we are using
-    int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
+    int UART_IRQ = UART_ID_GPS == uart0 ? UART0_IRQ : UART1_IRQ;
 
     // And set up and enable the interrupt handlers
     irq_set_exclusive_handler(UART_IRQ, on_UART_GPS_rx);
     irq_set_enabled(UART_IRQ, true);
 
     // Now enable the UART to send interrupts - RX only
-    uart_set_irq_enables(UART_ID, true, false);
+    uart_set_irq_enables(UART_ID_GPS, true, false);
 }
 
 int configure_PWM()
@@ -165,16 +125,16 @@ void setPWM()
 // provided a string to be transmitted, sends it over LORA (via UART connection)
 // string must end w/ \r\n
 // BLOCKING
-void LORA_tx(char *tx, int buffer_size)
-{
-    // wait for TX fifo to be empty
-    uart_tx_wait_blocking(UART_ID);
+// void LORA_tx(char *tx, int buffer_size)
+// {
+//     // wait for TX fifo to be empty
+//     uart_tx_wait_blocking(UART_ID);
 
-    if (uart_is_writable(UART_ID))
-    {
-        uart_write_blocking(UART_ID, tx, buffer_size);
-    }
-}
+//     if (uart_is_writable(UART_ID))
+//     {
+//         uart_write_blocking(UART_ID, tx, buffer_size);
+//     }
+// }
 
 // process a given string, dispatch based on contents
 int handle_input(char *in)

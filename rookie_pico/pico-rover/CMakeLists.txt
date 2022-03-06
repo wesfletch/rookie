@@ -1,5 +1,9 @@
+# set header paths
+set(HEADERS include/definitions.h)
+
 add_executable(rover_peri
-        rover_peri.c
+        ${HEADERS}      # include headers defined above
+        src/main.c
         )
 
 # pull in common dependencies and additional uart hardware support
