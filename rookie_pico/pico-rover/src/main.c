@@ -58,37 +58,41 @@ void on_UART_GPS_rx()
 //     }
 // }
 
-// initialize a UART to handle our GPS
-void configure_UART_GPS()
+int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN)
 {
-    // Set up our UART with the baudrate defined in NEO-6 datasheet
-    uart_init(UART_ID_GPS, BAUD_RATE_GPS);
+    int status;
+
+    // Set up our UART with provided UART_ID and BAUDRATE
+    status = uart_init(UART_ID, BAUDRATE);
+    if (!status) { return 0; }
 
     // Set the TX and RX pins by using the function select on the GPIO
-    // Set datasheet for more information on function select
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    // See datasheet for more information on function select
+    gpio_set_function(TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(RX_PIN, GPIO_FUNC_UART);
 
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
-    uart_set_hw_flow(UART_ID_GPS, false, false);
+    uart_set_hw_flow(UART_ID, false, false);
 
     // Set our data format
-    uart_set_format(UART_ID_GPS, DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS);
+    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
 
     // Turn off FIFO's - we want to do this character by character
-    uart_set_fifo_enabled(UART_ID_GPS, false);
+    uart_set_fifo_enabled(UART_ID, false);
 
     // Set up a RX interrupt
     // We need to set up the handler first
     // Select correct interrupt for the UART we are using
-    int UART_IRQ = UART_ID_GPS == uart0 ? UART0_IRQ : UART1_IRQ;
+    int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
     // And set up and enable the interrupt handlers
-    irq_set_exclusive_handler(UART_IRQ, on_UART_GPS_rx);
+    irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
     irq_set_enabled(UART_IRQ, true);
 
     // Now enable the UART to send interrupts - RX only
-    uart_set_irq_enables(UART_ID_GPS, true, false);
+    uart_set_irq_enables(UART_ID, true, false);
+
+    return 1;
 }
 
 int configure_PWM()
@@ -200,10 +204,31 @@ int main()
     char in_string[255];
     char out_string[255];
 
-    int status = 0;
+    int status;
 
-    configure_UART_GPS();
+    // configure UART for GPS
+    status = configure_UART(UART_ID_GPS,
+                            BAUD_RATE_GPS,
+                            UART_TX_PIN_GPS, UART_RX_PIN_GPS,
+                            DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
+                            on_UART_GPS_rx);
+    if (!status)
+    {
+        printf("$ERR Failed to initialize UART for GPS.");
+        return EXIT_FAILURE;
+    }
 
+    // configure UART for GPS
+    status = configure_UART(UART_ID_LORA,
+                            BAUD_RATE_LORA,
+                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
+                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
+                            on_UART_LORA_rx);
+    if (!status)
+    {
+        printf("$ERR Failed to initialize UART for LoRa.");
+        return EXIT_FAILURE;
+    }
     // status = configure_PWM();
 
     // configure status LED
