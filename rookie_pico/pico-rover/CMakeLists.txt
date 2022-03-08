@@ -1,14 +1,21 @@
 # set header paths
-set(HEADERS include/definitions.h)
+# set(HEADERS include/definitions.h)
+include_directories(include)
 
 add_executable(rover_peri
-        ${HEADERS}      # include headers defined above
+        # ${HEADERS}      # include headers defined above
+        include/main.h
+        include/comms.h
+        include/definitions.h
         src/main.c
+        src/comms.c
         )
 
 # pull in common dependencies and additional uart hardware support
 target_link_libraries(rover_peri 
-        pico_stdlib 
+        pico_stdlib
+        pico_multicore
+        pico_sync 
         hardware_uart
         hardware_i2c
         hardware_pwm
