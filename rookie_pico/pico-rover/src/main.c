@@ -6,8 +6,10 @@ int handle_input(char *in);
 static int chars_rxed = 0;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
-// RX interrupt for GPS over UART
-// expected freq.: 
+/**
+ * @brief RX interrupt for GPS over UART, blocks until message is terminated
+ * 
+ */
 void on_UART_GPS_rx() 
 {
     char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183) + 1 for termination (\0)
@@ -39,25 +41,39 @@ void on_UART_GPS_rx()
     }
 }
 
-// RX interrupt for LORA over UART
-// BLOCKING
-// expected freq.: as needed
-// void on_UART_LORA_rx()
-// {
-//     // larger than the max size of a LoRa transmission
-//     char buffer[255];
+/**
+ * @brief RX interrupt for LORA over UART, blocks until message is terminated
+ * 
+ */
+void on_UART_LORA_rx()
+{
+    // // larger than the max size of a LoRa transmission
+    // char buffer[255];
     
-//     // 0 if no bytes available, otherwise the size
-//     int size = uart_is_readable(UART_ID);
-//     if (size)
-//     {
-//         // make sure to completely read the UART before allowing interrupts
-//         uart_read_blocking(UART_ID, buffer, size);
-//         printf("Received this buffer from LORA: %s\n", buffer);
-//         handle_input(buffer);
-//     }
+    // // 0 if no bytes available, otherwise the size
+    // int size = uart_is_readable(UART_ID);
+    // if (size)
+// {
+    //     // make sure to completely read the UART before allowing interrupts
+    //     uart_read_blocking(UART_ID, buffer, size);
+    //     printf("Received this buffer from LORA: %s\n", buffer);
+    //     handle_input(buffer);
 // }
+}
 
+/**
+ * @brief Configures a UART with the given parameters (convenience function)
+ * 
+ * @param UART_ID   which UART (uart0, uart1) to use
+ * @param BAUDRATE  baudrate
+ * @param TX_PIN    UART TX pin
+ * @param RX_PIN    UART RX pin
+ * @param DATA_BITS databits
+ * @param STOP_BITS stopbits
+ * @param PARITY    parity
+ * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
+ * @return status 
+ */
 int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN)
 {
     int status;
@@ -140,7 +156,12 @@ void setPWM()
 //     }
 // }
 
-// process a given string, dispatch based on contents
+/**
+ * @brief   process a given string, dispatch based on contents
+ * 
+ * @param in the input string
+ * @return status of input handling
+ */
 int handle_input(char *in)
 {
     // for tokenizing input string
@@ -194,6 +215,11 @@ int handle_input(char *in)
     return 0;
 }
 
+/**
+ * @brief Program entrypoint.
+ * 
+ * @return int 
+ */
 int main() 
 {
     stdio_init_all();
