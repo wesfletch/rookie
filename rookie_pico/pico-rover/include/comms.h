@@ -29,4 +29,11 @@ typedef struct STATE
 
 } STATE;
 
+// function prototypes
+void protocol(STATE *state, char *in, char *out);
+void transmit(char *tx, int buffer_size);
+int parseMessage(char *in);
+void comm_run();
+
+
 #endif
