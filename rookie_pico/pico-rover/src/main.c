@@ -102,20 +102,17 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
 {
     int status;
 
-    printf("UART CONFIG 1\n");
 
     // Set up our UART with provided UART_ID and BAUDRATE
     status = uart_init(UART_ID, BAUDRATE);
     if (!status) { return 0; }
 
-    printf("UART CONFIG 2\n");
 
     // Set the TX and RX pins by using the function select on the GPIO
     // See datasheet for more information on function select
     gpio_set_function(TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(RX_PIN, GPIO_FUNC_UART);
 
-    printf("UART CONFIG 3\n");
 
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
     uart_set_hw_flow(UART_ID, false, false);
@@ -126,7 +123,6 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
     // Turn off FIFO's - we want to do this character by character
     // uart_set_fifo_enabled(UART_ID, false);
 
-    printf("UART CONFIG 4\n");
 
     if (useIRQ)
     {
@@ -143,7 +139,6 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
         uart_set_irq_enables(UART_ID, true, false);
     }
 
-    printf("UART CONFIG 5\n");
 
     return 1;
 }
@@ -262,25 +257,22 @@ int main()
 
     sleep_ms(2000);
 
-    printf("FUCK 1\n");
 
     // configure UART for GPS
-    status = configure_UART(UART_ID_GPS,
-                            BAUD_RATE_GPS,
-                            UART_TX_PIN_GPS, UART_RX_PIN_GPS,
-                            DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
-                            on_UART_GPS_rx, 1);
-    if (!status)
-    {
-        printf("$ERR Failed to initialize UART for GPS.");
-        return EXIT_FAILURE;
-    }
+    // status = configure_UART(UART_ID_GPS,
+    //                         BAUD_RATE_GPS,
+    //                         UART_TX_PIN_GPS, UART_RX_PIN_GPS,
+    //                         DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
+    //                         on_UART_GPS_rx, 1);
+    // if (!status)
+    // {
+    //     printf("$ERR Failed to initialize UART for GPS.");
+    //     return EXIT_FAILURE;
+    // }
     
-    printf("FUCK 2\n");
 
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
-    printf("FUCK 3\n");
 
     // status = configure_PWM();
 

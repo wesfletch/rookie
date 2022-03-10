@@ -12,6 +12,8 @@
 #ifndef COMMS_H
 #define COMMS_H
 
+#define GS_ADDRESS 101
+
 typedef enum COMM_STATE {
     CLOSED,
     SYNSENT,
@@ -31,7 +33,7 @@ typedef struct STATE
 
 // function prototypes
 void protocol(STATE *state, char *in, char *out);
-void transmit(char *tx, int buffer_size);
+void write(char *tx, int buffer_size);
 int parseMessage(char *in);
 void comm_run();
 

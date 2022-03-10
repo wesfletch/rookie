@@ -61,9 +61,9 @@ int parseMessage(char *in)
 
 }
 
-void transmit(char *tx, int buffer_size)
+void write(char *tx, int buffer_size)
 {
-    printf("TRANSMIT(): %s\n\n", tx);
+    printf("TRANSMIT(): %s", tx);
 
     // wait for TX fifo to be empty
     uart_tx_wait_blocking(UART_ID_LORA);
@@ -75,40 +75,33 @@ void transmit(char *tx, int buffer_size)
 
 }
 
-int transmit_and_wait(char *tx, int buffer_size, char *compare)
-{
-    char rx_buffer[LORA_SIZE];
+void read(char *buffer) {
     char ch;
-    int idx;
-
-    transmit(tx, buffer_size);
-
-    if (uart_is_readable_within_us(UART_ID_LORA, 1000000))
-    {
-        ch = uart_getc(UART_ID_LORA);
-        while (ch != ENDSTDIN)
-        {
-            rx_buffer[idx++] = ch;
-
-            // if the string ends or we run out of space, we're done with this string
-            if (ch == CR || ch == NL || idx == (sizeof(rx_buffer)-1))
-            {
-                rx_buffer[idx] = 0; // terminate the string
-                idx = 0;    // reset index
-                break;
-            }
-
-            ch = uart_getc(UART_ID_LORA);
-        }
-        printf("TRANSMIT_AND_WAIT() RESPONSE: %s\n", rx_buffer);
-
-        sleep_ms(100);
+    int i = 0;
+    // zero the rx buffer
+    memset(buffer, 0, sizeof(buffer));
+    while(uart_is_readable_within_us(UART_ID_LORA, 1000000) && ch != '\n') {
+        buffer[i++] = uart_getc(UART_ID_LORA);
     }
-
-    return (strcmp(rx_buffer, compare) == 0);
-
+    buffer[i] = '\0';
+    printf("%s", buffer);
 }
 
+void initLora(char* rx_buffer) {
+    int status;
+    // clear rx fifo
+    read(rx_buffer);
+    // set network ID
+    write("AT+NETWORKID=5\r\n", 16);
+    read(rx_buffer);
+    status = strcmp(rx_buffer, "+OK\r\n");
+    // set rover address
+    write("AT+ADDRESS=102\r\n", 16);
+    read(rx_buffer);
+    status = strcmp(rx_buffer, "+OK\r\n");
+    // error check
+    if (status) printf("Error\n");
+}
 
 /**
  * @brief 
@@ -124,8 +117,6 @@ void comm_run()
     int idx = 0;
     int status;
 
-    sleep_ms(5000);
-
     // initialize the communication instance
     STATE state = {CLOSED, 0, 0};
 
@@ -140,67 +131,15 @@ void comm_run()
         printf("$ERR Failed to initialize UART for LoRa.");
         // return EXIT_FAILURE;
     }
+    // configure LoRa
+    initLora(rx_buffer);
 
-    // configure network ID LoRa
-    strcpy(tx_buffer, "AT+NETWORKID=5\n");
-    status = transmit_and_wait(tx_buffer, strlen(tx_buffer), "+OK\r\n");
-    if (!status)
+    while (1)
     {
-        printf("$ERR asn'asw mgfaw 1\n");
+        // poll rx fifo
+        read(rx_buffer);
+        if(*rx_buffer) {
+            //protocol(&state, rx_buffer, tx_buffer);
+        } else printf("0");
     }
-
-    // configure LoRa address
-    strcpy(tx_buffer, "AT+ADDRESS=102\n");
-    status = transmit_and_wait(tx_buffer, strlen(tx_buffer), "+OK\r\n");
-    if (!status)
-    {
-        printf("$ERR asn'asw mgfaw 2\n");
-    }
-
-    // while (1)
-    // {
-    //     // sleep_ms(1000);
-    //     // tight_loop_contents();
-    //     // if we have data to read, read it
-
-    //     if (!uart_is_readable(UART_ID_LORA))
-    //     {
-    //         continue;
-    //     }
-    //     ch = uart_getc(UART_ID_LORA);
-    //     while (ch != ENDSTDIN)
-    //     {
-    //         rx_buffer[idx++] = ch;
-
-    //         // if the string ends or we run out of space, we're done with this string
-    //         if (ch == CR || ch == NL || idx == (sizeof(rx_buffer)-1))
-    //         {
-    //             rx_buffer[idx] = 0; // terminate the string
-    //             idx = 0;    // reset index
-    //             // printf("This is the string I received: %s\n", rx_buffer);
-                
-    //             // status = protocol(rx_buffer);
-    //             // if (!status)
-    //             // {
-    //             //     printf("Failed to process string: %s\n", rx_buffer);
-    //             // }
-    //             break;
-    //         }
-
-    //         ch = uart_getc(UART_ID_LORA);
-    //     }
-    //     if (strlen(rx_buffer) >= 1)
-    //     {
-    //         // printf("$LRA %s\n", rx_buffer);
-    //         // protocol(&state, rx_buffer, tx_buffer);
-
-    //         printf("HERE IS THE RX BUFFER, JOSHUA: %s\n", rx_buffer);
-    //         // sleep_ms(100);
-
-    //         // transmit(tx_buffer, strlen(tx_buffer));
-    //     }
-
-    //     // transmit(TX, strlen(TX));
-
-    // }
 }
