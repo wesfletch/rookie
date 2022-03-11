@@ -20,6 +20,7 @@
 // hardware includes
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
+#include "pico/util/queue.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 #include "hardware/i2c.h"
@@ -36,6 +37,8 @@ int configure_PWM();
 void setPWM();
 
 int handle_input(char *in);
+
+extern queue_t data_queue;
 
 #endif
 

@@ -56,6 +56,7 @@ void protocol(STATE *state, char *in, char *out)
                 strcpy(out, "ACK");
             } else if (strcmp(flag, "COM") == 0) {
                 // send data to core 0
+                if(queue_try_add(&data_queue, in)) printf("CORE 1: DATA SENT\n");
                 strcpy(out, "ACK");
             }
             break;
@@ -142,12 +143,12 @@ void write(char *tx, int buffer_size)
 
 }
 
-void read(char *buffer) {
+void read(char *buffer, int timeout) {
     char ch;
     int i = 0;
     // zero the rx buffer
     memset(buffer, 0, sizeof(buffer));
-    while(uart_is_readable_within_us(UART_ID_LORA, 1000000) && ch != '\n') {
+    while(uart_is_readable_within_us(UART_ID_LORA, timeout) && ch != '\n') {
         buffer[i++] = uart_getc(UART_ID_LORA);
     }
     buffer[i] = '\0';
@@ -164,15 +165,15 @@ void msgTx(STATE *state, char *out) {
 
 void initLora(char *rx_buffer) {
     int status;
-    // clear rx fifo
-    read(rx_buffer);
+    // flush rx fifo
+    read(rx_buffer, 1000000);
     // set network ID
     write("AT+NETWORKID=5\r\n", 16);
-    read(rx_buffer);
+    read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
     // set rover address
     write("AT+ADDRESS=102\r\n", 16);
-    read(rx_buffer);
+    read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
     // error check
     if (status) printf("Error\n");
@@ -191,6 +192,7 @@ void comm_run()
     char ch;
     int idx = 0;
     int status;
+    absolute_time_t timer;
 
     // initialize the communication instance
     STATE state = {CLOSED, 0, 0};
@@ -208,20 +210,31 @@ void comm_run()
     }
     // configure LoRa
     initLora(rx_buffer);
-
+    
     while (1)
     {
         // poll rx fifo
-        read(rx_buffer);
+        read(rx_buffer, 1000);
         // discard "+OK" messages
         if(strcmp(rx_buffer, "+OK\r\n") == 0) continue;
-        // process received messages
+        // check for valid data
         if(*rx_buffer || state.state == CLOSED) {
             protocol(&state, rx_buffer, tx_buffer);
-            if(*tx_buffer) msgTx(&state, tx_buffer);
+            // check if there is something to send
+            if(*tx_buffer) {
+                // send message
+                msgTx(&state, tx_buffer);
+                // start timeout timer
+                timer = make_timeout_time_ms(5000);
+            }
         } else {
-            // timeout
-            //msgTx(&state, tx_buffer);
+            // check for timeout
+            if(time_reached(timer)) {
+                // retransmit last message
+                msgTx(&state, tx_buffer);
+                // restart timer
+                timer = make_timeout_time_ms(5000);
+            }
         }
     }
 }
