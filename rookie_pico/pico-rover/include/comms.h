@@ -12,14 +12,10 @@
 #ifndef COMMS_H
 #define COMMS_H
 
-#define GS_ADDRESS 101
-
 typedef enum COMM_STATE {
     CLOSED,
     SYNSENT,
     ESTABLISHED,
-    CLOSEWAIT,
-    FIN,
     LASTACK
 } COMM_STATE;
 
@@ -35,7 +31,7 @@ typedef struct STATE
 void protocol(STATE *state, char *in, char *out);
 void write(char *tx, int buffer_size);
 int parseMessage(char *in);
+int parseData(STATE *state, char *in, char *flag);
 void comm_run();
-
 
 #endif
