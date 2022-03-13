@@ -88,8 +88,12 @@ int parseData(STATE *state, char *in, char *flag) {
     char *token;
     // get GS seq num
     token = strtok(in, delim);
+    // set rover ack num
+    state->ack = atoi(token) + 1;
     // get GS ack num
     token = strtok(NULL, delim);
+    // set rover seq num
+    state->seq = atoi(token);
     // get flag
     token = strtok(NULL, delim);
     printf("Flag: %s\n", token);
