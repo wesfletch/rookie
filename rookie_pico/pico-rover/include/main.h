@@ -26,12 +26,9 @@
 #include "hardware/i2c.h"
 #include "hardware/pwm.h"
 
-#include "../include/definitions.h"
-#include "../include/comms.h"
-
 void on_UART_GPS_rx();
 void on_UART_LORA_rx();
-int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ);
+// int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ);
 
 int configure_PWM();
 void setPWM();
