@@ -7,8 +7,12 @@ add_executable(rover_peri
         include/main.h
         include/comms.h
         include/definitions.h
+        include/motors.h
+        include/config.h
         src/main.c
         src/comms.c
+        src/motors.c
+        src/config.c
         )
 
 # pull in common dependencies and additional uart hardware support
@@ -19,6 +23,7 @@ target_link_libraries(rover_peri
         hardware_uart
         hardware_i2c
         hardware_pwm
+        hardware_gpio
         )
 
 # enable usb output, disable uart output
