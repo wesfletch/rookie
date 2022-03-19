@@ -1,4 +1,8 @@
 #include "main.h"
+#include "../include/definitions.h"
+#include "../include/comms.h"
+#include "../include/motors.h"
+#include "../include/config.h"
 
 queue_t receive_queue;
 queue_t transmit_queue;
@@ -88,99 +92,60 @@ void on_UART_LORA_rx()
 
 }
 
-/**
- * @brief Configures a UART with the given parameters (convenience function)
- * 
- * @param UART_ID   which UART (uart0, uart1) to use
- * @param BAUDRATE  baudrate
- * @param TX_PIN    UART TX pin
- * @param RX_PIN    UART RX pin
- * @param DATA_BITS databits
- * @param STOP_BITS stopbits
- * @param PARITY    parity
- * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
- * @return status 
- */
-int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ)
-{
-    int status;
+// /**
+//  * @brief Configures a UART with the given parameters (convenience function)
+//  * 
+//  * @param UART_ID   which UART (uart0, uart1) to use
+//  * @param BAUDRATE  baudrate
+//  * @param TX_PIN    UART TX pin
+//  * @param RX_PIN    UART RX pin
+//  * @param DATA_BITS databits
+//  * @param STOP_BITS stopbits
+//  * @param PARITY    parity
+//  * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
+//  * @return status 
+//  */
+// int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ)
+// {
+//     int status;
 
 
-    // Set up our UART with provided UART_ID and BAUDRATE
-    status = uart_init(UART_ID, BAUDRATE);
-    if (!status) { return 0; }
+//     // Set up our UART with provided UART_ID and BAUDRATE
+//     status = uart_init(UART_ID, BAUDRATE);
+//     if (!status) { return 0; }
 
 
-    // Set the TX and RX pins by using the function select on the GPIO
-    // See datasheet for more information on function select
-    gpio_set_function(TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(RX_PIN, GPIO_FUNC_UART);
+//     // Set the TX and RX pins by using the function select on the GPIO
+//     // See datasheet for more information on function select
+//     gpio_set_function(TX_PIN, GPIO_FUNC_UART);
+//     gpio_set_function(RX_PIN, GPIO_FUNC_UART);
 
+//     // Set UART flow control CTS/RTS, we don't want these, so turn them off
+//     uart_set_hw_flow(UART_ID, false, false);
 
-    // Set UART flow control CTS/RTS, we don't want these, so turn them off
-    uart_set_hw_flow(UART_ID, false, false);
+//     // Set our data format
+//     uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
 
-    // Set our data format
-    uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
+//     // Turn off FIFO's - we want to do this character by character
+//     // uart_set_fifo_enabled(UART_ID, false);
 
-    // Turn off FIFO's - we want to do this character by character
-    // uart_set_fifo_enabled(UART_ID, false);
+//     if (useIRQ)
+//     {
+//         // Set up a RX interrupt
+//         // We need to set up the handler first
+//         // Select correct interrupt for the UART we are using
+//         int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
-
-    if (useIRQ)
-    {
-        // Set up a RX interrupt
-        // We need to set up the handler first
-        // Select correct interrupt for the UART we are using
-        int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
-
-        // And set up and enable the interrupt handlers
-        irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
-        irq_set_enabled(UART_IRQ, true);
+//         // And set up and enable the interrupt handlers
+//         irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
+//         irq_set_enabled(UART_IRQ, true);
         
-        // Now enable the UART to send interrupts - RX only
-        uart_set_irq_enables(UART_ID, true, false);
-    }
+//         // Now enable the UART to send interrupts - RX only
+//         uart_set_irq_enables(UART_ID, true, false);
+//     }
 
-
-    return 1;
-}
-
-/**
- * @brief 
- * 
- * @return int 
- */
-int configure_PWM()
-{
-    // configure pins for PWM
-    gpio_set_function(PWM_1_PIN, GPIO_FUNC_PWM);
-    gpio_set_function(PWM_2_PIN, GPIO_FUNC_PWM);
-
-    uint slice1 = pwm_gpio_to_slice_num(PWM_1_PIN);
-    uint slice2 = pwm_gpio_to_slice_num(PWM_2_PIN);
-    if (slice1 != slice2)
-    {
-        printf("ERROR: PWM slice mismatch, slice1: %d, slice2: %d", slice1, slice2);
-        return -1;
-    }
-
-    // set "wrap": number of cycles for each pulse
-    pwm_set_wrap(slice1, 100);
-
-    // start PWMs at 50 = STOP
-    pwm_set_chan_level(slice1, PWM_CHAN_A, 50);     // right
-    pwm_set_chan_level(slice1, PWM_CHAN_B, 50);     // left
-
-    // set the PWM running
-    pwm_set_enabled(slice1, true);
-
-    return 1;
-}
-
-void setPWM()
-{
-}
+//     return 1;
+// }
 
 /**
  * @brief   process a given string, dispatch based on contents
@@ -219,7 +184,7 @@ int handle_input(char *in)
         printf("$CMD %s\n", token);
         return 1;
     }
-    // MOTOR messages are used for PWM commands through the Pico
+    // MTR messages are used for PWM commands through the Pico
     else if (strcmp(token, MSG_MOTORS) == 0)
     {
         // setPWM()
@@ -262,7 +227,6 @@ int main()
 
     sleep_ms(2000);
 
-
     // configure UART for GPS
     // status = configure_UART(UART_ID_GPS,
     //                         BAUD_RATE_GPS,
@@ -279,21 +243,38 @@ int main()
     queue_init(&transmit_queue, LORA_SIZE, 5);
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
+    // configure UART for LORA
+    status = configure_UART(UART_ID_LORA,
+                            BAUD_RATE_LORA,
+                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
+                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
+                            on_UART_LORA_rx, 0);
+    if (!status)
+    {
+        printf("$ERR Failed to initialize UART for LoRa.");
+        // return EXIT_FAILURE;
+    }
 
-    // status = configure_PWM();
+    status = configure_PWM();
 
+    // configure encoder interrupts
+    // gpio_set_irq_enabled_with_callback(20, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &right_enc_callback);
+    // gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
     // configure status LED
     // gpio_init(LED_PIN);
     // gpio_set_dir(LED_PIN, GPIO_OUT);
 
-
+    set_PWM(true, 65, false, 0);
+    
     // spin
     while (1)
     {
-        // print any data from core 1
+        sleep_ms(100);
+      
         if(queue_try_remove(&receive_queue, received_data)) printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
         if(queue_try_add(&transmit_queue, sent_data)) printf("CORE 0 SENT DATA\n"); 
         // attempt to read char from stdin
+
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);
         while (ch != ENDSTDIN)
@@ -305,7 +286,6 @@ int main()
             {
                 in_string[idx] = 0; // terminate the string
                 idx = 0;    // reset index
-                // printf("This is the string I received: %s\n", in_string);
                 
                 status = handle_input(in_string);
                 if (!status)
@@ -318,6 +298,6 @@ int main()
             ch = getchar_timeout_us(0);
         }
 
-        // tight_loop_contents();
+        tight_loop_contents();
     }
 }

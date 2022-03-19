@@ -27,6 +27,18 @@ typedef struct STATE
 
 } STATE;
 
+// define UART connection for GPS
+#define UART_ID_LORA        uart1
+#define BAUD_RATE_LORA      115200
+#define DATA_BITS_LORA      8
+#define STOP_BITS_LORA      1
+#define PARITY_LORA         UART_PARITY_NONE
+#define UART_TX_PIN_LORA    4
+#define UART_RX_PIN_LORA    5
+
+#define LORA_SIZE   240
+#define GS_ADDRESS  101
+
 // function prototypes
 void protocol(STATE *state, char *in, char *out);
 void write(char *tx, int buffer_size);

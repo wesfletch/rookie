@@ -1,7 +1,25 @@
 #include "../include/comms.h"
-#include "../include/main.h"
+
+// general includes
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// hardware includes
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "pico/util/queue.h"
+#include "hardware/uart.h"
+#include "hardware/irq.h"
+#include "hardware/i2c.h"
+#include "hardware/pwm.h"
+
+// #include "../include/main.h"
 
 // #include "pico/mutex.h"
+
+queue_t data_queue;
+
 
 /**  @brief  Steps through the communication protocol using input string and current state COMMS_STATE
  *   @param  state the STATE for this communication instance
@@ -207,17 +225,17 @@ void comm_run()
     // initialize the communication instance
     STATE state = {CLOSED, 0, 0};
 
-    // configure UART for LORA
-    status = configure_UART(UART_ID_LORA,
-                            BAUD_RATE_LORA,
-                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
-                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
-                            on_UART_LORA_rx, 0);
-    if (!status)
-    {
-        printf("$ERR Failed to initialize UART for LoRa.");
-        // return EXIT_FAILURE;
-    }
+    // // configure UART for LORA
+    // status = configure_UART(UART_ID_LORA,
+    //                         BAUD_RATE_LORA,
+    //                         UART_TX_PIN_LORA, UART_RX_PIN_LORA,
+    //                         DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
+    //                         on_UART_LORA_rx, 0);
+    // if (!status)
+    // {
+    //     printf("$ERR Failed to initialize UART for LoRa.");
+    //     // return EXIT_FAILURE;
+    // }
     // configure LoRa
     initLora(rx_buffer);
     
