@@ -30,6 +30,7 @@ void protocol(STATE *state, char *in, char *out)
 {
     int status;
     char flag[4];
+    char data[LORA_SIZE];
     // clear flag
     memset(flag, 0, sizeof(flag));
 
@@ -70,12 +71,15 @@ void protocol(STATE *state, char *in, char *out)
                 strcpy(out, "FIN");
                 state->state++;
             } else if (strcmp(flag, "ACK") == 0) {
-                // send telemetry
+                //if(queue_try_add(&receive_queue, in)) printf("CORE 1: SENT DATA\n");
                 strcpy(out, "ACK");
+                if(queue_try_remove(&transmit_queue, data)) printf("CORE 1: RECEIVED DATA: %s\n", data);
+                strcat(strcat(out, " "), data);
             } else if (strcmp(flag, "COM") == 0) {
-                // send data to core 0
-                if(queue_try_add(&data_queue, in)) printf("CORE 1: DATA SENT\n");
+                if(queue_try_add(&receive_queue, in)) printf("CORE 1: SENT DATA\n");
                 strcpy(out, "ACK");
+                if(queue_try_remove(&transmit_queue, data)) printf("CORE 1: RECEIVED DATA: %s\n", data);
+                strcat(strcat(out, " "), data);
             }
             break;
         case LASTACK:
@@ -104,6 +108,7 @@ void protocol(STATE *state, char *in, char *out)
 int parseData(STATE *state, char *in, char *flag) {
     char *delim = " ";
     char *token;
+    char data[LORA_SIZE];
     // get GS seq num
     token = strtok(in, delim);
     // set rover ack num
@@ -122,12 +127,13 @@ int parseData(STATE *state, char *in, char *flag) {
         return 0;
     }
     // if there is data, get it
-    token = strtok(NULL, delim);
+    token = strtok(NULL, "\r");
     // check if data is valid
     if(token) {
         printf("Data: %s\n", token);
         strcpy(in, token);
-    } 
+    }
+
     return 1;
 }
 
