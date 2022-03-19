@@ -1,6 +1,7 @@
 #include "main.h"
 
-queue_t data_queue;
+queue_t receive_queue;
+queue_t transmit_queue;
 
 // /**
 //  * @brief RX interrupt for GPS over UART, blocks until message is terminated
@@ -254,7 +255,8 @@ int main()
     int idx;
     char in_string[255];
     char out_string[255];
-    char data[LORA_SIZE];
+    char received_data[LORA_SIZE];
+    char sent_data[LORA_SIZE] = "data";
 
     int status;
 
@@ -273,7 +275,8 @@ int main()
     //     return EXIT_FAILURE;
     // }
     
-    queue_init(&data_queue, LORA_SIZE, 5);
+    queue_init(&receive_queue, LORA_SIZE, 5);
+    queue_init(&transmit_queue, LORA_SIZE, 5);
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
 
@@ -288,7 +291,8 @@ int main()
     while (1)
     {
         // print any data from core 1
-        if(queue_try_remove(&data_queue, data)) printf("\nCORE 0 DATA: %s\n", data); 
+        if(queue_try_remove(&receive_queue, received_data)) printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
+        if(queue_try_add(&transmit_queue, sent_data)) printf("CORE 0 SENT DATA\n"); 
         // attempt to read char from stdin
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);
