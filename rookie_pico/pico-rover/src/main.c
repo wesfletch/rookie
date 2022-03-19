@@ -1,16 +1,13 @@
-#include "../include/definitions.h"
+#include "main.h"
 
-// function defs
-int handle_input(char *in);
+queue_t receive_queue;
+queue_t transmit_queue;
 
-static int chars_rxed = 0;
-const uint LED_PIN = PICO_DEFAULT_LED_PIN;
-
-/**
- * @brief RX interrupt for GPS over UART, blocks until message is terminated
- * 
- */
-void on_UART_GPS_rx() 
+// /**
+//  * @brief RX interrupt for GPS over UART, blocks until message is terminated
+//  * 
+//  */
+void on_UART_GPS_rx()
 {
     char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183) + 1 for termination (\0)
     int idx = 0;
@@ -36,7 +33,7 @@ void on_UART_GPS_rx()
         // don't send empty buffers
         if (strlen(buffer) > 1)
         {
-            printf("$GPS %s\n", buffer);
+            // printf("$GPS %s\n", buffer);
         }
     }
 }
@@ -48,17 +45,47 @@ void on_UART_GPS_rx()
 void on_UART_LORA_rx()
 {
     // // larger than the max size of a LoRa transmission
-    // char buffer[255];
+    char buffer[255];
+    int idx = 0;
+    int status;
+    char ch;
     
-    // // 0 if no bytes available, otherwise the size
-    // int size = uart_is_readable(UART_ID);
+    // 0 if no bytes available, otherwise the size
+    // int size = uart_is_readable(UART_ID_LORA);
+    // printf("THIS IS THE SIZE I GOT RIGHT HERE, JOSH: %d\n", size);
     // if (size)
-// {
+    // {
     //     // make sure to completely read the UART before allowing interrupts
-    //     uart_read_blocking(UART_ID, buffer, size);
+    //     uart_read_blocking(UART_ID_LORA, buffer, LORA_SIZE);
     //     printf("Received this buffer from LORA: %s\n", buffer);
     //     handle_input(buffer);
-// }
+    // }
+    // printf("$LRA %s\n", buffer);
+
+    ch = getchar_timeout_us(0);
+    while (ch != ENDSTDIN)
+        {
+            buffer[idx++] = ch;
+
+            // if the string ends or we run out of space, we're done with this string
+            if (ch == CR || ch == NL || idx == (sizeof(buffer)-1))
+            {
+                buffer[idx] = 0; // terminate the string
+                idx = 0;    // reset index
+                // printf("This is the string I received: %s\n", buffer);
+                
+                status = handle_input(buffer);
+                if (!status)
+                {
+                    printf("Failed to process string: %s\n", buffer);
+                }
+                break;
+            }
+
+            ch = getchar_timeout_us(0);
+    }
+    // printf("$LRA %s\n", buffer);
+
 }
 
 /**
@@ -74,18 +101,21 @@ void on_UART_LORA_rx()
  * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
  * @return status 
  */
-int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN)
+int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ)
 {
     int status;
+
 
     // Set up our UART with provided UART_ID and BAUDRATE
     status = uart_init(UART_ID, BAUDRATE);
     if (!status) { return 0; }
 
+
     // Set the TX and RX pins by using the function select on the GPIO
     // See datasheet for more information on function select
     gpio_set_function(TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(RX_PIN, GPIO_FUNC_UART);
+
 
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
     uart_set_hw_flow(UART_ID, false, false);
@@ -94,23 +124,33 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
     uart_set_format(UART_ID, DATA_BITS, STOP_BITS, PARITY);
 
     // Turn off FIFO's - we want to do this character by character
-    uart_set_fifo_enabled(UART_ID, false);
+    // uart_set_fifo_enabled(UART_ID, false);
 
-    // Set up a RX interrupt
-    // We need to set up the handler first
-    // Select correct interrupt for the UART we are using
-    int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
-    // And set up and enable the interrupt handlers
-    irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
-    irq_set_enabled(UART_IRQ, true);
+    if (useIRQ)
+    {
+        // Set up a RX interrupt
+        // We need to set up the handler first
+        // Select correct interrupt for the UART we are using
+        int UART_IRQ = UART_ID == uart0 ? UART0_IRQ : UART1_IRQ;
 
-    // Now enable the UART to send interrupts - RX only
-    uart_set_irq_enables(UART_ID, true, false);
+        // And set up and enable the interrupt handlers
+        irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
+        irq_set_enabled(UART_IRQ, true);
+        
+        // Now enable the UART to send interrupts - RX only
+        uart_set_irq_enables(UART_ID, true, false);
+    }
+
 
     return 1;
 }
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
 int configure_PWM()
 {
     // configure pins for PWM
@@ -129,8 +169,8 @@ int configure_PWM()
     pwm_set_wrap(slice1, 100);
 
     // start PWMs at 50 = STOP
-    pwm_set_chan_level(slice1, PWM_CHAN_A, 75);     // right
-    pwm_set_chan_level(slice1, PWM_CHAN_B, 25);     // left
+    pwm_set_chan_level(slice1, PWM_CHAN_A, 50);     // right
+    pwm_set_chan_level(slice1, PWM_CHAN_B, 50);     // left
 
     // set the PWM running
     pwm_set_enabled(slice1, true);
@@ -141,20 +181,6 @@ int configure_PWM()
 void setPWM()
 {
 }
-
-// provided a string to be transmitted, sends it over LORA (via UART connection)
-// string must end w/ \r\n
-// BLOCKING
-// void LORA_tx(char *tx, int buffer_size)
-// {
-//     // wait for TX fifo to be empty
-//     uart_tx_wait_blocking(UART_ID);
-
-//     if (uart_is_writable(UART_ID))
-//     {
-//         uart_write_blocking(UART_ID, tx, buffer_size);
-//     }
-// }
 
 /**
  * @brief   process a given string, dispatch based on contents
@@ -229,41 +255,44 @@ int main()
     int idx;
     char in_string[255];
     char out_string[255];
+    char received_data[LORA_SIZE];
+    char sent_data[LORA_SIZE] = "data";
 
     int status;
 
-    // configure UART for GPS
-    status = configure_UART(UART_ID_GPS,
-                            BAUD_RATE_GPS,
-                            UART_TX_PIN_GPS, UART_RX_PIN_GPS,
-                            DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
-                            on_UART_GPS_rx);
-    if (!status)
-    {
-        printf("$ERR Failed to initialize UART for GPS.");
-        return EXIT_FAILURE;
-    }
+    sleep_ms(2000);
+
 
     // configure UART for GPS
-    status = configure_UART(UART_ID_LORA,
-                            BAUD_RATE_LORA,
-                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
-                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
-                            on_UART_LORA_rx);
-    if (!status)
-    {
-        printf("$ERR Failed to initialize UART for LoRa.");
-        return EXIT_FAILURE;
-    }
+    // status = configure_UART(UART_ID_GPS,
+    //                         BAUD_RATE_GPS,
+    //                         UART_TX_PIN_GPS, UART_RX_PIN_GPS,
+    //                         DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
+    //                         on_UART_GPS_rx, 1);
+    // if (!status)
+    // {
+    //     printf("$ERR Failed to initialize UART for GPS.");
+    //     return EXIT_FAILURE;
+    // }
+    
+    queue_init(&receive_queue, LORA_SIZE, 5);
+    queue_init(&transmit_queue, LORA_SIZE, 5);
+    multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
+
+
     // status = configure_PWM();
 
     // configure status LED
     // gpio_init(LED_PIN);
     // gpio_set_dir(LED_PIN, GPIO_OUT);
 
+
     // spin
     while (1)
     {
+        // print any data from core 1
+        if(queue_try_remove(&receive_queue, received_data)) printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
+        if(queue_try_add(&transmit_queue, sent_data)) printf("CORE 0 SENT DATA\n"); 
         // attempt to read char from stdin
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);
@@ -289,7 +318,6 @@ int main()
             ch = getchar_timeout_us(0);
         }
 
-
-        tight_loop_contents();
+        // tight_loop_contents();
     }
 }

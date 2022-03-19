@@ -39,6 +39,7 @@ static const char * MSG_REQ    = "$REQ\0";      // a request for data update, ne
 static const char * MSG_ACK    = "$ACK\0";      // an acknowledgement that a message was received
 // message buffer sizes
 #define NMEA_SIZE   83
-#define LORA_SIZE   260
+#define LORA_SIZE   240
+#define GS_ADDRESS  101
 
 #endif
