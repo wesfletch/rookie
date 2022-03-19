@@ -237,25 +237,25 @@ int main()
     //     return EXIT_FAILURE;
     // }
     
-    // queue_init(&data_queue, LORA_SIZE, 5);
-    // multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
+    queue_init(&data_queue, LORA_SIZE, 5);
+    multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
     // configure UART for LORA
-    // status = configure_UART(UART_ID_LORA,
-    //                         BAUD_RATE_LORA,
-    //                         UART_TX_PIN_LORA, UART_RX_PIN_LORA,
-    //                         DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
-    //                         on_UART_LORA_rx, 0);
-    // if (!status)
-    // {
-    //     printf("$ERR Failed to initialize UART for LoRa.");
-    //     // return EXIT_FAILURE;
-    // }
+    status = configure_UART(UART_ID_LORA,
+                            BAUD_RATE_LORA,
+                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
+                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
+                            on_UART_LORA_rx, 0);
+    if (!status)
+    {
+        printf("$ERR Failed to initialize UART for LoRa.");
+        // return EXIT_FAILURE;
+    }
 
     status = configure_PWM();
 
     // configure encoder interrupts
-    gpio_set_irq_enabled_with_callback(20, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &right_enc_callback);
+    // gpio_set_irq_enabled_with_callback(20, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &right_enc_callback);
     // gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
     // configure status LED
     // gpio_init(LED_PIN);
@@ -267,37 +267,36 @@ int main()
     while (1)
     {
         sleep_ms(100);
-        printf("counter: %lld\n", getEncCounter());
 
-        // // print any data from core 1
-        // if (queue_try_remove(&data_queue, data))
-        // {
-        //     printf("\nCORE 0 DATA: %s\n", data);
-        // } 
+        // print any data from core 1
+        if (queue_try_remove(&data_queue, data))
+        {
+            printf("\nCORE 0 DATA: %s\n", data);
+        } 
             
-        // // attempt to read char from stdin (serial)
-        // // no timeout makes it non-blocking
-        // ch = getchar_timeout_us(0);
-        // while (ch != ENDSTDIN)
-        // {
-        //     in_string[idx++] = ch;
+        // attempt to read char from stdin (serial)
+        // no timeout makes it non-blocking
+        ch = getchar_timeout_us(0);
+        while (ch != ENDSTDIN)
+        {
+            in_string[idx++] = ch;
 
-        //     // if the string ends or we run out of space, we're done with this string
-        //     if (ch == CR || ch == NL || idx == (sizeof(in_string)-1))
-        //     {
-        //         in_string[idx] = 0; // terminate the string
-        //         idx = 0;    // reset index
+            // if the string ends or we run out of space, we're done with this string
+            if (ch == CR || ch == NL || idx == (sizeof(in_string)-1))
+            {
+                in_string[idx] = 0; // terminate the string
+                idx = 0;    // reset index
                 
-        //         status = handle_input(in_string);
-        //         if (!status)
-        //         {
-        //             printf("Failed to process string: %s\n", in_string);
-        //         }
-        //         break;
-        //     }
+                status = handle_input(in_string);
+                if (!status)
+                {
+                    printf("Failed to process string: %s\n", in_string);
+                }
+                break;
+            }
 
-        //     ch = getchar_timeout_us(0);
-        // }
+            ch = getchar_timeout_us(0);
+        }
 
         tight_loop_contents();
     }
