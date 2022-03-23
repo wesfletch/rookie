@@ -4,19 +4,18 @@
 #include "../include/motors.h"
 #include "../include/config.h"
 
-queue_t receive_queue;
-queue_t transmit_queue;
-
 // /**
 //  * @brief RX interrupt for GPS over UART, blocks until message is terminated
 //  * 
 //  */
 void on_UART_GPS_rx()
 {
+    // printf("HERE");
     char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183) + 1 for termination (\0)
     int idx = 0;
     while (uart_is_readable(UART_ID_GPS)) 
     {
+        // printf("HERE 2");
         uint8_t ch = uart_getc(UART_ID_GPS);
         while (ch != ENDSTDIN)
         {
@@ -34,12 +33,15 @@ void on_UART_GPS_rx()
             ch = uart_getc(UART_ID_GPS);
 
         }
+        // printf("HERE 3");
         // don't send empty buffers
         if (strlen(buffer) > 1)
         {
-            // printf("$GPS %s\n", buffer);
+            printf("$GPS %s\n", buffer);
         }
     }
+
+    // printf("HERE 4");
 }
 
 /**
@@ -163,7 +165,7 @@ int handle_input(char *in)
 
     // tokenize string (strtok modifies the original string)
     token = strtok(in, delim);
-    printf("Got this as first token: %s\n", token);
+    // printf("Got this as first token: %s\n", token);
 
     // "switch" on first token == message type
     // ACK messages are used for confirmation that sent data was received
@@ -176,10 +178,10 @@ int handle_input(char *in)
         printf("Got an ACK message. SEQ: %d\n", seq);
         return 1;
     }
-    // CMD messages come from the GS, are to be passed up to the SBC
+    // CMD messages come from the GS, are to be passed up to the SBC with printf
     else if (strcmp(token, MSG_CMD) == 0)
     {        
-        token = strtok(NULL, delim);
+        token = strtok(NULL, "");
         // to avoid having to copy the string, just re-adding '$CMD' manually
         printf("$CMD %s\n", token);
         return 1;
@@ -215,6 +217,9 @@ int main()
 {
     stdio_init_all();
 
+    // queue_t receive_queue;
+    // queue_t transmit_queue;
+
     // STDIN/STDOUT IO
     char ch;
     int idx;
@@ -223,22 +228,25 @@ int main()
     char received_data[LORA_SIZE];
     char sent_data[LORA_SIZE] = "data";
 
+
     int status;
 
     sleep_ms(2000);
 
     // configure UART for GPS
-    // status = configure_UART(UART_ID_GPS,
-    //                         BAUD_RATE_GPS,
-    //                         UART_TX_PIN_GPS, UART_RX_PIN_GPS,
-    //                         DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
-    //                         on_UART_GPS_rx, 1);
-    // if (!status)
-    // {
-    //     printf("$ERR Failed to initialize UART for GPS.");
-    //     return EXIT_FAILURE;
-    // }
+    status = configure_UART(UART_ID_GPS,
+                            BAUD_RATE_GPS,
+                            UART_TX_PIN_GPS, UART_RX_PIN_GPS,
+                            DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
+                            on_UART_GPS_rx, 1);
+    if (!status)
+    {
+        printf("$ERR Failed to initialize UART for GPS.");
+        return EXIT_FAILURE;
+    }
     
+    printf("FUCK");
+
     queue_init(&receive_queue, LORA_SIZE, 5);
     queue_init(&transmit_queue, LORA_SIZE, 5);
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
@@ -252,10 +260,10 @@ int main()
     if (!status)
     {
         printf("$ERR Failed to initialize UART for LoRa.");
-        // return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
-    status = configure_PWM();
+    // status = configure_PWM();
 
     // configure encoder interrupts
     // gpio_set_irq_enabled_with_callback(20, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &right_enc_callback);
@@ -264,17 +272,27 @@ int main()
     // gpio_init(LED_PIN);
     // gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    set_PWM(true, 65, false, 0);
+    // set_PWM(true, 65, false, 0);
     
     // spin
     while (1)
     {
-        sleep_ms(100);
-      
-        if(queue_try_remove(&receive_queue, received_data)) printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
-        if(queue_try_add(&transmit_queue, sent_data)) printf("CORE 0 SENT DATA\n"); 
-        // attempt to read char from stdin
+        // sleep_ms(100);
+        // printf("I'M ALIVE...\n");
+        if (queue_try_remove(&receive_queue, received_data)) 
+        {
+            // everything from CORE 1 is a $CMD
+            printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
+            char cmd[LORA_SIZE] = "$CMD ";
+            strcat(cmd, received_data);
+            handle_input(cmd);
+        }
+        if (queue_try_add(&transmit_queue, sent_data)) 
+        {
+            printf("CORE 0 SENT DATA\n"); 
+        }
 
+        // attempt to read char from stdin
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);
         while (ch != ENDSTDIN)
@@ -298,6 +316,7 @@ int main()
             ch = getchar_timeout_us(0);
         }
 
-        tight_loop_contents();
+        // sleep_ms(10);
+        // tight_loop_contents();
     }
 }

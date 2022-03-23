@@ -12,6 +12,8 @@
 #ifndef COMMS_H
 #define COMMS_H
 
+#include "pico/util/queue.h"
+
 typedef enum COMM_STATE {
     CLOSED,
     SYNSENT,
@@ -27,7 +29,7 @@ typedef struct STATE
 
 } STATE;
 
-// define UART connection for GPS
+// define UART connection for LORA
 #define UART_ID_LORA        uart1
 #define BAUD_RATE_LORA      115200
 #define DATA_BITS_LORA      8
@@ -45,5 +47,8 @@ void write(char *tx, int buffer_size);
 int parseMessage(char *in);
 int parseData(STATE *state, char *in, char *flag);
 void comm_run();
+
+queue_t receive_queue;
+queue_t transmit_queue;
 
 #endif

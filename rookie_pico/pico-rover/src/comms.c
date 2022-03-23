@@ -1,3 +1,14 @@
+/**
+ * @file comms.c
+ * @author NOT Wesley Fletcher (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-19
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "../include/comms.h"
 
 // general includes
@@ -29,8 +40,9 @@ queue_t data_queue;
 void protocol(STATE *state, char *in, char *out)
 {
     int status;
-    char flag[4];
+    char flag[5];
     char data[LORA_SIZE];
+
     // clear flag
     memset(flag, 0, sizeof(flag));
 
@@ -75,7 +87,7 @@ void protocol(STATE *state, char *in, char *out)
                 strcpy(out, "ACK");
                 if(queue_try_remove(&transmit_queue, data)) printf("CORE 1: RECEIVED DATA: %s\n", data);
                 strcat(strcat(out, " "), data);
-            } else if (strcmp(flag, "COM") == 0) {
+            } else if (strcmp(flag, "$CMD") == 0) {
                 if(queue_try_add(&receive_queue, in)) printf("CORE 1: SENT DATA\n");
                 strcpy(out, "ACK");
                 if(queue_try_remove(&transmit_queue, data)) printf("CORE 1: RECEIVED DATA: %s\n", data);
@@ -85,13 +97,13 @@ void protocol(STATE *state, char *in, char *out)
         case LASTACK:
             status = parseMessage(in);
             if(!status) {
-                printf("$ERR failed to parse message: %s", in);
-                exit(-1);
+                printf("$ERR failed to parse message: %s\n", in);
+                // exit(-1);
             }
             status = parseData(state, in, flag);
             if(!status) {
-                printf("$ERR failed to parse data: %s", in);
-                exit(-1);
+                printf("$ERR failed to parse data: %s\n", in);
+                // exit(-1);
             }
             if(strcmp(flag, "ACK") == 0) {
                 printf("\nConnection successfully terminated\n");
@@ -105,10 +117,12 @@ void protocol(STATE *state, char *in, char *out)
     }
 }
 
-int parseData(STATE *state, char *in, char *flag) {
+int parseData(STATE *state, char *in, char *flag) 
+{
     char *delim = " ";
     char *token;
     char data[LORA_SIZE];
+    
     // get GS seq num
     token = strtok(in, delim);
     // set rover ack num
@@ -117,20 +131,26 @@ int parseData(STATE *state, char *in, char *flag) {
     token = strtok(NULL, delim);
     // set rover seq num
     state->seq = atoi(token);
+    
     // get flag
     token = strtok(NULL, delim);
-    printf("Flag: %s\n", token);
+    // printf("Flag: %s\n", token);
     // check if flag is valid
-    if(*token) {
+    if(*token) 
+    {
         strcpy(flag, token);
-    } else {
+    } 
+    else 
+    {
         return 0;
     }
+
     // if there is data, get it
     token = strtok(NULL, "\r");
     // check if data is valid
-    if(token) {
-        printf("Data: %s\n", token);
+    if (token) 
+    {
+        // printf("Data: %s\n", token);
         strcpy(in, token);
     }
 
@@ -145,21 +165,27 @@ int parseMessage(char *in)
     
     token = strtok(in, delim);
     // check for RCV
-    if (strcmp(token, "+RCV") == 0) {
+    if (strcmp(token, "+RCV") == 0) 
+    {
         // get to third index == DATA
-        for(int i = 0; i < 3; i++) token = strtok(NULL, delim);
-        printf("Token: %s\n", token);
+        for(int i = 0; i < 3; i++) 
+            token = strtok(NULL, delim);
+        // printf("Token: %s\n", token);
         // check if data is valid, then update input
-        if(*token) strcpy(in, token);
-    } else {
+        if(*token) 
+            strcpy(in, token);
+    } 
+    else 
+    {
         return 0;
     }
+    
     return 1;
 }
 
 void write(char *tx, int buffer_size)
 {
-    printf("TX: %s", tx);
+    // printf("TX: %s", tx);
 
     // wait for TX fifo to be empty
     uart_tx_wait_blocking(UART_ID_LORA);
@@ -171,19 +197,26 @@ void write(char *tx, int buffer_size)
 
 }
 
-void read(char *buffer, int timeout) {
+void read(char *buffer, int timeout) 
+{
     char ch;
     int i = 0;
+    
     // zero the rx buffer
     memset(buffer, 0, sizeof(buffer));
-    while(uart_is_readable_within_us(UART_ID_LORA, timeout) && ch != '\n') {
+
+    while(uart_is_readable_within_us(UART_ID_LORA, timeout) && ch != '\n') 
+    {
         buffer[i++] = uart_getc(UART_ID_LORA);
     }
     buffer[i] = '\0';
-    if(*buffer) printf("%s", buffer);
+    
+    // if(*buffer) 
+    //     printf("%s", buffer);
 }
 
-void msgTx(STATE *state, char *out) {
+void msgTx(STATE *state, char *out) 
+{
     char data[LORA_SIZE]; 
     char msg[260]; 
     snprintf(data, sizeof(data), "%d %d %s", state->seq, state->ack, out);
@@ -192,19 +225,30 @@ void msgTx(STATE *state, char *out) {
 }
 
 void initLora(char *rx_buffer) {
-    int status;
+    
+    int status = 0;
+    
     // flush rx fifo
     read(rx_buffer, 1000000);
+    
     // set network ID
     write("AT+NETWORKID=5\r\n", 16);
     read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
+    if (status)
+    {
+        printf("$ERR failed to configure LoRa NETWORK ID\n");
+    }
+    
     // set rover address
     write("AT+ADDRESS=102\r\n", 16);
     read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
-    // error check
-    if (status) printf("Error\n");
+    if (status)
+    {
+        printf("$ERR failed to configure LoRa ADDRESS\n");
+    }
+    
 }
 
 /**
@@ -240,12 +284,12 @@ void comm_run()
     initLora(rx_buffer);
     
     while (1)
-    {
+    { 
         // poll rx fifo
         read(rx_buffer, 1000);
         // discard "+OK" messages
         if(strcmp(rx_buffer, "+OK\r\n") == 0) continue;
-        // check for valid data
+        // check for validdata
         if(*rx_buffer || state.state == CLOSED) {
             protocol(&state, rx_buffer, tx_buffer);
             // check if there is something to send
