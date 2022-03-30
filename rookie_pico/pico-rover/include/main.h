@@ -35,9 +35,6 @@ void setPWM();
 
 int handle_input(char *in);
 
-// extern queue_t receive_queue;
-// extern queue_t transmit_queue;
-
 #endif
 
 

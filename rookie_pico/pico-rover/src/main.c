@@ -226,29 +226,27 @@ int main()
     char in_string[255];
     char out_string[255];
     char received_data[LORA_SIZE];
-    char sent_data[LORA_SIZE] = "data";
+    char sent_data[LORA_SIZE] = "10 10";
 
+    queue_init(&receive_queue, LORA_SIZE, 5);
+    queue_init(&transmit_queue, LORA_SIZE, 5);
 
     int status;
 
     sleep_ms(2000);
 
-    // configure UART for GPS
-    status = configure_UART(UART_ID_GPS,
-                            BAUD_RATE_GPS,
-                            UART_TX_PIN_GPS, UART_RX_PIN_GPS,
-                            DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
-                            on_UART_GPS_rx, 1);
-    if (!status)
-    {
-        printf("$ERR Failed to initialize UART for GPS.");
-        return EXIT_FAILURE;
-    }
+    // // configure UART for GPS
+    // status = configure_UART(UART_ID_GPS,
+    //                         BAUD_RATE_GPS,
+    //                         UART_TX_PIN_GPS, UART_RX_PIN_GPS,
+    //                         DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
+    //                         on_UART_GPS_rx, 1);
+    // if (!status)
+    // {
+    //     printf("$ERR Failed to initialize UART for GPS.");
+    //     return EXIT_FAILURE;
+    // }
     
-    printf("FUCK");
-
-    queue_init(&receive_queue, LORA_SIZE, 5);
-    queue_init(&transmit_queue, LORA_SIZE, 5);
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
     // configure UART for LORA
@@ -277,7 +275,6 @@ int main()
     // spin
     while (1)
     {
-        // sleep_ms(100);
         // printf("I'M ALIVE...\n");
         if (queue_try_remove(&receive_queue, received_data)) 
         {
@@ -291,7 +288,6 @@ int main()
         {
             printf("CORE 0 SENT DATA\n"); 
         }
-
         // attempt to read char from stdin
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);
