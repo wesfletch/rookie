@@ -128,6 +128,10 @@ int handle_input(char *in)
 
     int seq;
 
+    // for $MTR commands
+    bool dir1, dir2;
+    int8_t pwm1, pwm2;
+
     // tokenize string (strtok modifies the original string)
     token = strtok(in, delim);
     // printf("Got this as first token: %s\n", token);
