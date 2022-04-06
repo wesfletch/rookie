@@ -4,19 +4,19 @@
 #include "../include/motors.h"
 #include "../include/config.h"
 
-// /**
-//  * @brief RX interrupt for GPS over UART, blocks until message is terminated
-//  * 
-//  */
+/**
+ * @brief RX interrupt for GPS over UART, blocks until message is terminated
+ * 
+ */
 void on_UART_GPS_rx()
 {
     // printf("HERE");
     char buffer[83];    // max size of NMEA sentence is 82 bytes (according to NMEA-0183) + 1 for termination (\0)
     int idx = 0;
-    while (uart_is_readable(UART_ID_GPS)) 
+    while (uart_is_readable(UART_ID_GPS)) // TODO: replace with timeout version?
     {
         // printf("HERE 2");
-        uint8_t ch = uart_getc(UART_ID_GPS);
+        uint8_t ch = uart_getc(UART_ID_GPS); 
         while (ch != ENDSTDIN)
         {
             buffer[idx++] = ch;
