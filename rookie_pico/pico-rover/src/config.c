@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <stdlib.h>
+
 /**
  * @brief Configures a UART with the given parameters (convenience function)
  * 
@@ -17,11 +19,9 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
 {
     int status;
 
-
     // Set up our UART with provided UART_ID and BAUDRATE
     status = uart_init(UART_ID, BAUDRATE);
-    if (!status) { return 0; }
-
+    // if (!status) { return EXIT_FAILURE; }
 
     // Set the TX and RX pins by using the function select on the GPIO
     // See datasheet for more information on function select
@@ -52,5 +52,5 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
         uart_set_irq_enables(UART_ID, true, false);
     }
 
-    return 1;
+    return EXIT_SUCCESS;
 }
