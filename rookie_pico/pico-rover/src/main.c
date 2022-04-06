@@ -207,8 +207,6 @@ int main()
     char out_string[255];
     char received_data[LORA_SIZE];
     char sent_data[LORA_SIZE] = "data";
-
-
     int status;
 
     sleep_ms(2000);
