@@ -101,7 +101,7 @@ void on_UART_LORA_rx()
                 // printf("This is the string I received: %s\n", buffer);
                 
                 status = handle_input(buffer);
-                if (!status)
+                if (status)
                 {
                     printf("Failed to process string: %s\n", buffer);
                 }
@@ -231,15 +231,10 @@ int main()
     queue_init(&transmit_queue, LORA_SIZE, 5);
     multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
 
-    // configure UART for LORA
-    status = configure_UART(UART_ID_LORA,
-                            BAUD_RATE_LORA,
-                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
-                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
-                            on_UART_LORA_rx, 0);
-    if (!status)
+    status = configure_PWM();
+    if (status)
     {
-        printf("$ERR Failed to initialize UART for LoRa.");
+        printf("$ERR Failed to configure PWM.\n");
         return EXIT_FAILURE;
     }
 
@@ -286,9 +281,9 @@ int main()
                 idx = 0;    // reset index
                 
                 status = handle_input(in_string);
-                if (!status)
+                if (status)
                 {
-                    printf("Failed to process string: %s\n", in_string);
+                    printf("$ERR Failed to process string: %s\n", in_string);
                 }
                 break;
             }
