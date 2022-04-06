@@ -43,13 +43,13 @@ typedef struct STATE
 
 // function prototypes
 void protocol(STATE *state, char *in, char *out);
-void write(char *tx, int buffer_size);
+void write(char *tx);
 int parseMessage(char *in);
 int parseData(STATE *state, char *in, char *flag);
 int initLora(char *rx_buffer);
 void comm_run();
 
-queue_t receive_queue;
-queue_t transmit_queue;
+extern queue_t receive_queue;
+extern queue_t transmit_queue;
 
 #endif

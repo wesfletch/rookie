@@ -275,7 +275,6 @@ int main()
         {
             printf("$ERR Failed to add data to transmit queue: %s\n", sent_data); 
         }
-
         // attempt to read char from stdin
         // no timeout makes it non-blocking
         ch = getchar_timeout_us(0);

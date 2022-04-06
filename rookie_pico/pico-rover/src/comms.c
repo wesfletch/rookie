@@ -1,6 +1,6 @@
 /**
  * @file comms.c
- * @author NOT Wesley Fletcher (you@domain.com)
+ * @author Joshua Kissoon
  * @brief 
  * @version 0.1
  * @date 2022-03-19
@@ -19,17 +19,15 @@
 // hardware includes
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
-#include "pico/util/queue.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 #include "hardware/i2c.h"
 #include "hardware/pwm.h"
 
-// #include "../include/main.h"
-
-// #include "pico/mutex.h"
-
+// Data queues
 queue_t data_queue;
+queue_t receive_queue;
+queue_t transmit_queue;
 
 
 /**  @brief  Steps through the communication protocol using input string and current state COMMS_STATE
@@ -53,11 +51,13 @@ void protocol(STATE *state, char *in, char *out)
             state->state++;
             break;
         case SYNSENT:
+            // Parse message from ground station
             status = parseMessage(in);
             if(status) {
                 printf("$ERR failed to parse message: %s", in);
                 exit(-1);
             }
+            // Parse message payload
             status = parseData(state, in, flag);
             if(status) {
                 printf("$ERR failed to parse data: %s", in);
@@ -106,7 +106,7 @@ void protocol(STATE *state, char *in, char *out)
                 // exit(-1);
             }
             if(strcmp(flag, "ACK") == 0) {
-                printf("\nConnection successfully terminated\n");
+                printf("\nConnection terminated successfully\n");
                 sleep_ms(3000);
                 *out = '\0';
                 state->seq = 0;
@@ -117,6 +117,13 @@ void protocol(STATE *state, char *in, char *out)
     }
 }
 
+/**
+ * @brief Parses data within a message 
+ * @param state the STATE for this communication instance
+ * @param in data for protocol()
+ * @param flag communication flag
+ * @return int status; 0 = failure; 1 = success
+ */
 int parseData(STATE *state, char *in, char *flag) 
 {
     char *delim = " ";
@@ -150,13 +157,18 @@ int parseData(STATE *state, char *in, char *flag)
     // check if data is valid
     if (token) 
     {
-        // printf("Data: %s\n", token);
+        printf("Data: %s\n", token);
         strcpy(in, token);
     }
 
     return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Parses message from ground station; 
+ * @param in message for protocol()
+ * @return int status; 0 = failure; 1 = success
+ */
 int parseMessage(char *in)
 {
     // for tokenizing input string
@@ -183,9 +195,13 @@ int parseMessage(char *in)
     return EXIT_SUCCESS;
 }
 
-void write(char *tx, int buffer_size)
+/**
+ * @brief Sends rover telemetry to ground station by writing to LoRa's UART pins
+ * @param tx message to be sent
+ */
+void write(char *tx)
 {
-    // printf("TX: %s", tx);
+    printf("TX: %s", tx);
 
     // wait for TX fifo to be empty
     uart_tx_wait_blocking(UART_ID_LORA);
@@ -217,20 +233,29 @@ void read(char *buffer, int timeout)
     }
     buffer[i] = '\0';
     
-    // if(*buffer) 
-    //     printf("%s", buffer);
+    if(*buffer) 
+        printf("%s", buffer);
 }
 
+/**
+ * @brief Constructs a sendable message, then sends it to the ground station
+ * @param state the STATE for this communication instance
+ * @param out data to be sent
+ */
 void msgTx(STATE *state, char *out) 
 {
     char data[LORA_SIZE]; 
     char msg[260]; 
     snprintf(data, sizeof(data), "%d %d %s", state->seq, state->ack, out);
     snprintf(msg, sizeof(msg), "AT+SEND=%d,%d,%s\r\n", GS_ADDRESS, strlen(data), data);
-    write(msg, strlen(msg));
+    write(msg);
 }
 
-int initLora(char *rx_buffer) {
+/**
+ * @brief Configures LoRa parameters
+ * @param rx_buffer holds the incoming message
+ */
+void initLora(char *rx_buffer) {
     
     int status = 0;
     
@@ -238,7 +263,7 @@ int initLora(char *rx_buffer) {
     read(rx_buffer, 1000000);
     
     // set network ID
-    write("AT+NETWORKID=5\r\n", 16);
+    write("AT+NETWORKID=5\r\n");
     read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
     if (status)
@@ -248,7 +273,7 @@ int initLora(char *rx_buffer) {
     }
     
     // set rover address
-    write("AT+ADDRESS=102\r\n", 16);
+    write("AT+ADDRESS=102\r\n");
     read(rx_buffer, 1000000);
     status = strcmp(rx_buffer, "+OK\r\n");
     if (status)
@@ -261,9 +286,7 @@ int initLora(char *rx_buffer) {
 }
 
 /**
- * @brief 
- * 
- * @return int 
+ * @brief Handles communication with the ground station; runs on core 1 on Pi Pico
  */
 void comm_run()
 {
@@ -273,6 +296,7 @@ void comm_run()
     char ch;
     int idx = 0;
     int status;
+    int restart_connection = 0; 
     absolute_time_t timer;
 
     // initialize the communication instance
@@ -304,9 +328,10 @@ void comm_run()
         read(rx_buffer, 1000);
         // discard "+OK" messages
         if(strcmp(rx_buffer, "+OK\r\n") == 0) continue;
-        // check for validdata
+        // check for valid data
         if(*rx_buffer || state.state == CLOSED) {
             protocol(&state, rx_buffer, tx_buffer);
+            restart_connection = 0;
             // check if there is something to send
             if(*tx_buffer) {
                 // send message
@@ -317,10 +342,18 @@ void comm_run()
         } else {
             // check for timeout
             if(time_reached(timer)) {
-                // retransmit last message
-                msgTx(&state, tx_buffer);
-                // restart timer
-                timer = make_timeout_time_ms(5000);
+                restart_connection++;
+                if(restart_connection >= 3) {
+                    state.seq = 0;
+                    state.ack = 0;
+                    state.state = CLOSED;
+                    printf("\nConnection terminated unsuccessfully\n");
+                } else {
+                    // retransmit last message
+                    msgTx(&state, tx_buffer);
+                    // restart timer
+                    timer = make_timeout_time_ms(5000);
+                }
             }
         }
     }
