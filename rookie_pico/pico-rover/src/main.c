@@ -252,19 +252,17 @@ int main()
     // spin
     while (1)
     {
-        // sleep_ms(100);
-        // printf("I'M ALIVE...\n");
         if (queue_try_remove(&receive_queue, received_data)) 
         {
             // everything from CORE 1 is a $CMD
-            printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
+            // printf("CORE 0 RECEIVED DATA: %s\n", received_data); 
             char cmd[LORA_SIZE] = "$CMD ";
             strcat(cmd, received_data);
             handle_input(cmd);
         }
-        if (queue_try_add(&transmit_queue, sent_data)) 
+        if (!queue_try_add(&transmit_queue, sent_data)) 
         {
-            printf("CORE 0 SENT DATA\n"); 
+            printf("$ERR Failed to add data to transmit queue: %s\n", sent_data); 
         }
 
         // attempt to read char from stdin
