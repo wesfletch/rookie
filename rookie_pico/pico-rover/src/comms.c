@@ -54,12 +54,12 @@ void protocol(STATE *state, char *in, char *out)
             break;
         case SYNSENT:
             status = parseMessage(in);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse message: %s", in);
                 exit(-1);
             }
             status = parseData(state, in, flag);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse data: %s", in);
                 exit(-1);
             }
@@ -70,12 +70,12 @@ void protocol(STATE *state, char *in, char *out)
             break;
         case ESTABLISHED:
             status = parseMessage(in);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse message: %s", in);
                 exit(-1);
             }
             status = parseData(state, in, flag);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse data: %s", in);
                 exit(-1);
             }
@@ -96,12 +96,12 @@ void protocol(STATE *state, char *in, char *out)
             break;
         case LASTACK:
             status = parseMessage(in);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse message: %s\n", in);
                 // exit(-1);
             }
             status = parseData(state, in, flag);
-            if(!status) {
+            if(status) {
                 printf("$ERR failed to parse data: %s\n", in);
                 // exit(-1);
             }
@@ -136,13 +136,13 @@ int parseData(STATE *state, char *in, char *flag)
     token = strtok(NULL, delim);
     // printf("Flag: %s\n", token);
     // check if flag is valid
-    if(*token) 
+    if (*token) 
     {
         strcpy(flag, token);
     } 
     else 
     {
-        return 0;
+        return EXIT_FAILURE;
     }
 
     // if there is data, get it
@@ -154,7 +154,7 @@ int parseData(STATE *state, char *in, char *flag)
         strcpy(in, token);
     }
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 int parseMessage(char *in)
@@ -168,19 +168,19 @@ int parseMessage(char *in)
     if (strcmp(token, "+RCV") == 0) 
     {
         // get to third index == DATA
-        for(int i = 0; i < 3; i++) 
+        for (int i = 0; i < 3; i++) 
             token = strtok(NULL, delim);
         // printf("Token: %s\n", token);
         // check if data is valid, then update input
-        if(*token) 
+        if (*token) 
             strcpy(in, token);
     } 
     else 
     {
-        return 0;
+        return EXIT_FAILURE;
     }
     
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 void write(char *tx, int buffer_size)
@@ -244,6 +244,7 @@ void initLora(char *rx_buffer) {
     if (status)
     {
         printf("$ERR failed to configure LoRa NETWORK ID\n");
+        return EXIT_FAILURE;
     }
     
     // set rover address
@@ -253,8 +254,10 @@ void initLora(char *rx_buffer) {
     if (status)
     {
         printf("$ERR failed to configure LoRa ADDRESS\n");
+        return EXIT_FAILURE;
     }
-    
+
+    return EXIT_SUCCESS;
 }
 
 /**
@@ -289,6 +292,12 @@ void comm_run()
     // configure LoRa
     initLora(rx_buffer);
     
+    // configure LoRa; if we fail, just kill this whole thread
+    status = initLora(rx_buffer);
+    if (status)
+    {
+        printf("$ERR Failed to initialize LoRa. Killing LoRa core.\n");
+    }
     while (1)
     { 
         // poll rx fifo
