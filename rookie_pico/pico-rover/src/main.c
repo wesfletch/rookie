@@ -260,8 +260,6 @@ int main()
     // gpio_init(LED_PIN);
     // gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    // set_PWM(true, 65, false, 0);
-    
     // spin
     while (1)
     {
