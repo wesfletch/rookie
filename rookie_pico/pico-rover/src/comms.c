@@ -197,6 +197,12 @@ void write(char *tx, int buffer_size)
 
 }
 
+/**
+ * @brief Read from UART with timeout
+ * 
+ * @param buffer buffer where UART data is placed
+ * @param timeout timeout (in us) before giving up on reading from UART
+ */
 void read(char *buffer, int timeout) 
 {
     char ch;
