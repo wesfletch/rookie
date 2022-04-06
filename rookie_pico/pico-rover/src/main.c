@@ -44,6 +44,25 @@ void on_UART_GPS_rx()
     // printf("HERE 4");
 }
 
+static absolute_time_t tach_interrupt_stamp = 0;
+static int revolutions = 0;
+
+void tachometer_callback(uint gpio, uint32_t events)
+{
+    
+    absolute_time_t interrupt_time = get_absolute_time();
+    int64_t time_diff = absolute_time_diff_us(tach_interrupt_stamp, interrupt_time);
+
+    if (time_diff < 50000)
+    {
+        return;
+    }
+
+    printf("%lld\n", (float)time_diff / 1000000.0);
+
+    tach_interrupt_stamp = get_absolute_time();
+}
+
 /**
  * @brief RX interrupt for LORA over UART, blocks until message is terminated
  * 
