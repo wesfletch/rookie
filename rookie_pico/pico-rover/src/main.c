@@ -300,7 +300,7 @@ int main()
             ch = getchar_timeout_us(0);
         }
 
-        // sleep_ms(10);
+        sleep_ms(20);
         // tight_loop_contents();
     }
 }
