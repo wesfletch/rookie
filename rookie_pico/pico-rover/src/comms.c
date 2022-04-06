@@ -297,7 +297,9 @@ void comm_run()
     if (status)
     {
         printf("$ERR Failed to initialize LoRa. Killing LoRa core.\n");
+        return;
     }
+    
     while (1)
     { 
         // poll rx fifo
