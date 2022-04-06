@@ -118,7 +118,7 @@ void on_UART_LORA_rx()
  * @brief   process a given string, dispatch based on contents
  * 
  * @param in the input string
- * @return status of input handling
+ * @return status of input handling (EXIT_SUCCESS/EXIT_FAILURE)
  */
 int handle_input(char *in)
 {
@@ -145,7 +145,7 @@ int handle_input(char *in)
         printf("Next token: %s", token);
         seq = atoi(token);
         printf("Got an ACK message. SEQ: %d\n", seq);
-        return 1;
+        return EXIT_SUCCESS;
     }
     // CMD messages come from the GS, are to be passed up to the SBC with printf
     else if (strcmp(token, MSG_CMD) == 0)
@@ -153,7 +153,7 @@ int handle_input(char *in)
         token = strtok(NULL, "");
         // to avoid having to copy the string, just re-adding '$CMD' manually
         printf("$CMD %s\n", token);
-        return 1;
+        return EXIT_SUCCESS;
     }
     // MTR messages are used for PWM commands through the Pico
     else if (strcmp(token, MSG_MOTORS) == 0)
@@ -175,17 +175,17 @@ int handle_input(char *in)
     else if (strcmp(token, MSG_REQ) == 0)
     {
         // will depend
-        return 1;
+        return EXIT_SUCCESS;
     }
     // TX messages are from the SBC, meant to be transmitted on LORA to the GS
     else if (strcmp(token, MSG_TX) == 0)
     {
         // transmit over UART
-        return 1;
+        return EXIT_SUCCESS;
     }
 
     // something went wrong
-    return 0;
+    return EXIT_FAILURE;
 }
 
 /**
