@@ -289,8 +289,6 @@ void comm_run()
     //     printf("$ERR Failed to initialize UART for LoRa.");
     //     // return EXIT_FAILURE;
     // }
-    // configure LoRa
-    initLora(rx_buffer);
     
     // configure LoRa; if we fail, just kill this whole thread
     status = initLora(rx_buffer);
