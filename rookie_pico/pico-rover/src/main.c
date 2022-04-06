@@ -219,17 +219,29 @@ int main()
                             UART_TX_PIN_GPS, UART_RX_PIN_GPS,
                             DATA_BITS_GPS, STOP_BITS_GPS, PARITY_GPS,
                             on_UART_GPS_rx, 1);
-    if (!status)
+    if (status)
     {
-        printf("$ERR Failed to initialize UART for GPS.");
-        return EXIT_FAILURE;
+        printf("$ERR Failed to initialize UART for GPS.\n");
+        // return EXIT_FAILURE;
     }
-    
-    printf("FUCK");
 
+    // configure UART for LORA
+    status = configure_UART(UART_ID_LORA,
+                            BAUD_RATE_LORA,
+                            UART_TX_PIN_LORA, UART_RX_PIN_LORA,
+                            DATA_BITS_LORA, STOP_BITS_LORA, PARITY_LORA,
+                            on_UART_LORA_rx, 0);
+    if (status)
+    {
+        printf("$ERR Failed to initialize UART for LoRa.\n");
+        // return EXIT_FAILURE;
+    }
+
+    // init inter-core queues
     queue_init(&receive_queue, LORA_SIZE, 5);
     queue_init(&transmit_queue, LORA_SIZE, 5);
-    multicore_launch_core1(comm_run); // Start core 1 - Do this before any interrupt configuration
+    // Start core 1 - Do this before any interrupt configuration
+    multicore_launch_core1(comm_run); 
 
     status = configure_PWM();
     if (status)
