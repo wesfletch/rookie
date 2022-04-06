@@ -230,7 +230,7 @@ void msgTx(STATE *state, char *out)
     write(msg, strlen(msg));
 }
 
-void initLora(char *rx_buffer) {
+int initLora(char *rx_buffer) {
     
     int status = 0;
     
