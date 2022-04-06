@@ -46,6 +46,7 @@ void protocol(STATE *state, char *in, char *out);
 void write(char *tx, int buffer_size);
 int parseMessage(char *in);
 int parseData(STATE *state, char *in, char *flag);
+int initLora(char *rx_buffer);
 void comm_run();
 
 queue_t receive_queue;
