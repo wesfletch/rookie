@@ -248,7 +248,10 @@ int main()
         return EXIT_FAILURE;
     }
 
-    // status = configure_PWM();
+    // configure GPIO for tachometer
+    // gpio_set_function(28, GPIO_FUNC_SIO); // pin 34 == GPIO26
+    // gpio_set_dir(28, GPIO_IN);
+    // gpio_set_irq_enabled_with_callback(28, GPIO_IRQ_EDGE_FALL, true, &tachometer_callback);
 
     // configure encoder interrupts
     // gpio_set_irq_enabled_with_callback(20, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &right_enc_callback);
