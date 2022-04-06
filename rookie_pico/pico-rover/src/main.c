@@ -189,8 +189,19 @@ int handle_input(char *in)
     // MTR messages are used for PWM commands through the Pico
     else if (strcmp(token, MSG_MOTORS) == 0)
     {
-        // setPWM()
-        return 1;
+        // unpack message to vars
+        token = strtok(NULL, delim);
+        dir1 = (strcmp(token, "0") != 0);   // DIR1
+        token = strtok(NULL, delim);
+        pwm1 = atoi(token);                 // PWM1
+        token = strtok(NULL, delim);
+        dir2 = (strcmp(token, "0") != 0);   // DIR2
+        token = strtok(NULL, delim);
+        pwm2 = atoi(token);                 // PWM2
+
+        printf("DIR1: %d\nPWM1: %d\nDIR2: %d\nPWM2: %d\n", dir1, pwm1, dir2, pwm2);
+        set_PWM(dir1, pwm1, dir2, pwm2);
+        return EXIT_SUCCESS;
     }
     else if (strcmp(token, MSG_REQ) == 0)
     {
