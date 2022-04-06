@@ -255,7 +255,7 @@ void msgTx(STATE *state, char *out)
  * @brief Configures LoRa parameters
  * @param rx_buffer holds the incoming message
  */
-void initLora(char *rx_buffer) {
+int initLora(char *rx_buffer) {
     
     int status = 0;
     
