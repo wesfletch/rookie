@@ -1,2 +1,0 @@
-Invoking command in '/home/ubuntu/workspace/build/mobility_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/mobility_driver -- -j12 -l12
-Invoked command in '/home/ubuntu/workspace/build/mobility_driver' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/mobility_driver -- -j12 -l12
