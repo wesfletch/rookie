@@ -1,0 +1,5 @@
+[31mCMake Error at CMakeLists.txt:18 (add_library):
+  No SOURCES given to target: mobility_driver_lib
+
+[0m
+[0mCMake Generate step failed.  Build files cannot be regenerated correctly.[0m

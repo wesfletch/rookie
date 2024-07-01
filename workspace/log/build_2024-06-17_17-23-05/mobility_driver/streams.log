@@ -1,0 +1,39 @@
+[0.012s] Invoking command in '/home/ubuntu/workspace/build/mobility_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/mobility_driver -- -j12 -l12
+[0.077s] [ 25%] [32mBuilding CXX object CMakeFiles/mobility_driver_lib.dir/src/MobilityDriver.cpp.o[0m
+[3.885s] [ 50%] [32m[1mLinking CXX static library libmobility_driver_lib.a[0m
+[3.938s] [ 50%] Built target mobility_driver_lib
+[3.975s] [ 75%] [32mBuilding CXX object CMakeFiles/mobility_driver_node.dir/src/mobility_driver_node.cpp.o[0m
+[6.584s] [100%] [32m[1mLinking CXX executable mobility_driver_node[0m
+[6.716s] [100%] Built target mobility_driver_node
+[6.726s] Invoked command in '/home/ubuntu/workspace/build/mobility_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/mobility_driver -- -j12 -l12
+[6.749s] Invoking command in '/home/ubuntu/workspace/build/mobility_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/mobility_driver
+[6.757s] -- Install configuration: ""
+[6.757s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/include/mobility_driver
+[6.757s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/include/mobility_driver/mobility_driver
+[6.757s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/include/mobility_driver/mobility_driver/MobilityDriver.hpp
+[6.758s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/lib/libmobility_driver_lib.a
+[6.761s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/lib/mobility_driver/mobility_driver_node
+[6.764s] -- Set non-toolchain portion of runtime path of "/home/ubuntu/workspace/install/mobility_driver/lib/mobility_driver/mobility_driver_node" to ""
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/library_path.sh
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/library_path.dsv
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/ament_index/resource_index/package_run_dependencies/mobility_driver
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/ament_index/resource_index/parent_prefix_path/mobility_driver
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/ament_prefix_path.sh
+[6.764s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/ament_prefix_path.dsv
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/path.sh
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/environment/path.dsv
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/local_setup.bash
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/local_setup.sh
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/local_setup.zsh
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/local_setup.dsv
+[6.765s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/package.dsv
+[6.765s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/ament_index/resource_index/packages/mobility_driver
+[6.765s] -- Old export file "/home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/export_mobility_driverExport.cmake" will be replaced.  Removing files [/home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/export_mobility_driverExport-noconfig.cmake].
+[6.766s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/export_mobility_driverExport.cmake
+[6.766s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/export_mobility_driverExport-noconfig.cmake
+[6.766s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/ament_cmake_export_targets-extras.cmake
+[6.766s] -- Installing: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/ament_cmake_export_dependencies-extras.cmake
+[6.766s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/mobility_driverConfig.cmake
+[6.766s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/cmake/mobility_driverConfig-version.cmake
+[6.766s] -- Up-to-date: /home/ubuntu/workspace/install/mobility_driver/share/mobility_driver/package.xml
+[6.768s] Invoked command in '/home/ubuntu/workspace/build/mobility_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/mobility_driver

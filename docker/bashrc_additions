@@ -1,0 +1,4 @@
+
+source /opt/ros/${ROS_DISTRO}/setup.bash
+
+export ROS_DOMAIN_ID=55

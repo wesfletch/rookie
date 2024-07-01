@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmobility_driver_lib.a CMakeFiles/mobility_driver_lib.dir/src/MobilityDriver.cpp.o
+/usr/bin/ranlib libmobility_driver_lib.a
