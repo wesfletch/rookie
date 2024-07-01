@@ -1,6 +1,0 @@
-Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/pico/pico_interface -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/pico_interface
-Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/pico/pico_interface -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/pico_interface
-Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/pico_interface -- -j12 -l12
-Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/pico_interface -- -j12 -l12
-Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/pico_interface
-Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/pico_interface

@@ -1,4 +1,0 @@
-[31mCMake Error at CMakeLists.txt:14 (target_link_directories):
-  target_link_directories called with incorrect number of arguments
-
-[0m
