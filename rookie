@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+# set -o xtrace
+
+COMMAND="${1:-"run"}"
+
+USERNAME="ubuntu"
+CONTAINER_NAME="rookie"
+
+if [[ "${COMMAND,,:-}" == "run" ]]; then
+
+    docker run \
+        -it \
+        --rm \
+        --user "${USERNAME}" \
+        -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
+        --workdir "/home/${USERNAME}/workspace" \
+        --env "TERM=xterm-256color" \
+        "${CONTAINER_NAME}":latest
+
+elif [[ "${COMMAND,,:-}" == "build" ]]; then
+    echo "--- Building ${CONTAINER_NAME} image ---"
+    
+    pushd ./docker
+
+    docker build \
+        --tag "${CONTAINER_NAME}:latest" \
+        -f Dockerfile .
+
+    popd
+else
+    echo "What? -- ${COMMAND,,}"
+    exit 1
+fi
+
+exit 0

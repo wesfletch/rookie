@@ -1,0 +1,47 @@
+[0.006s] Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/pico/pico_interface -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/pico_interface
+[0.061s] -- The C compiler identification is GNU 13.2.0
+[0.134s] -- The CXX compiler identification is GNU 13.2.0
+[0.148s] -- Detecting C compiler ABI info
+[0.223s] -- Detecting C compiler ABI info - done
+[0.231s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.231s] -- Detecting C compile features
+[0.231s] -- Detecting C compile features - done
+[0.240s] -- Detecting CXX compiler ABI info
+[0.324s] -- Detecting CXX compiler ABI info - done
+[0.331s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.331s] -- Detecting CXX compile features
+[0.332s] -- Detecting CXX compile features - done
+[0.335s] -- Found ament_cmake: 2.6.0 (/opt/ros/rolling/share/ament_cmake/cmake)
+[0.441s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[0.526s] -- Found ament_lint_auto: 0.18.0 (/opt/ros/rolling/share/ament_lint_auto/cmake)
+[0.613s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[0.613s] -- Configured cppcheck include dirs: 
+[0.613s] -- Configured cppcheck exclude dirs and/or files: 
+[0.613s] -- Added test 'lint_cmake' to check CMake code style
+[0.614s] -- Added test 'uncrustify' to check C / C++ code style
+[0.615s] -- Configured uncrustify additional arguments: 
+[0.615s] -- Added test 'xmllint' to check XML markup files
+[0.616s] -- Configuring done (0.6s)
+[0.620s] -- Generating done (0.0s)
+[0.621s] -- Build files have been written to: /home/ubuntu/workspace/build/pico_interface
+[0.626s] Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/pico/pico_interface -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/pico_interface
+[0.627s] Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/pico_interface -- -j12 -l12
+[0.663s] Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --build /home/ubuntu/workspace/build/pico_interface -- -j12 -l12
+[0.688s] Invoking command in '/home/ubuntu/workspace/build/pico_interface': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/pico_interface
+[0.694s] -- Install configuration: ""
+[0.694s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/package_run_dependencies/pico_interface
+[0.695s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/parent_prefix_path/pico_interface
+[0.695s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/ament_prefix_path.sh
+[0.695s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/ament_prefix_path.dsv
+[0.695s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/path.sh
+[0.695s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/path.dsv
+[0.696s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.bash
+[0.696s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.sh
+[0.696s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.zsh
+[0.696s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.dsv
+[0.696s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/package.dsv
+[0.697s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/packages/pico_interface
+[0.697s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/cmake/pico_interfaceConfig.cmake
+[0.697s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/cmake/pico_interfaceConfig-version.cmake
+[0.697s] -- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/package.xml
+[0.699s] Invoked command in '/home/ubuntu/workspace/build/pico_interface' returned '0': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake --install /home/ubuntu/workspace/build/pico_interface

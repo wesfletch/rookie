@@ -1,0 +1,141 @@
+[0.000000] (-) TimerEvent: {}
+[0.000388] (mobility_driver) JobQueued: {'identifier': 'mobility_driver', 'dependencies': OrderedDict()}
+[0.000549] (pico_interface) JobQueued: {'identifier': 'pico_interface', 'dependencies': OrderedDict()}
+[0.000588] (mobility_driver) JobStarted: {'identifier': 'mobility_driver'}
+[0.006431] (pico_interface) JobStarted: {'identifier': 'pico_interface'}
+[0.010060] (mobility_driver) JobProgress: {'identifier': 'mobility_driver', 'progress': 'cmake'}
+[0.010553] (mobility_driver) JobProgress: {'identifier': 'mobility_driver', 'progress': 'build'}
+[0.011063] (mobility_driver) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ubuntu/workspace/build/mobility_driver', '--', '-j12', '-l12'], 'cwd': '/home/ubuntu/workspace/build/mobility_driver', 'env': OrderedDict({'USER': 'ubuntu', 'HOSTNAME': '5938fc9699e2', 'GIT_ASKPASS': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass.sh', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/opt/ros/rolling/lib/x86_64-linux-gnu:/opt/ros/rolling/lib', 'BROWSER': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/helpers/browser.sh', 'HOME': '/home/ubuntu', 'TERM_PROGRAM_VERSION': '1.90.0', 'VSCODE_IPC_HOOK_CLI': '/tmp/vscode-ipc-4680aa7e-c0ec-4d49-835a-a4f8b9e49ef9.sock', 'ROS_PYTHON_VERSION': '3', 'VSCODE_GIT_ASKPASS_MAIN': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass-main.js', 'VSCODE_GIT_ASKPASS_NODE': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/node', 'COLORTERM': 'truecolor', 'REMOTE_CONTAINERS': 'true', 'COLCON_PREFIX_PATH': '/home/ubuntu/workspace/install', 'ROS_DISTRO': 'rolling', 'REMOTE_CONTAINERS_IPC': '/tmp/vscode-remote-containers-ipc-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'PATH': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/remote-cli:/opt/ros/rolling/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'REMOTE_CONTAINERS_SOCKETS': '["/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock","/tmp/.X11-unix/X1","/home/ubuntu/.gnupg/S.gpg-agent"]', 'DISPLAY': ':1', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'VSCODE_GIT_IPC_HANDLE': '/tmp/vscode-git-653e6d7d24.sock', 'TERM_PROGRAM': 'vscode', 'SSH_AUTH_SOCK': '/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', 'ROS_DOMAIN_ID': '55', 'AMENT_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling', 'REMOTE_CONTAINERS_DISPLAY_SOCK': '/tmp/.X11-unix/X1', 'SHELL': '/bin/bash', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'PWD': '/home/ubuntu/workspace/build/mobility_driver', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/opt/ros/rolling/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling'}), 'shell': False}
+[0.014013] (pico_interface) JobProgress: {'identifier': 'pico_interface', 'progress': 'cmake'}
+[0.014513] (pico_interface) JobProgress: {'identifier': 'pico_interface', 'progress': 'build'}
+[0.014726] (pico_interface) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ubuntu/workspace/build/pico_interface', '--', '-j12', '-l12'], 'cwd': '/home/ubuntu/workspace/build/pico_interface', 'env': OrderedDict({'USER': 'ubuntu', 'HOSTNAME': '5938fc9699e2', 'GIT_ASKPASS': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass.sh', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/opt/ros/rolling/lib/x86_64-linux-gnu:/opt/ros/rolling/lib', 'BROWSER': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/helpers/browser.sh', 'HOME': '/home/ubuntu', 'TERM_PROGRAM_VERSION': '1.90.0', 'VSCODE_IPC_HOOK_CLI': '/tmp/vscode-ipc-4680aa7e-c0ec-4d49-835a-a4f8b9e49ef9.sock', 'ROS_PYTHON_VERSION': '3', 'VSCODE_GIT_ASKPASS_MAIN': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass-main.js', 'VSCODE_GIT_ASKPASS_NODE': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/node', 'COLORTERM': 'truecolor', 'REMOTE_CONTAINERS': 'true', 'COLCON_PREFIX_PATH': '/home/ubuntu/workspace/install', 'ROS_DISTRO': 'rolling', 'REMOTE_CONTAINERS_IPC': '/tmp/vscode-remote-containers-ipc-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'PATH': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/remote-cli:/opt/ros/rolling/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'REMOTE_CONTAINERS_SOCKETS': '["/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock","/tmp/.X11-unix/X1","/home/ubuntu/.gnupg/S.gpg-agent"]', 'DISPLAY': ':1', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'VSCODE_GIT_IPC_HANDLE': '/tmp/vscode-git-653e6d7d24.sock', 'TERM_PROGRAM': 'vscode', 'SSH_AUTH_SOCK': '/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', 'ROS_DOMAIN_ID': '55', 'AMENT_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling', 'REMOTE_CONTAINERS_DISPLAY_SOCK': '/tmp/.X11-unix/X1', 'SHELL': '/bin/bash', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'PWD': '/home/ubuntu/workspace/build/pico_interface', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/opt/ros/rolling/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling'}), 'shell': False}
+[0.048721] (pico_interface) CommandEnded: {'returncode': 0}
+[0.066032] (pico_interface) JobProgress: {'identifier': 'pico_interface', 'progress': 'install'}
+[0.073901] (pico_interface) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/ubuntu/workspace/build/pico_interface'], 'cwd': '/home/ubuntu/workspace/build/pico_interface', 'env': OrderedDict({'USER': 'ubuntu', 'HOSTNAME': '5938fc9699e2', 'GIT_ASKPASS': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass.sh', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/opt/ros/rolling/lib/x86_64-linux-gnu:/opt/ros/rolling/lib', 'BROWSER': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/helpers/browser.sh', 'HOME': '/home/ubuntu', 'TERM_PROGRAM_VERSION': '1.90.0', 'VSCODE_IPC_HOOK_CLI': '/tmp/vscode-ipc-4680aa7e-c0ec-4d49-835a-a4f8b9e49ef9.sock', 'ROS_PYTHON_VERSION': '3', 'VSCODE_GIT_ASKPASS_MAIN': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/extensions/git/dist/askpass-main.js', 'VSCODE_GIT_ASKPASS_NODE': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/node', 'COLORTERM': 'truecolor', 'REMOTE_CONTAINERS': 'true', 'COLCON_PREFIX_PATH': '/home/ubuntu/workspace/install', 'ROS_DISTRO': 'rolling', 'REMOTE_CONTAINERS_IPC': '/tmp/vscode-remote-containers-ipc-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'PATH': '/home/ubuntu/.vscode-server/bin/89de5a8d4d6205e5b11647eb6a74844ca23d2573/bin/remote-cli:/opt/ros/rolling/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'REMOTE_CONTAINERS_SOCKETS': '["/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock","/tmp/.X11-unix/X1","/home/ubuntu/.gnupg/S.gpg-agent"]', 'DISPLAY': ':1', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'VSCODE_GIT_IPC_HANDLE': '/tmp/vscode-git-653e6d7d24.sock', 'TERM_PROGRAM': 'vscode', 'SSH_AUTH_SOCK': '/tmp/vscode-ssh-auth-da95ad90-e4ab-4c2f-a3e1-409e5b4a7834.sock', 'ROS_DOMAIN_ID': '55', 'AMENT_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling', 'REMOTE_CONTAINERS_DISPLAY_SOCK': '/tmp/.X11-unix/X1', 'SHELL': '/bin/bash', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'PWD': '/home/ubuntu/workspace/build/pico_interface', 'LC_ALL': 'C.UTF-8', 'PYTHONPATH': '/opt/ros/rolling/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/home/ubuntu/workspace/install/pico_interface:/home/ubuntu/workspace/install/mobility_driver:/opt/ros/rolling'}), 'shell': False}
+[0.077495] (mobility_driver) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/mobility_driver_lib.dir/src/MobilityDriver.cpp.o\x1b[0m\n'}
+[0.079999] (pico_interface) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[0.080215] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/package_run_dependencies/pico_interface\n'}
+[0.080345] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/parent_prefix_path/pico_interface\n'}
+[0.080470] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/ament_prefix_path.sh\n'}
+[0.080630] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/ament_prefix_path.dsv\n'}
+[0.080832] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/path.sh\n'}
+[0.080918] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/environment/path.dsv\n'}
+[0.081001] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.bash\n'}
+[0.081113] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.sh\n'}
+[0.081200] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.zsh\n'}
+[0.081284] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/local_setup.dsv\n'}
+[0.081366] (pico_interface) StdoutLine: {'line': b'-- Installing: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/package.dsv\n'}
+[0.081450] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/ament_index/resource_index/packages/pico_interface\n'}
+[0.081573] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/cmake/pico_interfaceConfig.cmake\n'}
+[0.081703] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/cmake/pico_interfaceConfig-version.cmake\n'}
+[0.081790] (pico_interface) StdoutLine: {'line': b'-- Up-to-date: /home/ubuntu/workspace/install/pico_interface/share/pico_interface/package.xml\n'}
+[0.082638] (pico_interface) CommandEnded: {'returncode': 0}
+[0.099740] (-) TimerEvent: {}
+[0.114657] (pico_interface) JobEnded: {'identifier': 'pico_interface', 'rc': 0}
+[0.199849] (-) TimerEvent: {}
+[0.300097] (-) TimerEvent: {}
+[0.400340] (-) TimerEvent: {}
+[0.500581] (-) TimerEvent: {}
+[0.600816] (-) TimerEvent: {}
+[0.701061] (-) TimerEvent: {}
+[0.801303] (-) TimerEvent: {}
+[0.901540] (-) TimerEvent: {}
+[1.001805] (-) TimerEvent: {}
+[1.102075] (-) TimerEvent: {}
+[1.202335] (-) TimerEvent: {}
+[1.302571] (-) TimerEvent: {}
+[1.402816] (-) TimerEvent: {}
+[1.503103] (-) TimerEvent: {}
+[1.603379] (-) TimerEvent: {}
+[1.703666] (-) TimerEvent: {}
+[1.803969] (-) TimerEvent: {}
+[1.904224] (-) TimerEvent: {}
+[2.004474] (-) TimerEvent: {}
+[2.104720] (-) TimerEvent: {}
+[2.204962] (-) TimerEvent: {}
+[2.305216] (-) TimerEvent: {}
+[2.405482] (-) TimerEvent: {}
+[2.505732] (-) TimerEvent: {}
+[2.605989] (-) TimerEvent: {}
+[2.706258] (-) TimerEvent: {}
+[2.806510] (-) TimerEvent: {}
+[2.906785] (-) TimerEvent: {}
+[3.007050] (-) TimerEvent: {}
+[3.107316] (-) TimerEvent: {}
+[3.207580] (-) TimerEvent: {}
+[3.307836] (-) TimerEvent: {}
+[3.408095] (-) TimerEvent: {}
+[3.508344] (-) TimerEvent: {}
+[3.608610] (-) TimerEvent: {}
+[3.708868] (-) TimerEvent: {}
+[3.762285] (mobility_driver) StdoutLine: {'line': b'[ 50%] \x1b[32m\x1b[1mLinking CXX static library libmobility_driver_lib.a\x1b[0m\n'}
+[3.808985] (-) TimerEvent: {}
+[3.811698] (mobility_driver) StdoutLine: {'line': b'[ 50%] Built target mobility_driver_lib\n'}
+[3.845969] (mobility_driver) StdoutLine: {'line': b'[ 75%] \x1b[32mBuilding CXX object CMakeFiles/mobility_driver_node.dir/src/mobility_driver_node.cpp.o\x1b[0m\n'}
+[3.909114] (-) TimerEvent: {}
+[4.009445] (-) TimerEvent: {}
+[4.109701] (-) TimerEvent: {}
+[4.209915] (-) TimerEvent: {}
+[4.310191] (-) TimerEvent: {}
+[4.410458] (-) TimerEvent: {}
+[4.510755] (-) TimerEvent: {}
+[4.611032] (-) TimerEvent: {}
+[4.711308] (-) TimerEvent: {}
+[4.811578] (-) TimerEvent: {}
+[4.911847] (-) TimerEvent: {}
+[5.012101] (-) TimerEvent: {}
+[5.112361] (-) TimerEvent: {}
+[5.212621] (-) TimerEvent: {}
+[5.312872] (-) TimerEvent: {}
+[5.413129] (-) TimerEvent: {}
+[5.513396] (-) TimerEvent: {}
+[5.613691] (-) TimerEvent: {}
+[5.713943] (-) TimerEvent: {}
+[5.814215] (-) TimerEvent: {}
+[5.874567] (mobility_driver) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:3\x1b[m\x1b[K:\n'}
+[5.874825] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/include/mobility_driver/MobilityDriver.hpp:20:23:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kstd_msgs\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[5.874927] (mobility_driver) StderrLine: {'line': b'   20 |     rclcpp::Publisher<\x1b[01;31m\x1b[Kstd_msgs\x1b[m\x1b[K::msg::String>::SharedPtr publisher;\n'}
+[5.875016] (mobility_driver) StderrLine: {'line': b'      |                       \x1b[01;31m\x1b[K^~~~~~~~\x1b[m\x1b[K\n'}
+[5.875100] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/include/mobility_driver/MobilityDriver.hpp:20:44:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Ktemplate argument 1 is invalid\n'}
+[5.875186] (mobility_driver) StderrLine: {'line': b'   20 |     rclcpp::Publisher<std_msgs::msg::String\x1b[01;31m\x1b[K>\x1b[m\x1b[K::SharedPtr publisher;\n'}
+[5.875269] (mobility_driver) StderrLine: {'line': b'      |                                            \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[5.875352] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/include/mobility_driver/MobilityDriver.hpp:20:47:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kexpected \xe2\x80\x98\x1b[01m\x1b[K;\x1b[m\x1b[K\xe2\x80\x99 at end of member declaration\n'}
+[5.875435] (mobility_driver) StderrLine: {'line': b'   20 |     rclcpp::Publisher<std_msgs::msg::String>::\x1b[01;31m\x1b[KSharedPtr\x1b[m\x1b[K publisher;\n'}
+[5.875524] (mobility_driver) StderrLine: {'line': b'      |                                               \x1b[01;31m\x1b[K^~~~~~~~~\x1b[m\x1b[K\n'}
+[5.875606] (mobility_driver) StderrLine: {'line': b'      |                                                        \x1b[32m\x1b[K;\x1b[m\x1b[K\n'}
+[5.876020] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/include/mobility_driver/MobilityDriver.hpp:20:57:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kpublisher\x1b[m\x1b[K\xe2\x80\x99 does not name a type\n'}
+[5.876120] (mobility_driver) StderrLine: {'line': b'   20 |     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr \x1b[01;31m\x1b[Kpublisher\x1b[m\x1b[K;\n'}
+[5.876204] (mobility_driver) StderrLine: {'line': b'      |                                                         \x1b[01;31m\x1b[K^~~~~~~~~\x1b[m\x1b[K\n'}
+[5.877180] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:\x1b[m\x1b[K In function \xe2\x80\x98\x1b[01m\x1b[Kint\x1b[01;32m\x1b[K main\x1b[m\x1b[K(int, char**)\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[5.877364] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:10:45:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[KMobilityDriver\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope; did you mean \xe2\x80\x98\x1b[01m\x1b[Kmobility_driver::MobilityDriver\x1b[m\x1b[K\xe2\x80\x99?\n'}
+[5.877453] (mobility_driver) StderrLine: {'line': b'   10 |     auto mobility_driver = std::make_shared<\x1b[01;31m\x1b[KMobilityDriver\x1b[m\x1b[K>();\n'}
+[5.877538] (mobility_driver) StderrLine: {'line': b'      |                                             \x1b[01;31m\x1b[K^~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[5.877620] (mobility_driver) StderrLine: {'line': b'      |                                             \x1b[32m\x1b[Kmobility_driver::MobilityDriver\x1b[m\x1b[K\n'}
+[5.877702] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/include/mobility_driver/MobilityDriver.hpp:9:7:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kmobility_driver::MobilityDriver\x1b[m\x1b[K\xe2\x80\x99 declared here\n'}
+[5.877783] (mobility_driver) StderrLine: {'line': b'    9 | class \x1b[01;36m\x1b[KMobilityDriver\x1b[m\x1b[K : public rclcpp::Node\n'}
+[5.877864] (mobility_driver) StderrLine: {'line': b'      |       \x1b[01;36m\x1b[K^~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[5.877945] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:10:60:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kno matching function for call to \xe2\x80\x98\x1b[01m\x1b[Kmake_shared<<expression error> >()\x1b[m\x1b[K\xe2\x80\x99\n'}
+[5.878027] (mobility_driver) StderrLine: {'line': b'   10 |     auto mobility_driver = \x1b[01;31m\x1b[Kstd::make_shared<MobilityDriver>()\x1b[m\x1b[K;\n'}
+[5.878107] (mobility_driver) StderrLine: {'line': b'      |                            \x1b[01;31m\x1b[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~\x1b[m\x1b[K\n'}
+[5.878186] (mobility_driver) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/usr/include/c++/13/memory:80\x1b[m\x1b[K,\n'}
+[5.878264] (mobility_driver) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/rolling/include/rclcpp/rclcpp/rclcpp.hpp:169\x1b[m\x1b[K,\n'}
+[5.878343] (mobility_driver) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:1\x1b[m\x1b[K:\n'}
+[5.878449] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/usr/include/c++/13/bits/shared_ptr.h:1005:5:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[Kcandidate: \xe2\x80\x98\x1b[01m\x1b[Ktemplate<class _Tp, class ... _Args> std::shared_ptr<typename std::enable_if<(! std::is_array< <template-parameter-1-1> >::value), _Tp>::type> std::\x1b[01;32m\x1b[Kmake_shared\x1b[m\x1b[K(_Args&& ...)\x1b[m\x1b[K\xe2\x80\x99\n'}
+[5.878589] (mobility_driver) StderrLine: {'line': b' 1005 |     \x1b[01;36m\x1b[Kmake_shared\x1b[m\x1b[K(_Args&&... __args)\n'}
+[5.878712] (mobility_driver) StderrLine: {'line': b'      |     \x1b[01;36m\x1b[K^~~~~~~~~~~\x1b[m\x1b[K\n'}
+[5.878859] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/usr/include/c++/13/bits/shared_ptr.h:1005:5:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[K  template argument deduction/substitution failed:\n'}
+[5.878982] (mobility_driver) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ubuntu/workspace/src/mobility_driver/src/mobility_driver_node.cpp:10:60:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Ktemplate argument 1 is invalid\n'}
+[5.879130] (mobility_driver) StderrLine: {'line': b'   10 |     auto mobility_driver = \x1b[01;31m\x1b[Kstd::make_shared<MobilityDriver>()\x1b[m\x1b[K;\n'}
+[5.879255] (mobility_driver) StderrLine: {'line': b'      |                            \x1b[01;31m\x1b[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~\x1b[m\x1b[K\n'}
+[5.914335] (-) TimerEvent: {}
+[6.014591] (-) TimerEvent: {}
+[6.114886] (-) TimerEvent: {}
+[6.215141] (-) TimerEvent: {}
+[6.315393] (-) TimerEvent: {}
+[6.415649] (-) TimerEvent: {}
+[6.434696] (mobility_driver) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/mobility_driver_node.dir/build.make:76: CMakeFiles/mobility_driver_node.dir/src/mobility_driver_node.cpp.o] Error 1\n'}
+[6.434970] (mobility_driver) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:165: CMakeFiles/mobility_driver_node.dir/all] Error 2\n'}
+[6.435132] (mobility_driver) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[6.436821] (mobility_driver) CommandEnded: {'returncode': 2}
+[6.464515] (mobility_driver) JobEnded: {'identifier': 'mobility_driver', 'rc': 2}
+[6.475116] (-) EventReactorShutdown: {}

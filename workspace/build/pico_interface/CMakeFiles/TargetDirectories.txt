@@ -1,0 +1,9 @@
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/uninstall.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/pico_interface_uninstall.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/test.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/edit_cache.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/rebuild_cache.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/list_install_components.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/install.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/install/local.dir
+/home/ubuntu/workspace/build/pico_interface/CMakeFiles/install/strip.dir

@@ -1,0 +1,25 @@
+[0.010s] Invoking command in '/home/ubuntu/workspace/build/mobility_driver': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/mobility_driver -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/mobility_driver
+[0.021s] -- Found ament_cmake: 2.6.0 (/opt/ros/rolling/share/ament_cmake/cmake)
+[0.175s] -- Found rclcpp: 28.2.0 (/opt/ros/rolling/share/rclcpp/cmake)
+[0.195s] -- Found rosidl_generator_c: 4.7.0 (/opt/ros/rolling/share/rosidl_generator_c/cmake)
+[0.202s] -- Found rosidl_generator_cpp: 4.7.0 (/opt/ros/rolling/share/rosidl_generator_cpp/cmake)
+[0.212s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.223s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.276s] -- Found rmw_implementation_cmake: 7.4.0 (/opt/ros/rolling/share/rmw_implementation_cmake/cmake)
+[0.277s] -- Found rmw_fastrtps_cpp: 8.5.0 (/opt/ros/rolling/share/rmw_fastrtps_cpp/cmake)
+[0.326s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.379s] [31mCMake Error at CMakeLists.txt:18 (target_include_directories):
+[0.379s]   Cannot specify include directories for target "mobility_driver_lib" which
+[0.379s]   is not built by this project.
+[0.379s] 
+[0.379s] [0m
+[0.379s] -- Found ament_lint_auto: 0.18.0 (/opt/ros/rolling/share/ament_lint_auto/cmake)
+[0.454s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[0.454s] -- Configured cppcheck include dirs: 
+[0.454s] -- Configured cppcheck exclude dirs and/or files: 
+[0.454s] -- Added test 'lint_cmake' to check CMake code style
+[0.456s] -- Added test 'uncrustify' to check C / C++ code style
+[0.456s] -- Configured uncrustify additional arguments: 
+[0.456s] -- Added test 'xmllint' to check XML markup files
+[0.457s] -- Configuring incomplete, errors occurred!
+[0.461s] Invoked command in '/home/ubuntu/workspace/build/mobility_driver' returned '1': CMAKE_PREFIX_PATH=/opt/ros/rolling /usr/bin/cmake /home/ubuntu/workspace/src/mobility_driver -DCMAKE_INSTALL_PREFIX=/home/ubuntu/workspace/install/mobility_driver
