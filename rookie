@@ -7,7 +7,7 @@ set -o nounset
 
 COMMAND="${1:-"run"}"
 
-USERNAME="ubuntu"
+USERNAME="${USER:-ubuntu}"
 CONTAINER_NAME="rookie"
 
 if [[ "${COMMAND,,:-}" == "run" ]]; then
@@ -15,7 +15,7 @@ if [[ "${COMMAND,,:-}" == "run" ]]; then
     docker run \
         -it \
         --rm \
-        --user "${USERNAME}" \
+        --user "${UID}" \
         -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
         --workdir "/home/${USERNAME}/workspace" \
         --env "TERM=xterm-256color" \
@@ -28,6 +28,8 @@ elif [[ "${COMMAND,,:-}" == "build" ]]; then
 
     docker build \
         --tag "${CONTAINER_NAME}:latest" \
+        --build-arg USER="${USERNAME}" \
+        --build-arg UID="${UID}" \
         -f Dockerfile .
 
     popd
