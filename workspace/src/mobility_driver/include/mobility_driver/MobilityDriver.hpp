@@ -10,11 +10,30 @@
 namespace mobility_driver
 {
 
+class SerialPort
+{
+public:
+
+    bool configure();
+    
+    bool isConfigured() { return configured; }
+
+protected:
+private:
+    int serial_port;
+
+    bool configured = false;
+}; // class SerialPort
+
+
 class MobilityDriver : public rclcpp::Node
 {
 public:
     MobilityDriver();
     
+
+    bool configureSerialPort();
+
     void run();
 
 protected:
