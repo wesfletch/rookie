@@ -1,1 +1,1 @@
-# sd_rover_pico
+# rookie_pico

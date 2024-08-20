@@ -1,6 +1,9 @@
-#include "config.h"
 
+// CPP headers
 #include <stdlib.h>
+#include <stdio.h>
+
+#include <rookie_pico/Config.hpp>
 
 /**
  * @brief Configures a UART with the given parameters (convenience function)
@@ -15,12 +18,21 @@
  * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
  * @return status 
  */
-int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN, uint DATA_BITS, uint STOP_BITS, uint PARITY, irq_handler_t IRQ_FUN, bool useIRQ)
+int 
+configure_UART(
+    uart_inst_t *UART_ID, 
+    uint BAUDRATE, 
+    uint TX_PIN, uint RX_PIN, 
+    uint DATA_BITS, uint STOP_BITS, uart_parity_t PARITY, 
+    irq_handler_t IRQ_FUN, bool useIRQ)
 {
-    int status;
+    // int status;
 
     // Set up our UART with provided UART_ID and BAUDRATE
-    status = uart_init(UART_ID, BAUDRATE);
+    uint actual_baudrate = uart_init(UART_ID, BAUDRATE);
+    if (actual_baudrate != BAUDRATE) {
+        ;
+    }
     // if (!status) { return EXIT_FAILURE; }
 
     // Set the TX and RX pins by using the function select on the GPIO
@@ -53,4 +65,39 @@ int configure_UART(uart_inst_t *UART_ID, uint BAUDRATE, uint TX_PIN, uint RX_PIN
     }
 
     return EXIT_SUCCESS;
+}
+
+/**
+ * @brief 
+ * 
+ */
+bool
+status_led_timer_callback(
+    [[maybe_unused]] struct repeating_timer* t)
+{
+    // toggle status LED gpio
+    gpio_xor_mask(status_led_mask);
+    return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @param timer 
+ * @return config_error_t 
+ */
+config_error_t 
+configure_status_LED(
+    struct repeating_timer *timer)
+{
+    // const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+    gpio_init(STATUS_LED_PIN);
+    gpio_set_dir(STATUS_LED_PIN, GPIO_OUT);
+
+    // configure the timer callback to toggle the LED
+    if (!add_repeating_timer_ms(500, status_led_timer_callback, NULL, timer))
+    {
+        return E_CONFIG_NO_ALARMS_AVAILABLE;
+    }
+    return E_CONFIG_SUCCESS;
 }

@@ -12,6 +12,10 @@
 #ifndef COMMS_H
 #define COMMS_H
 
+// CPP headers
+#include <string>
+
+// Pico headers
 #include "pico/util/queue.h"
 
 typedef enum COMM_STATE {
@@ -26,7 +30,6 @@ typedef struct STATE
     COMM_STATE state;      // connection status string
     int seq;                // sequence number
     int ack;                // ACK number
-
 } STATE;
 
 // define UART connection for LORA
@@ -43,10 +46,11 @@ typedef struct STATE
 
 // function prototypes
 void protocol(STATE *state, char *in, char *out);
-void write(char *tx);
+void write(std::string tx);
 int parseMessage(char *in);
 int parseData(STATE *state, char *in, char *flag);
 int initLora(char *rx_buffer);
+int NewFunction(char *rx_buffer, int &status, bool &retFlag);
 void comm_run();
 
 extern queue_t receive_queue;
