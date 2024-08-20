@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(PICO_SDK_PATH "/home/wes/pico/pico-sdk")
-
 # initialize pico-sdk from submodule
 include(cmake/pico_sdk_import.cmake)
 if (PICO_SDK_VERSION_STRING VERSION_LESS "1.3.0")
@@ -23,15 +21,6 @@ add_compile_options(
     -Wno-unused-function # we have some for the docs that aren't called
     -Wno-maybe-uninitialized
 )
-
-##############
-# Generate nanopb messages
-# /usr/lib/x86_64-linux-gnu/cmake/nanopb
-set(NANOPB_SRC_ROOT_FOLDER "/home/wes/pico/nanopb")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${NANOPB_SRC_ROOT_FOLDER}/extra)
-find_package(Nanopb REQUIRED)
-
-NANOPB_GENERATE_CPP(TARGET proto proto/Motors.proto)
 
 ######################################################
 #### Libraries
