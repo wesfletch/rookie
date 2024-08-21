@@ -31,9 +31,6 @@ class MobilityDriver : public rclcpp::Node
 public:
     MobilityDriver();
     
-
-    bool configureSerialPort();
-
     void run();
 
 protected:

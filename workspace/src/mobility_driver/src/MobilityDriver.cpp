@@ -11,7 +11,7 @@
 
 // Rookie-specific
 #include <mobility_driver/MobilityDriver.hpp>
-
+#include <pico_interface/PicoInterface.hpp>
 
 
 
@@ -102,11 +102,55 @@ SerialPort::configure()
     return true;
 }
 
+// void
+// SerialPort::spin()
+// {
+    
+//     std::array<char> buffer[1024];
 
+//     rclcpp::Rate loop_rate(50);
+//     while (rclcpp::ok())
+//     {
+
+//         int num_bytes = read(this->serial_port, buffer.size());
+//         if (num_bytes > 0) 
+//         {
+
+            
+
+
+//         }
+        
+//         // Attempt to read input...
+//         while (ch != ENDSTDIN)
+//         {
+//             int num_bytes = read(this->serial_port, buffer.size());
+//         }
+
+//     }
+
+
+// }
 
 void
 MobilityDriver::run()
 {
+    // Just making sure that pico_interface actually works...
+    pico_interface::Msg_MotorsCommand mtrs;
+    mtrs.motor_1_direction = pico_interface::Msg_MotorsCommand::DIRECTION::FORWARD;
+    mtrs.motor_1_pwm = 0;
+    mtrs.motor_2_direction = pico_interface::Msg_MotorsCommand::DIRECTION::FORWARD;
+    mtrs.motor_2_pwm = 0;
+
+    std::string mtrs_out; 
+    pico_interface::message_error_t status = pico_interface::pack_MotorsCommand(
+        mtrs, mtrs_out);
+    if (status != pico_interface::message_error_t::E_MSG_SUCCESS)
+    {
+        RCLCPP_ERROR_STREAM(get_logger(), "NO!");
+        return;
+    }
+
     SerialPort ser;
     if (!ser.configure()) { return; }
 
@@ -114,7 +158,7 @@ MobilityDriver::run()
     while (rclcpp::ok()) 
     {   
         std_msgs::msg::String msg;
-        msg.data = "LOOP";
+        msg.data = mtrs_out;
         this->publisher->publish(msg);
 
         std::cout << "LOOP" << std::endl;

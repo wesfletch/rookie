@@ -5,10 +5,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Werror -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# find ROS dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+
+# find OTHER dependencies
+# find_package(pico_interface REQUIRED)
+find_package(pico_interface 0.0.1 REQUIRED)
+
+# include(GNUInstallDirs)
+# find_library(PICO_INTERFACE pico_interface 
+#     PATHS
+#         ${CMAKE_INSTALL_LIBDIR}
+#     )
 
 #########################
 ## Libraries
@@ -21,6 +31,7 @@ target_include_directories(mobility_driver_lib
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+        ${PICO_INTERFACE_INCLUDE_DIRS}
 )
 ament_target_dependencies(mobility_driver_lib
     PUBLIC
@@ -65,9 +76,9 @@ install(
 # Executables
 install(
     TARGETS
-    mobility_driver_node
+        mobility_driver_node
     DESTINATION
-    lib/${PROJECT_NAME}
+        lib/${PROJECT_NAME}
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
