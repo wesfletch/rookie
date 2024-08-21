@@ -3,3 +3,6 @@ workspace/install
 workspace/log
 
 **/.vscode
+
+# Don't accidentally check our submodules in...
+rookie_pico/
