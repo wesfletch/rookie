@@ -10,11 +10,10 @@ ENV USER=${USER}
 ENV UID=${UID}
 ENV GUID=${UID}
 
-RUN apt update && \
-    apt install -y \
-        sudo \
-        adduser \
-        socat 
+# RUN apt update && \
+#     apt install -y \
+#         git \
+#         openssh-server
 
 # RUN userdel -r ubuntu
 
@@ -57,8 +56,10 @@ RUN cat /home/${USER}/bashrc_additions >> /home/${USER}/.bashrc
 
 RUN chown -R ${USER}:${USER} /home/${USER}
 
-RUN apt update && \
-    apt install -y \
-        # sudo \
-        # adduser \
-        socat 
+# Prerequisites for building the rookie_pico code
+RUN sudo apt update && \
+    sudo apt install --no-install-recommends -y \
+        cmake \
+        gcc-arm-none-eabi \
+        libnewlib-arm-none-eabi \
+        libstdc++-arm-none-eabi-newlib
