@@ -10,7 +10,7 @@
 #include <rookie_pico/Commands.hpp>
 
 // Will be pulled into it's own stand-alone project eventually
-#include <rookie_pico/PicoInterface.hpp>
+#include <pico_interface/PicoInterface.hpp>
 
 
 bool

@@ -11,7 +11,7 @@
 
 // Project headers
 #include <rookie_pico/Motors.hpp>
-#include <rookie_pico/PicoInterface.hpp>
+#include <pico_interface/PicoInterface.hpp>
 
 
 pwm_error_t

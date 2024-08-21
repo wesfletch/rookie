@@ -22,11 +22,34 @@ add_compile_options(
     -Wno-maybe-uninitialized
 )
 
+# include(GNUInstallDirs)
+# find_library(PICO_INTERFACE pico_interface 
+#     PATHS
+#         ${CMAKE_INSTALL_LIBDIR}
+#         # ${CMAKE_INSTALL_INCLUDEDIR}
+# )
+find_package(pico_interface 0.0.1 REQUIRED)
+if (pico_interface_FOUND)
+    message(INFO "FINALLY")
+else()
+    MESSAGE("FOUND? -> ${PICO_INTERFACE}")
+endif(pico_interface_FOUND)
+
 ######################################################
 #### Libraries
 
-include_directories(include)
-# include_directories(proto)
+
+add_library(${PROJECT_NAME}_lib
+    src/Comms.cpp
+    src/Config.cpp
+    src/Encoders.cpp
+    src/Motors.cpp
+)
+target_include_directories(${PROJECT_NAME}_lib
+    PUBLIC
+        include
+        ${PICO_INTERFACE_INCLUDE_DIRS}
+)
 set(LIBS
     pico_stdlib
     pico_multicore
@@ -35,17 +58,6 @@ set(LIBS
     hardware_gpio
     hardware_i2c
     hardware_pwm
-)
-
-set(PROTO_LIBS
-    nanopb
-    proto)
-
-add_library(${PROJECT_NAME}_lib
-    src/Comms.cpp
-    src/Config.cpp
-    src/Encoders.cpp
-    src/Motors.cpp    
 )
 target_link_libraries(${PROJECT_NAME}_lib
     ${LIBS}
@@ -68,7 +80,6 @@ add_executable(rookie
 )
 target_link_libraries(rookie
     ${LIBS}
-    ${PROTO_LIBS}
 )
 
 # enable usb output, disable uart output
