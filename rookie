@@ -10,6 +10,9 @@ COMMAND="${1:-"run"}"
 USERNAME="${USER:-ubuntu}"
 CONTAINER_NAME="rookie"
 
+PICO_REPO="git@github.com:wesfletch/rookie_pico.git"
+PICO_REPO_PATH="./rookie_pico"
+
 if [[ "${COMMAND,,:-}" == "run" ]]; then
 
     docker run \
@@ -17,22 +20,29 @@ if [[ "${COMMAND,,:-}" == "run" ]]; then
         --rm \
         --user "${UID}" \
         -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
+        -v "${PWD}/pico_interface:/home/${USERNAME}/pico_interface" \
+        -v "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico" \
         --workdir "/home/${USERNAME}/workspace" \
         --env "TERM=xterm-256color" \
+        --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk" \
         "${CONTAINER_NAME}":latest
 
 elif [[ "${COMMAND,,:-}" == "build" ]]; then
     echo "--- Building ${CONTAINER_NAME} image ---"
     
-    pushd ./docker
+    # Pull in our other repo dependencies
+    if [[ ! -d "${PICO_REPO_PATH}" ]]; then
+        git clone "${PICO_REPO}" --recurse-submodules
+    fi
 
+    pushd ./docker || exit 1
     docker build \
         --tag "${CONTAINER_NAME}:latest" \
         --build-arg USER="${USERNAME}" \
         --build-arg UID="${UID}" \
         -f Dockerfile .
+    popd || exit 1
 
-    popd
 else
     echo "What? -- ${COMMAND,,}"
     exit 1
