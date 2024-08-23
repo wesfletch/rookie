@@ -22,6 +22,8 @@ if [[ "${COMMAND,,:-}" == "run" ]]; then
         -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
         -v "${PWD}/pico_interface:/home/${USERNAME}/pico_interface" \
         -v "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico" \
+        --device=/dev/ttyACM0 \
+        --cap-add=SYS_RAWIO \
         --workdir "/home/${USERNAME}/workspace" \
         --env "TERM=xterm-256color" \
         --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk" \

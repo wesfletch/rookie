@@ -44,7 +44,52 @@ MESSAGE_GET_ERROR(message_error_t err_code) {
 }
 
 
+static const std::string MSG_ID_HEARTBEAT = "$HBT";
+typedef struct Msg_Heartbeat {
+    uint32_t seq;
+} HEARTBEAT;
+
+static message_error_t
+pack_HeartbeatMessage(
+    Msg_Heartbeat& heartbeat,
+    std::string& str)
+{
+    std::stringstream ss;
+
+    ss << MSG_ID_HEARTBEAT << " ";
+    ss << heartbeat.seq << "\n";
+    str = ss.str();
+
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
+static message_error_t
+unpack_Heartbeat(
+    const std::string msg,
+    Msg_Heartbeat& heartbeat)
+{
+    std::stringstream ss(msg);
+
+    if (pico_interface::countFields(msg) != 1) {
+        return MESSAGE_ERR::E_MSG_DECODE_WRONG_NUM_FIELDS;
+    }
+
+    std::string token;
+    ss >> token;
+    heartbeat.seq = 
+        static_cast<uint32_t>(std::atoi(token.c_str()));
+
+    // Make sure there's nothing left over...
+    if (ss.rdbuf()->in_avail() != 0) {
+        return MESSAGE_ERR::E_MSG_DECODE_WRONG_NUM_FIELDS;
+    }
+
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
+
 static const std::string MSG_ID_MOTORS_CMD = "$MTR.C";
+static const std::string MSG_ID_MOTORS_STATUS = "$MTR.S";
 typedef struct Msg_MotorsCommand {
 
     enum class DIRECTION : uint8_t {
