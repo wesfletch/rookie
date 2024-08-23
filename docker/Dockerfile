@@ -50,6 +50,9 @@ RUN groupadd --gid ${GUID} ${USER} \
     && adduser ${USER} sudo \
     && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
+# Add user to `dialout` group so we can test serial communications
+RUN gpasswd --add ${USER} dialout
+
 # update our bashrc
 COPY bashrc_additions /home/${USER}/bashrc_additions
 RUN cat /home/${USER}/bashrc_additions >> /home/${USER}/.bashrc

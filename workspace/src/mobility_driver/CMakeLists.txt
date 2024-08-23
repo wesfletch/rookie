@@ -9,16 +9,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 # find OTHER dependencies
 # find_package(pico_interface REQUIRED)
 find_package(pico_interface 0.0.1 REQUIRED)
 
-# include(GNUInstallDirs)
-# find_library(PICO_INTERFACE pico_interface 
-#     PATHS
-#         ${CMAKE_INSTALL_LIBDIR}
-#     )
 
 #########################
 ## Libraries
@@ -37,6 +33,7 @@ ament_target_dependencies(mobility_driver_lib
     PUBLIC
         rclcpp
         std_msgs
+        geometry_msgs
 )
 
 ########################
@@ -52,6 +49,7 @@ target_link_libraries(mobility_driver_node
 ament_target_dependencies(mobility_driver_node
     rclcpp
     std_msgs
+    geometry_msgs
 )
 
 ########################
