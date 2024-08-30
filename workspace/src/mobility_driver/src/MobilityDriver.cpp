@@ -162,7 +162,6 @@ SerialPort::spin()
         RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"), 
             "read: <" << num_bytes << ">, \"" << std::string(buffer) << "\"");
 
-        // if (!this->write(std::string("$MTR.C 1 0 1 0\n"))) { RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"), "FUCK"); }
         loop_rate.sleep();
     }
 }
@@ -222,7 +221,8 @@ MobilityDriver::run()
     while (rclcpp::ok()) 
     {   
         std::optional<std::string> out = this->serial_port.spinOnce();
-        if (out) {
+        if (out) 
+        {
             RCLCPP_INFO_STREAM(this->_node->get_logger(), *out);
         }
 

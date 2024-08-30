@@ -87,6 +87,56 @@ unpack_Heartbeat(
     return MESSAGE_ERR::E_MSG_SUCCESS;
 }
 
+static const std::string MSG_ID_SYSTEM_STATE_CMD = "$SYS.C";
+static const std::string MSG_ID_SYSTEM_STATE_STATUS = "$SYS.S";
+typedef struct Msg_SystemState {
+
+    enum class STATE : uint8_t {
+        STANDBY = 0,
+        ESTOP = 1,
+        ERROR = 2,
+        READY = 3,
+    };
+
+    STATE state = STATE::STANDBY;
+
+    std::string status = "";
+} Msg_SystemState;
+
+static message_error_t
+pack_SystemState(Msg_SystemState& msg, const std::string header, std::string& str)
+{
+    std::stringstream ss;
+
+    if ((header != MSG_ID_SYSTEM_STATE_CMD) && (header != MSG_ID_SYSTEM_STATE_STATUS))
+    {
+        return E_MSG_ENCODE_FAILURE;
+    }
+
+    ss << header << " ";
+    ss << std::to_string(static_cast<uint8_t>(msg.state)) << " ";
+    ss << msg.status << "\n";
+
+    str = ss.str();
+    return E_MSG_SUCCESS;
+}
+
+static message_error_t
+unpack_SystemState(const std::string msg, Msg_SystemState& state)
+{
+    std::stringstream ss(msg);
+
+    if (countFields(msg) != 2) { return E_MSG_DECODE_WRONG_NUM_FIELDS; }
+
+    std::string token;
+    ss >> token;
+    state.state = static_cast<Msg_SystemState::STATE>(std::atoi(token.c_str()));
+    ss >> token;
+    state.status = token;
+    
+    return E_MSG_SUCCESS;
+};
+
 
 static const std::string MSG_ID_MOTORS_CMD = "$MTR.C";
 static const std::string MSG_ID_MOTORS_STATUS = "$MTR.S";
