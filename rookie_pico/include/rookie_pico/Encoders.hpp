@@ -17,9 +17,7 @@
 static const std::string ENCODER_AMT102V_NAME = "AMT-102V";
 static const uint LEFT_CHANNEL_A_GPIO = 20;
 static const uint LEFT_CHANNEL_B_GPIO = 21;
-// TODO: check to make sure these are actually gpio pins 
 static const uint RIGHT_CHANNEL_A_GPIO = 22;
-// static const uint RIGHT_CHANNEL_B_GPIO = 23; // THERE IS NO 23
 static const uint RIGHT_CHANNEL_B_GPIO = 26;
 
 static constexpr uint TICKS_PER_ROTATION = 2048;
@@ -82,6 +80,17 @@ typedef struct Encoder {
             true
         );
     };
+
+    float getAngularVel()
+    {
+        float returned = 0.0;
+        critical_section_enter_blocking(&this->criticalSection);
+        returned = this->angularVel;
+        critical_section_exit(&this->criticalSection);
+
+        return returned;
+    };
+
 } Encoder;
 
 using EncoderList = std::vector<std::shared_ptr<Encoder>>;

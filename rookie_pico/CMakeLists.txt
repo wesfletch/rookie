@@ -22,18 +22,7 @@ add_compile_options(
     -Wno-maybe-uninitialized
 )
 
-# include(GNUInstallDirs)
-# find_library(PICO_INTERFACE pico_interface 
-#     PATHS
-#         ${CMAKE_INSTALL_LIBDIR}
-#         # ${CMAKE_INSTALL_INCLUDEDIR}
-# )
 find_package(pico_interface 0.0.1 REQUIRED)
-if (pico_interface_FOUND)
-    message(INFO "FINALLY")
-else()
-    MESSAGE("FOUND? -> ${PICO_INTERFACE}")
-endif(pico_interface_FOUND)
 
 ######################################################
 #### Libraries
@@ -88,21 +77,3 @@ pico_enable_stdio_uart(rookie 0)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(rookie)
-
-
-# ##############
-# # encoder_test
-# add_executable(encoder_test
-#     include/rookie_pico/Encoders.hpp
-#     src/Encoders.cpp
-# )
-# target_link_libraries(encoder_test
-#     ${LIBS}
-# )
-
-# # enable usb output, disable uart output
-# pico_enable_stdio_usb(encoder_test 1)
-# pico_enable_stdio_uart(encoder_test 0)
-
-# # create map/bin/hex file etc.
-# pico_add_extra_outputs(encoder_test)

@@ -16,6 +16,8 @@
 #include "hardware/pwm.h"
 
 
+#include <pico_interface/PicoInterface.hpp>
+
 // TODO: where do I want these to go????
 typedef enum CMD_ERROR {
     E_CMD_SUCCESS = 0,
@@ -34,12 +36,8 @@ static const cmd_error_desc cmd_error_descriptions[] = {
     {E_CMD_FAIL, "Command failed."},
 };
 
-#define MTR_MSG_FORMAT "%d %d %d %d" // DIR1 PWM1 DIR2 PWM2
-#define MTR_MSG_NUM_FIELDS 4
-
-int handle_input(char *in);
-cmd_error_t command_MTR(char *command);
-
+pico_interface::Msg_Heartbeat heartbeat;
+struct repeating_timer heartbeat_timer; 
 
 #endif // MAIN_HPP
 

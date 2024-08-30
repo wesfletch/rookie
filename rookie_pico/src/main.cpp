@@ -8,10 +8,25 @@
 #include <rookie_pico/Config.hpp>
 #include <rookie_pico/Encoders.hpp>
 #include <rookie_pico/Commands.hpp>
+#include <rookie_pico/System.hpp>
 
-// Will be pulled into it's own stand-alone project eventually
 #include <pico_interface/PicoInterface.hpp>
 
+
+bool
+heartbeat_timer_callback(
+    [[maybe_unused]] struct repeating_timer* t)
+{
+    // Not handling possible overflows here... Not sure I care...
+    heartbeat.seq += 1;
+
+    std::string out;
+    pico_interface::pack_HeartbeatMessage(heartbeat, out);
+
+    printf(out.c_str());
+
+    return true;
+}
 
 bool
 handle_input(
@@ -49,6 +64,13 @@ int main()
 {
     stdio_init_all();
 
+    // Configure the heartbeat timer.
+    add_repeating_timer_ms(
+        500 /** milliseconds */,
+        heartbeat_timer_callback,
+        NULL,
+        &heartbeat_timer);
+
     // Configure the blinking status light.
     struct repeating_timer status_led_timer;
     config_error_t led_status = configure_status_LED(&status_led_timer);
@@ -78,19 +100,31 @@ int main()
 
     MotorControl controller(motor_controller, leftEncoder, rightEncoder);
 
-    // Set up the map of callbacks that will determine the message handlers for each type
+    // std::shared_ptr<bool> motor_control_flag(std::move(controller.getFlag()));
+
+    // Configure our "system state" handler. TBD how extensive this ends up being.
+    std::vector<std::shared_ptr<bool>> flags = {
+        // std::make_shared<bool>(std::move(controller.getFlag()))
+        // motor_control_flag
+        controller.getFlag()
+    };
+
+    System system(flags);
+
+    // Set up the map of callbacks that will determine the message handlers for each inbound message type
     CommandCallbacks callbacks = {
         // This is the incantation necessary to make a callback to a member function
         // (test_callback), of an object (controller) with one parameter (placeholder)
-        {MSG_ID_VELOCITY_CMD, std::bind(&MotorControl::test_callback, controller, std::placeholders::_1)},
-        {MSG_ID_MOTORS_CMD, std::bind(&MDD10A::handleMsg_Motors, motor_controller, std::placeholders::_1)}
+        {pico_interface::MSG_ID_VELOCITY_CMD, std::bind(&MotorControl::handleCommand, controller, std::placeholders::_1)},
+        {pico_interface::MSG_ID_MOTORS_CMD, std::bind(&MDD10A::handleMsg_Motors, motor_controller, std::placeholders::_1)},
+        // {pico_interface::MSG_ID_SYSTEM_STATE_CMD, std::bind(&System::handleCommand, system, std::placeholders::_1)},
     };
 
     // STDIN/STDOUT IO
-    char ch;
+    char ch = ENDSTDIN;
     int idx = 0;
     char in_string[1024];
-    int success = false;
+    bool success = false;
 
     // spin
     while (1)
@@ -105,7 +139,6 @@ int main()
                 in_string[idx] = '\0'; // null-terminate the string
                 idx = 0;    // reset index
 
-                // printf("GOT %s\n", in_string);
                 success = handle_input(in_string, callbacks);
                 if (!success)
                 {
@@ -119,7 +152,14 @@ int main()
             ch = static_cast<char>(getchar_timeout_us(0));
         }
 
-        // printf("ENCODER (rads): %f\n", leftEncoder->angularVel);
+        // controller.report();
+        system.report();
+
+        // // *(controller.getFlag()) = true;
+
+        // controller.setVelocities(10, 10);
+        controller.onCycle();
+        // // motor_controller->setMotors(true, 75, true, 75);
 
         sleep_ms(20);
     }

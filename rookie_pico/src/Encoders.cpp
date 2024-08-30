@@ -22,7 +22,7 @@ init_encoders(
     EncoderList* encoders,
     [[maybe_unused]] struct repeating_timer* timer)
 {
-   // Configure the callback that all GPIO interrupts (on this core) 
+    // Configure the callback that all GPIO interrupts (on this core) 
     // will use, unless they are explicitly configured with another.
     // Remember embedded systems 101?:
     // 1) Set callback in vector table -> (gpio_set_irq_callback())
@@ -146,15 +146,15 @@ encoder_timer_callback(
         encoder->lastUpdateStamp = get_absolute_time();
 
 // #ifdef DEBUG
-        if (ticks != 0) {
-            printf("ENCODER: ");
-            printf(" TICKS=%d, RADIANS=%f,", ticks, ticksToRadians(ticks));
-            printf(" DIFF=%llu,", diff_us);
-            printf(" SECS=%f,", diffInSecs);
-            printf(" VEL=%f", encoder->angularVel);
-            printf(" RPM=%f", encoder->angularVel * (60 / (2 * M_PI)));
-            printf("\n");
-        }
+        // if (ticks != 0) {
+        //     printf("ENCODER: ");
+        //     printf(" TICKS=%d, RADIANS=%f,", ticks, ticksToRadians(ticks));
+        //     printf(" DIFF=%llu,", diff_us);
+        //     printf(" SECS=%f,", diffInSecs);
+        //     printf(" VEL=%f", encoder->angularVel);
+        //     printf(" RPM=%f", encoder->angularVel * (60 / (2 * M_PI)));
+        //     printf("\n");
+        // }
 // #endif // DEBUG
 
     }

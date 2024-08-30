@@ -13,6 +13,7 @@
 
 // Project headers
 #include <rookie_pico/Encoders.hpp>
+#include <rookie_pico/Flag.hpp>
 
 // Motor Controller-specific definitions
 static const std::string MDD10A_NAME = "MDD10A";
@@ -65,15 +66,6 @@ get_pwm_error_desc(pwm_error_t error)
     return it->second;
 }
 
-
-pwm_error_t configure_MDD10A(
-    uint dir_1_pin, uint pwm_1_pin,
-    uint dir_2_pin, uint pwm_2_pin);
-
-pwm_error_t set_motors_MDD10A(
-    bool left_dir, int left_speed, 
-    bool right_dir, int right_speed);
-
 static inline uint16_t
 getPwmValue(int duty_cycle)
 {
@@ -105,6 +97,7 @@ linearToAngularVel(float linear_vel)
 {
     return linear_vel / WHEEL_RADIUS_M;
 }
+
 
 class MDD10A 
 {
@@ -175,35 +168,62 @@ public:
         std::shared_ptr<Encoder> encoder1,
         std::shared_ptr<Encoder> encoder2);
 
-    bool test_callback(const std::string test_string) {
-        printf("TEST: <%s>\n", test_string.c_str());
-        return true;
-    }
-
     // bool init();
-
-    void setVelocity(
-        float desired_velocity);
     
-    float getVelocity();
+    /**
+     * \brief Set the desired velocity (in rads/sec) of our motors.
+     * 
+     * Values set here will be applied on the next cycle.
+     * 
+     * \param[in] motor_1_vel desired velocity (rads/sec) of motor 1
+     * \param[in] motor_2_vel desired velocity (rads/sec) of motor 2
+     */
+    void setVelocities(
+        float motor_1_vel, 
+        float motor_2_vel);
 
-    // void setPWM(uint8_t desired_pwm);
-    // uint8_t getPWM();
+    std::tuple<float, float> getDesiredVelocities();
+
+    std::tuple<float, float> getCurrentVelocities();
+
+    void report();
 
     bool onCycle();
+
+    bool handleCommand(const std::string command);
+
+    // bool* getFlag() 
+    // {
+    //     return &(this->FLAG);
+    // }
+
+    std::shared_ptr<Flag> getFlag()
+    {}
+
+    std::string getStatus() { return this->status; }
 
 protected:
 private:
 
-    mutex_t desired_vel_mtx;
-    mutex_t current_vel_mtx;
+    std::string status;
 
-    float desired_velocity = 0.0;
-    float current_velocity = 0.0;
+    absolute_time_t last_cmd_time = nil_time;
+
+    typedef struct Motor {
+        mutex_t mtx;
+        float desired_velocity = 0.0;
+        float current_velocity = 0.0;
+    } Motor;
+
+    Motor motor_1;
+    Motor motor_2;
 
     std::shared_ptr<MDD10A> controller;
     std::shared_ptr<Encoder> encoder1;
     std::shared_ptr<Encoder> encoder2;
+
+    // bool FLAG = false;
+    std::shared_ptr<Flag> FLAG;
 
 }; // class MotorControl
 
