@@ -1,3 +1,5 @@
+#include <pico/multicore.h>
+
 #include <string>
 #include <cstring>
 
@@ -29,7 +31,7 @@ heartbeat_timer_callback(
 }
 
 bool
-handle_input(
+split_input(
     std::string input, 
     CommandCallbacks& callbacks,
     std::string& header,
@@ -52,7 +54,7 @@ handle_input(
 }
 
 pico_interface::Msg_Ack
-createAck(std::string header, std::string body, const bool status)
+create_ack(std::string header, std::string body, const bool status)
 {
     pico_interface::Msg_Ack ack;
 
@@ -66,7 +68,7 @@ createAck(std::string header, std::string body, const bool status)
 }
 
 bool
-callCommand(
+call_command(
     const std::string header, 
     const std::string body,
     CommandCallbacks& callbacks)
@@ -78,6 +80,41 @@ callCommand(
     return status;
 }
 
+queue_t intercore_queue;
+
+void
+comms_entry()
+{
+    // STDIN/STDOUT IO
+    char ch = ENDSTDIN;
+    int idx = 0;
+    char in_string[1024];
+
+    while (true) 
+    {
+        // attempt to read char from stdin, non-blocking
+        ch = static_cast<char>(getchar_timeout_us(0));
+        while (ch != ENDSTDIN)
+        {
+            // if the string ends or we run out of space, we're done with this string
+            if (ch == CR || ch == NL || idx == (sizeof(in_string)-1))
+            {
+                in_string[idx] = '\0'; // null-terminate the string
+                idx = 0;    // reset index
+
+                // in = std::string(in_string);
+                queue_add_blocking(&intercore_queue, &in_string);
+
+                break;
+            }
+            // add latest char to string
+            in_string[idx++] = ch;
+            // get next char
+            ch = static_cast<char>(getchar_timeout_us(0));
+        }
+    }
+}
+
 /**
  * @brief Program entrypoint.
  * 
@@ -86,6 +123,10 @@ callCommand(
 int main() 
 {
     stdio_init_all();
+
+    queue_init(&intercore_queue, (uint)(1024 * sizeof(char)), (uint)10);
+
+    multicore_launch_core1(comms_entry); // Start core 1 - Do this before any interrupt configuration
 
     // Configure the heartbeat timer.
     add_repeating_timer_ms(
@@ -123,7 +164,7 @@ int main()
     struct repeating_timer encoder_timer;
     init_encoders(&encoders, &encoder_timer);
 
-    MotorControl controller(
+    ClosedLoopController controller(
         motor_controller, 
         leftEncoder, 
         rightEncoder,
@@ -133,64 +174,55 @@ int main()
     CommandCallbacks callbacks = {
         // This is the incantation necessary to make a callback to a member function
         // (test_callback), of a POINTER TO AN OBJECT (controller) with one parameter (placeholder)
-        {pico_interface::MSG_ID_VELOCITY_CMD, std::bind(&MotorControl::handleCommand, controller, std::placeholders::_1)},
+        {pico_interface::MSG_ID_VELOCITY_CMD, std::bind(&ClosedLoopController::handleCommand, controller, std::placeholders::_1)},
         {pico_interface::MSG_ID_MOTORS_CMD, std::bind(&MDD10A::handleMsg_Motors, motor_controller, std::placeholders::_1)},
         {pico_interface::MSG_ID_SYSTEM_STATE_CMD, std::bind(&System::handleCommand, &system, std::placeholders::_1)},
+        {pico_interface::MSG_ID_HEARTBEAT, std::bind(&System::handleHeartbeat, &system, std::placeholders::_1)}
     };
 
     // STDIN/STDOUT IO
-    char ch = ENDSTDIN;
-    int idx = 0;
-    char in_string[1024];
+    char input[1024];
     bool success = false;
 
     // Responding to commands.
     pico_interface::Msg_Ack ack;
     pico_interface::message_error_t result;
 
+
     // spin
     while (1)
     {
-        // attempt to read char from stdin, non-blocking
-        ch = static_cast<char>(getchar_timeout_us(0));
-        while (ch != ENDSTDIN)
+        if (queue_try_remove(&intercore_queue, &input)) 
         {
-            // if the string ends or we run out of space, we're done with this string
-            if (ch == CR || ch == NL || idx == (sizeof(in_string)-1))
+            std::string header, body;
+            success = split_input(std::string(input), callbacks, header, body);
+            if (!success) 
             {
-                in_string[idx] = '\0'; // null-terminate the string
-                idx = 0;    // reset index
-
-                std::string header, body;
-                success = handle_input(in_string, callbacks, header, body);
-                if (!success) 
-                {
-                    printf("$ERR: Failed to process input: <%s>\n", in_string);
-                    break;
-                }
-
-                success = callCommand(header, body, callbacks);
-                ack = createAck(header, body, success);
-
-                std::string ack_string;
-                result = pico_interface::pack_Ack(ack, ack_string);
-                if (result != pico_interface::E_MSG_SUCCESS) {
-                    ack_string = pico_interface::MESSAGE_GET_ERROR(result);
-                }
-                printf(ack_string.c_str());
-
-                break;
+                printf("$ERR: Failed to process input: <%s>\n", input);
+                continue;
             }
-            // add latest char to string
-            in_string[idx++] = ch;
-            // get next char
-            ch = static_cast<char>(getchar_timeout_us(0));
+
+            success = call_command(header, body, callbacks);
+            ack = create_ack(header, body, success);
+
+            std::string ack_string;
+            result = pico_interface::pack_Ack(ack, ack_string);
+            if (result != pico_interface::E_MSG_SUCCESS) {
+                ack_string = pico_interface::MESSAGE_GET_ERROR(result);
+            }
+            printf(ack_string.c_str());
+        }
+
+        static bool started = false;
+        if (!started) {
+            system.start();
+            started = true;
         }
 
         // ON_CYCLE
+        system.onCycle();
         controller.onCycle();
         
-
         // REPORT
         controller.report();
         system.report();

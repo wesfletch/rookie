@@ -159,11 +159,11 @@ private:
 }; // class MDD10A
 
 
-class MotorControl 
+class ClosedLoopController 
 {
 public:
 
-    MotorControl(
+    ClosedLoopController(
         std::shared_ptr<MDD10A> controller,
         std::shared_ptr<Encoder> encoder1,
         std::shared_ptr<Encoder> encoder2,
@@ -218,7 +218,7 @@ private:
     // bool FLAG = false;
     Flag* FLAG;
 
-}; // class MotorControl
+}; // class ClosedLoopController
 
 
 #endif // MOTORS_H

@@ -4,10 +4,14 @@
 // Pico headers
 #include <pico/sync.h>
 
+#include <hardware/watchdog.h>
+
 #include <rookie_pico/Flag.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
 
+
+static const uint32_t WATCHDOG_PERIOD_MS = 100;
 
 // TODO [WF]: this feels unnecessary
 enum class SYSTEM_STATE : uint8_t 
@@ -33,6 +37,19 @@ public:
         critical_section_deinit(&this->critical_section);
     };
 
+    void start()
+    {
+        watchdog_enable(WATCHDOG_PERIOD_MS, true);
+    }
+
+    void onCycle()
+    {
+        watchdog_update();
+
+        // TODO: check the last time that we saw a heartbeat message...
+
+    }
+
     SYSTEM_STATE getState()
     {
         SYSTEM_STATE returned;
@@ -52,8 +69,7 @@ public:
             case SYSTEM_STATE::STANDBY:
                 return this->_stateStandby(new_state);
             case SYSTEM_STATE::ESTOP:
-                this->FLAG._setState(Flag::STATE::STOP);
-                break;
+                return this->_stateEstop(new_state);
             case SYSTEM_STATE::ERROR:
                 [[fallthrough]];
             case SYSTEM_STATE::READY:
@@ -73,12 +89,31 @@ public:
         if (result != pico_interface::E_MSG_SUCCESS) {
             this->status = pico_interface::MESSAGE_GET_ERROR(result);
             return false;
-        } else {
-            this->status = "OK";
         }
 
         return setState(static_cast<SYSTEM_STATE>(state_cmd.state));
     };
+
+    bool handleHeartbeat(const std::string heartbeat)
+    {
+        pico_interface::Msg_Heartbeat hbt;
+        pico_interface::message_error_t result = pico_interface::unpack_Heartbeat(
+            heartbeat, hbt);
+        if (result != pico_interface::E_MSG_SUCCESS) 
+        {
+            this->status = pico_interface::MESSAGE_GET_ERROR(result);
+            return false;
+        }
+
+        if (this->last_heartbeat_seq >= hbt.seq) 
+        {
+            // Sender either dropped out or reset since the last time we checked...
+            this->setState(SYSTEM_STATE::STANDBY);
+        }
+
+        this->last_heartbeat_seq = hbt.seq;
+        this->last_heartbeat_time = get_absolute_time();
+    }
 
     void report()
     {
@@ -107,18 +142,22 @@ private: // FUNCTIONS
         switch (new_state)
         {
             case SYSTEM_STATE::STANDBY:
+                // NO-OP
                 break;
             case SYSTEM_STATE::ESTOP:
+                // No pre-conditions here. If someone requests an ESTOP, DO IT
                 // this->FLAG._setState(Flag::STATE::STOP);
-                [[fallthrough]];
+                this->_setState(SYSTEM_STATE::ESTOP, Flag::STATE::STOP);
+                break;
             case SYSTEM_STATE::ERROR:
-                [[fallthrough]];
+                // TODO: still don't know what the ERROR state will mean for this system
+                break;
             case SYSTEM_STATE::READY:
                 // TODO: what are the pre-conditions of READY?
                 // What would need to be false here to cause a failure?
                 // A failed POST?
                 // For now, just allow it.
-                this->_setState(new_state);
+                this->_setState(SYSTEM_STATE::READY, Flag::STATE::OK);
                 break;
             default:
                 return false;
@@ -127,15 +166,44 @@ private: // FUNCTIONS
         return true;
     };
 
-    void _setState(SYSTEM_STATE new_state)
+    bool _stateEstop(SYSTEM_STATE new_state)
+    {
+        switch (new_state)
+        {
+            case SYSTEM_STATE::STANDBY:
+                // There should probably be a set of conditions necessary for
+                // this to happen, but eh...
+                this->_setState(SYSTEM_STATE::STANDBY, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::ESTOP:
+                // NO-OP
+                break;
+            case SYSTEM_STATE::ERROR:
+                // Allow it, even though I don't know what it means.
+                this->_setState(new_state, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::READY:
+                // No. Need to go back through the STANDBY phase to 
+                // get to READY from ESTOP.
+                this->status = "Transition not allowed <ESTOP->READY>. Must go to STANDBY first.";
+                return false;
+            default:
+                return false;
+        }
+
+        return true;
+    };
+
+    void _setState(SYSTEM_STATE new_state, Flag::STATE flag_state)
     {
         if (new_state == this->state) { return; }
 
         critical_section_enter_blocking(&this->critical_section);
         this->state = new_state;
         critical_section_exit(&this->critical_section);
-    };
 
+        this->FLAG._setState(flag_state);
+    };
 
 
 private: // MEMBERS
@@ -146,9 +214,12 @@ private: // MEMBERS
     std::string status = "OK";
 
     // TODO: this should be handed to System as a ref/pointer, just like it
-    // is to MotorControl. Otherwise, we run the risk of null-ptr access
-    // in the (hopefully unlikely) case that System goes down before MotorControl.
-    Flag FLAG; 
+    // is to ClosedLoopController. Otherwise, we run the risk of null-ptr access
+    // in the (hopefully unlikely) case that System goes down before ClosedLoopController.
+    Flag FLAG;
+
+    uint32_t last_heartbeat_seq;
+    absolute_time_t last_heartbeat_time;
 
 }; // class System
 

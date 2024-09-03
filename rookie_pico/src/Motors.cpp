@@ -144,7 +144,7 @@ MDD10A::handleMsg_Motors(
 }
 
 
-MotorControl::MotorControl(
+ClosedLoopController::ClosedLoopController(
     std::shared_ptr<MDD10A> controller,
     std::shared_ptr<Encoder> encoder1,
     std::shared_ptr<Encoder> encoder2,
@@ -162,7 +162,7 @@ MotorControl::MotorControl(
 }
 
 bool
-MotorControl::onCycle()
+ClosedLoopController::onCycle()
 {
     if (!(*this->FLAG)) 
     {
@@ -215,7 +215,7 @@ MotorControl::onCycle()
 }
 
 bool
-MotorControl::handleCommand(
+ClosedLoopController::handleCommand(
     const std::string command)
 {
     pico_interface::Msg_Velocity vel;
@@ -236,7 +236,7 @@ MotorControl::handleCommand(
 }
 
 void
-MotorControl::setVelocities(
+ClosedLoopController::setVelocities(
     float motor_1_vel, 
     float motor_2_vel)
 {
@@ -251,7 +251,7 @@ MotorControl::setVelocities(
 }
 
 std::tuple<float, float>
-MotorControl::getDesiredVelocities()
+ClosedLoopController::getDesiredVelocities()
 {
     mutex_enter_blocking(&this->motor_1.mtx);
     float motor_1_vel = this->motor_1.desired_velocity;
@@ -265,7 +265,7 @@ MotorControl::getDesiredVelocities()
 }
 
 std::tuple<float, float>
-MotorControl::getCurrentVelocities()
+ClosedLoopController::getCurrentVelocities()
 {
     mutex_enter_blocking(&this->motor_1.mtx);
     float motor_1_vel = this->motor_1.current_velocity;
@@ -279,7 +279,7 @@ MotorControl::getCurrentVelocities()
 }
 
 void
-MotorControl::report()
+ClosedLoopController::report()
 {
     pico_interface::Msg_Velocity vel;
     vel.motor_1_velocity = this->encoder1->getAngularVel();

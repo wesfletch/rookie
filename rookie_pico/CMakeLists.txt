@@ -47,6 +47,7 @@ set(LIBS
     hardware_gpio
     hardware_i2c
     hardware_pwm
+    hardware_watchdog
 )
 target_link_libraries(${PROJECT_NAME}_lib
     ${LIBS}
