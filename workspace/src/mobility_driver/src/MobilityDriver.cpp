@@ -264,7 +264,7 @@ MobilityDriver::cmdVelCallback(
 
     // TODO [WF]: I don't know these values yet, but I probably should.
     // Go with best guess for right now...
-    float wheelbase = 0.15; // A.K.A. radius of rotation, A.K.A. 'L' in meters
+    float wheelbase = 0.15; // A.K.A. radius of rotation, A.K.A. 'L', in meters
     float wheel_radius = 98.425 / 1000.0 ; // 3-7/8" --> mm --> meters
 
     float linear_left = linear_vel - ((angular_vel * wheelbase) / 2.0);
