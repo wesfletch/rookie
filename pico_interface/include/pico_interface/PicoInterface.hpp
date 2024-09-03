@@ -9,6 +9,10 @@
 
 namespace pico_interface {
 
+static const std::string DELIM = " ";
+static const std::string END = "\n";
+
+
 static int
 countFields(const std::string in, [[maybe_unused]] const std::string delim = " ") {
     // There's one more field than there are delimiters
@@ -86,6 +90,67 @@ unpack_Heartbeat(
 
     return MESSAGE_ERR::E_MSG_SUCCESS;
 }
+
+static const std::string MSG_ID_ACK = "$ACK";
+typedef struct Msg_Ack {
+
+    std::string header;
+    std::string fields;
+
+    enum class STATUS : uint8_t {
+        SUCCESS = 0,
+        FAILURE = 1
+    };
+
+    Msg_Ack::STATUS status;
+
+} Msg_Ack;
+
+static message_error_t
+pack_Ack(
+    Msg_Ack& ack,
+    std::string& str)
+{
+    std::stringstream ss;
+
+    ss << MSG_ID_ACK << DELIM;
+    ss << ack.header << DELIM;
+    ss << ack.fields << DELIM;
+    ss << std::to_string(static_cast<uint8_t>(ack.status)) << END;
+    str = ss.str();
+
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
+static message_error_t
+unpack_Ack(
+    const std::string msg,
+    Msg_Ack& ack)
+{
+    std::stringstream ss(msg);
+
+    if (pico_interface::countFields(msg) != 3) {
+        return MESSAGE_ERR::E_MSG_DECODE_WRONG_NUM_FIELDS;
+    }
+
+    std::string token;
+    ss >> token;
+    ack.header = token.c_str();
+
+    ss >> token;
+    ack.fields = token.c_str();
+
+    ss >> token;
+    ack.status = static_cast<Msg_Ack::STATUS>(atoi(token.c_str()));
+
+    // Make sure there's nothing left over...
+    if (ss.rdbuf()->in_avail() != 0) {
+        return MESSAGE_ERR::E_MSG_DECODE_WRONG_NUM_FIELDS;
+    }
+
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
 
 static const std::string MSG_ID_SYSTEM_STATE_CMD = "$SYS.C";
 static const std::string MSG_ID_SYSTEM_STATE_STATUS = "$SYS.S";
