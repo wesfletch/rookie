@@ -166,7 +166,8 @@ public:
     MotorControl(
         std::shared_ptr<MDD10A> controller,
         std::shared_ptr<Encoder> encoder1,
-        std::shared_ptr<Encoder> encoder2);
+        std::shared_ptr<Encoder> encoder2,
+        Flag* flag);
 
     // bool init();
     
@@ -192,14 +193,6 @@ public:
 
     bool handleCommand(const std::string command);
 
-    // bool* getFlag() 
-    // {
-    //     return &(this->FLAG);
-    // }
-
-    std::shared_ptr<Flag> getFlag()
-    {}
-
     std::string getStatus() { return this->status; }
 
 protected:
@@ -223,7 +216,7 @@ private:
     std::shared_ptr<Encoder> encoder2;
 
     // bool FLAG = false;
-    std::shared_ptr<Flag> FLAG;
+    Flag* FLAG;
 
 }; // class MotorControl
 

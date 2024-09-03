@@ -147,7 +147,8 @@ MDD10A::handleMsg_Motors(
 MotorControl::MotorControl(
     std::shared_ptr<MDD10A> controller,
     std::shared_ptr<Encoder> encoder1,
-    std::shared_ptr<Encoder> encoder2)
+    std::shared_ptr<Encoder> encoder2,
+    Flag* flag)
 {
     this->controller = controller;
     this->encoder1 = encoder1;
@@ -157,25 +158,27 @@ MotorControl::MotorControl(
     mutex_init(&this->motor_1.mtx);
     mutex_init(&this->motor_2.mtx);
 
-    this->FLAG = std::make_shared<Flag>();
+    this->FLAG = flag;
 }
 
 bool
 MotorControl::onCycle()
 {
-    if (!this->FLAG) 
+    if (!(*this->FLAG)) 
     {
         this->setVelocities(0.0, 0.0);
         this->status = "Flag disabled. Velocities zeroed.\n";
-        printf(status.c_str());
+    } 
+    else if (absolute_time_diff_us(delayed_by_ms(this->last_cmd_time, 1000), get_absolute_time()) < 0) 
+    {
+        // Timeout condition
+        this->setVelocities(0.0, 0.0);
+        this->status = "Velocity command time-out. Velocities zeroed.";
     }
-
-    // // Timeout condition
-    // if (absolute_time_diff_us(delayed_by_ms(this->last_cmd_time, 1000), get_absolute_time()) < 0)
-    // {
-    //     this->setVelocities(0.0, 0.0);
-    //     this->status = "Velocity command time-out. Velocities zeroed.";
-    // }
+    else 
+    {
+        this->status = "OK";
+    }
 
     // Get encoder speeds
 
@@ -188,8 +191,8 @@ MotorControl::onCycle()
     float motor_2_speed_rads = std::get<1>(desired_vels);
 
     // get the signs
-    bool motor_1_dir = (motor_1_speed_rads > 0) ? true : false;
-    bool motor_2_dir = (motor_2_speed_rads > 0) ? true : false;
+    bool motor_1_dir = (motor_1_speed_rads >= 0) ? true : false;
+    bool motor_2_dir = (motor_2_speed_rads >= 0) ? true : false;
 
     // convert radians/sec to RPM and dump the signs
     float motor_1_rpm = std::abs((motor_1_speed_rads * 60) / (2 * M_PI));
@@ -224,6 +227,8 @@ MotorControl::handleCommand(
         return false;
     }
 
+    if (!(*this->FLAG)) { return false; }
+
     this->setVelocities(vel.motor_1_velocity, vel.motor_2_velocity);
     this->last_cmd_time = get_absolute_time();
     
@@ -243,7 +248,6 @@ MotorControl::setVelocities(
     this->motor_2.desired_velocity = motor_2_vel;
     mutex_exit(&this->motor_2.mtx);
 
-    printf("set velocities to: %f, %f\n", this->motor_1.desired_velocity, this->motor_2.desired_velocity);
 }
 
 std::tuple<float, float>
@@ -256,8 +260,6 @@ MotorControl::getDesiredVelocities()
     mutex_enter_blocking(&this->motor_2.mtx);
     float motor_2_vel = this->motor_2.desired_velocity;
     mutex_exit(&this->motor_2.mtx);
-
-    printf("get velocities: %f, %f\n", this->motor_1.desired_velocity, this->motor_2.desired_velocity);
 
     return std::tuple<float, float>(motor_1_vel, motor_2_vel);
 }
@@ -289,8 +291,6 @@ MotorControl::report()
     if (result != pico_interface::E_MSG_SUCCESS) {
         out = pico_interface::MESSAGE_GET_ERROR(result);
     }
-
-    printf("FlAG == %s\n", (this->FLAG) ? "TRUE" : "FALSE");
 
     printf(out.c_str());
 }

@@ -22,17 +22,14 @@ class System
 {
 public:
 
-    System(std::vector<std::shared_ptr<bool>> flags)
+    System()
     {
         critical_section_init(&this->critical_section);
-
-        this->flags = flags;
-        this->_markFlags(true);
     };
 
     ~System()
     {
-        this->_markFlags(false);
+        this->FLAG._setState(Flag::STATE::STOP);
         critical_section_deinit(&this->critical_section);
     };
 
@@ -47,13 +44,16 @@ public:
         return returned;
     };
 
+    // TODO: might be redundant; why do this here when I could just 
+    // do it inside the private version, _setState()?
     bool setState([[maybe_unused]] SYSTEM_STATE new_state)
     {
         switch (this->state) {
             case SYSTEM_STATE::STANDBY:
-                [[fallthrough]];
+                return this->_stateStandby(new_state);
             case SYSTEM_STATE::ESTOP:
-                [[fallthrough]];
+                this->FLAG._setState(Flag::STATE::STOP);
+                break;
             case SYSTEM_STATE::ERROR:
                 [[fallthrough]];
             case SYSTEM_STATE::READY:
@@ -72,6 +72,9 @@ public:
             command, state_cmd);
         if (result != pico_interface::E_MSG_SUCCESS) {
             this->status = pico_interface::MESSAGE_GET_ERROR(result);
+            return false;
+        } else {
+            this->status = "OK";
         }
 
         return setState(static_cast<SYSTEM_STATE>(state_cmd.state));
@@ -93,9 +96,36 @@ public:
         printf(out.c_str());
     };
 
+    Flag* getFlag() { return &this->FLAG; };
+
 protected:
 
 private: // FUNCTIONS
+
+    bool _stateStandby(SYSTEM_STATE new_state)
+    {
+        switch (new_state)
+        {
+            case SYSTEM_STATE::STANDBY:
+                break;
+            case SYSTEM_STATE::ESTOP:
+                // this->FLAG._setState(Flag::STATE::STOP);
+                [[fallthrough]];
+            case SYSTEM_STATE::ERROR:
+                [[fallthrough]];
+            case SYSTEM_STATE::READY:
+                // TODO: what are the pre-conditions of READY?
+                // What would need to be false here to cause a failure?
+                // A failed POST?
+                // For now, just allow it.
+                this->_setState(new_state);
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    };
 
     void _setState(SYSTEM_STATE new_state)
     {
@@ -106,22 +136,19 @@ private: // FUNCTIONS
         critical_section_exit(&this->critical_section);
     };
 
-    void _markFlags(const bool enabled)
-    {
-        for (auto& flag : this->flags)
-        {
-            *flag = enabled;
-        }
-    };
+
 
 private: // MEMBERS
 
     critical_section_t critical_section;
 
     SYSTEM_STATE state = SYSTEM_STATE::STANDBY;
-    std::string status = "";
+    std::string status = "OK";
 
-    std::vector<std::shared_ptr<bool>> flags = {}; 
+    // TODO: this should be handed to System as a ref/pointer, just like it
+    // is to MotorControl. Otherwise, we run the risk of null-ptr access
+    // in the (hopefully unlikely) case that System goes down before MotorControl.
+    Flag FLAG; 
 
 }; // class System
 
