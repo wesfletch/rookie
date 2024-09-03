@@ -65,4 +65,5 @@ RUN sudo apt update && \
         cmake \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
-        libstdc++-arm-none-eabi-newlib
+        libstdc++-arm-none-eabi-newlib \
+        minicom
