@@ -6,3 +6,5 @@ workspace/**/log
 
 # Don't accidentally check our submodules in...
 rookie_pico/
+
+deploy/

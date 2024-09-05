@@ -45,6 +45,18 @@ elif [[ "${COMMAND,,:-}" == "build" ]]; then
         -f Dockerfile .
     popd || exit 1
 
+elif [[ "${COMMAND,,:-}" == "deploy" ]]; then
+
+    docker buildx build \
+        --platform linux/arm64 \
+        --tag rookie-runtime:latest \
+        -f ./docker/deploy.Dockerfile \
+        .
+    
+    mkdir -p ./deploy
+
+    docker save -o ./deploy/rookie-runtime.tar rookie-runtime:latest
+
 else
     echo "What? -- ${COMMAND,,}"
     exit 1
