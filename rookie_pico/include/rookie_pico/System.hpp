@@ -12,13 +12,13 @@
 
 
 static const uint32_t WATCHDOG_PERIOD_MS = 100;
+static const uint32_t HEARTBEAT_TIMEOUT_PERIOD_MS = 500;
 
-// TODO [WF]: this feels unnecessary
 enum class SYSTEM_STATE : uint8_t 
 {
     STANDBY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::STANDBY),
     ESTOP = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ESTOP),
-    ERROR = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ERROR),
+    ERROR = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ERROR), // Could this maybe be "FAULT" instead?
     READY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::READY),
 };
 
@@ -40,15 +40,24 @@ public:
     void start()
     {
         watchdog_enable(WATCHDOG_PERIOD_MS, true);
-    }
+    };
 
     void onCycle()
     {
         watchdog_update();
 
         // TODO: check the last time that we saw a heartbeat message...
-
-    }
+        absolute_time_t timeout = delayed_by_ms(
+            this->last_heartbeat_time, HEARTBEAT_TIMEOUT_PERIOD_MS);
+        if (absolute_time_diff_us(timeout, get_absolute_time()) < 0)
+        {
+            // We've gone too long without a heartbeat...
+            // Reset ourselves to STANDBY, and clear any heartbeat info we have.
+            this->setState(SYSTEM_STATE::STANDBY);
+            this->last_heartbeat_seq = 0;
+            this->last_heartbeat_time = nil_time;
+        }
+    };
 
     SYSTEM_STATE getState()
     {
@@ -63,7 +72,7 @@ public:
 
     // TODO: might be redundant; why do this here when I could just 
     // do it inside the private version, _setState()?
-    bool setState([[maybe_unused]] SYSTEM_STATE new_state)
+    bool setState(SYSTEM_STATE new_state)
     {
         switch (this->state) {
             case SYSTEM_STATE::STANDBY:
@@ -71,11 +80,11 @@ public:
             case SYSTEM_STATE::ESTOP:
                 return this->_stateEstop(new_state);
             case SYSTEM_STATE::ERROR:
-                [[fallthrough]];
+                return this->_stateError(new_state);
             case SYSTEM_STATE::READY:
-                [[fallthrough]];
+                return this->_stateReady(new_state);
             default:
-                break;
+                return false;
         };
         
         return true;
@@ -108,12 +117,15 @@ public:
         if (this->last_heartbeat_seq >= hbt.seq) 
         {
             // Sender either dropped out or reset since the last time we checked...
+            // We'll return to STANDBY.
             this->setState(SYSTEM_STATE::STANDBY);
         }
 
         this->last_heartbeat_seq = hbt.seq;
         this->last_heartbeat_time = get_absolute_time();
-    }
+
+        return true;
+    };
 
     void report()
     {
@@ -151,6 +163,7 @@ private: // FUNCTIONS
                 break;
             case SYSTEM_STATE::ERROR:
                 // TODO: still don't know what the ERROR state will mean for this system
+                this->_setState(SYSTEM_STATE::ERROR, Flag::STATE::STOP);
                 break;
             case SYSTEM_STATE::READY:
                 // TODO: what are the pre-conditions of READY?
@@ -194,6 +207,59 @@ private: // FUNCTIONS
         return true;
     };
 
+    bool _stateError(SYSTEM_STATE new_state)
+    {
+        switch (new_state)
+        {
+            case SYSTEM_STATE::STANDBY:
+                // TODO: There should probably be a set of conditions necessary for
+                // this to happen, but eh...
+                this->_setState(SYSTEM_STATE::STANDBY, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::ESTOP:
+                // This is meaningless. ERROR enforces same constraints as ESTOP,
+                // for now. In the future, it might be worthwhile to separate these...
+                // NO-OP
+                break;
+            case SYSTEM_STATE::ERROR:
+                // NO-OP
+                break;
+            case SYSTEM_STATE::READY:
+                // No. Need to go back through the STANDBY phase to 
+                // get to READY from ERROR.
+                this->status = "Transition not allowed <ERROR->READY>. Must go to STANDBY first.";
+                return false;
+            default:
+                return false;
+        }
+
+        return true;
+    };
+
+    bool _stateReady(SYSTEM_STATE new_state)
+    {
+        switch (new_state)
+        {
+            case SYSTEM_STATE::STANDBY:
+                this->_setState(SYSTEM_STATE::STANDBY, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::ESTOP:
+                this->_setState(SYSTEM_STATE::ESTOP, Flag::STATE::OK);
+                break;
+            case SYSTEM_STATE::ERROR:
+                // Allow it, even though I don't know what it means.
+                this->_setState(new_state, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::READY:
+                // NO-OP
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    };
+
     void _setState(SYSTEM_STATE new_state, Flag::STATE flag_state)
     {
         if (new_state == this->state) { return; }
@@ -218,8 +284,8 @@ private: // MEMBERS
     // in the (hopefully unlikely) case that System goes down before ClosedLoopController.
     Flag FLAG;
 
-    uint32_t last_heartbeat_seq;
-    absolute_time_t last_heartbeat_time;
+    uint32_t last_heartbeat_seq = 0;
+    absolute_time_t last_heartbeat_time = nil_time;
 
 }; // class System
 

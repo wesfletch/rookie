@@ -29,7 +29,7 @@ find_package(pico_interface 0.0.1 REQUIRED)
 
 
 add_library(${PROJECT_NAME}_lib
-    src/Comms.cpp
+    src/ClosedLoopController.cpp
     src/Config.cpp
     src/Encoders.cpp
     src/Motors.cpp

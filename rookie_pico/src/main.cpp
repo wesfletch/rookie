@@ -1,18 +1,22 @@
-#include <pico/multicore.h>
-
 #include <string>
 #include <cstring>
 
+#include <pico/multicore.h>
+
 #include <rookie_pico/main.h>
-#include <rookie_pico/Definitions.hpp>
-#include <rookie_pico/Comms.hpp>
 #include <rookie_pico/Motors.hpp>
+#include <rookie_pico/ClosedLoopController.hpp>
 #include <rookie_pico/Config.hpp>
 #include <rookie_pico/Encoders.hpp>
 #include <rookie_pico/Commands.hpp>
 #include <rookie_pico/System.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
+
+// for string parsing
+#define ENDSTDIN    255 // NULL
+#define NL          10  // NEWLINE
+#define CR          13  // CARRIAGE RETURN
 
 
 bool
@@ -83,7 +87,7 @@ call_command(
 queue_t intercore_queue;
 
 void
-comms_entry()
+core_1_entry()
 {
     // STDIN/STDOUT IO
     char ch = ENDSTDIN;
@@ -102,7 +106,6 @@ comms_entry()
                 in_string[idx] = '\0'; // null-terminate the string
                 idx = 0;    // reset index
 
-                // in = std::string(in_string);
                 queue_add_blocking(&intercore_queue, &in_string);
 
                 break;
@@ -112,6 +115,7 @@ comms_entry()
             // get next char
             ch = static_cast<char>(getchar_timeout_us(0));
         }
+        ch = ENDSTDIN;
     }
 }
 
@@ -126,7 +130,7 @@ int main()
 
     queue_init(&intercore_queue, (uint)(1024 * sizeof(char)), (uint)10);
 
-    multicore_launch_core1(comms_entry); // Start core 1 - Do this before any interrupt configuration
+    multicore_launch_core1(core_1_entry); // Start core 1 - Do this before any interrupt configuration
 
     // Configure the heartbeat timer.
     add_repeating_timer_ms(
@@ -192,11 +196,11 @@ int main()
     // spin
     while (1)
     {
+        // Process any commands that might have been captured by core_1.
         if (queue_try_remove(&intercore_queue, &input)) 
         {
             std::string header, body;
-            success = split_input(std::string(input), callbacks, header, body);
-            if (!success) 
+            if (!split_input(std::string(input), callbacks, header, body)) 
             {
                 printf("$ERR: Failed to process input: <%s>\n", input);
                 continue;
@@ -207,7 +211,8 @@ int main()
 
             std::string ack_string;
             result = pico_interface::pack_Ack(ack, ack_string);
-            if (result != pico_interface::E_MSG_SUCCESS) {
+            if (result != pico_interface::E_MSG_SUCCESS) 
+            {
                 ack_string = pico_interface::MESSAGE_GET_ERROR(result);
             }
             printf(ack_string.c_str());
