@@ -48,6 +48,8 @@ public:
 
     void pushHeartbeat();
 
+    void pushVelocity();
+
     void cmdVelCallback(
         geometry_msgs::msg::Twist::UniquePtr msg);
 
@@ -65,6 +67,9 @@ private:
 
     rclcpp::TimerBase::SharedPtr heartbeat_timer;
     uint32_t heartbeat_seq = 0;
+
+    float desired_vel_left = 0.0;
+    float desired_vel_right = 0.0;
 
 };
 
