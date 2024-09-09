@@ -21,5 +21,7 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
     && rm -r build install log \
     && colcon build
 
-RUN chmod +x /ros_entrypoint.sh
+# RUN chmod +x /ros_entrypoint.sh
 
+# get rid of the entrypoint to see if that makes the pi happy...
+ENTRYPOINT [ ]
