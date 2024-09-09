@@ -57,6 +57,8 @@ elif [[ "${COMMAND,,:-}" == "deploy" ]]; then
 
     docker save -o ./deploy/rookie-runtime.tar rookie-runtime:latest
 
+    # on remote: docker load -i rookie-runtime.tar
+
 else
     echo "What? -- ${COMMAND,,}"
     exit 1
