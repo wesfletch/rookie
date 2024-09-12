@@ -18,16 +18,18 @@ if [[ "${COMMAND,,:-}" == "run" ]]; then
     docker run \
         -it \
         --rm \
+        --privileged \
         --user "${UID}" \
         -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
         -v "${PWD}/pico_interface:/home/${USERNAME}/pico_interface" \
         -v "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico" \
-        --device=/dev/ttyACM0 \
-        --cap-add=SYS_RAWIO \
-        --workdir "/home/${USERNAME}/workspace" \
+        --workdir "/home/${USERNAME}/" \
         --env "TERM=xterm-256color" \
         --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk" \
         "${CONTAINER_NAME}":latest
+
+        # --device=/dev/ttyACM0 \
+        # --cap-add=SYS_RAWIO \
 
 elif [[ "${COMMAND,,:-}" == "build" ]]; then
     echo "--- Building ${CONTAINER_NAME} image ---"

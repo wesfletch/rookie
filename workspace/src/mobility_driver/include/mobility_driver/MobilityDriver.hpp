@@ -8,37 +8,12 @@
 #include <std_msgs/msg/string.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
+
+#include <mobility_driver/SerialPort.hpp>
+
 namespace mobility_driver
 {
 
-class SerialPort
-{
-public:
-    ~SerialPort();
-
-    bool configure();
-    
-    bool isConfigured() { return configured; }
-
-    std::optional<std::string> spinOnce();
-    void spin();
-
-    bool write(std::string out);
-
-protected:
-private:
-
-    /**
-     * NOTE: `serial_port` not usable unless isConfigured();
-     */
-    int serial_port;
-
-    bool configured = false;
-    
-}; // class SerialPort
-
-
-// class MobilityDriver : public rclcpp::Node
 class MobilityDriver
 {
 public:
