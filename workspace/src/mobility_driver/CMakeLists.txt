@@ -21,6 +21,7 @@ find_package(pico_interface 0.0.1 REQUIRED)
 #########################
 
 add_library(mobility_driver_lib
+    src/SerialPort.cpp
     src/MobilityDriver.cpp
 )
 target_include_directories(mobility_driver_lib
