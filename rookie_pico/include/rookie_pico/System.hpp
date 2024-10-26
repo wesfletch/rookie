@@ -3,7 +3,6 @@
 
 // Pico headers
 #include <pico/sync.h>
-
 #include <hardware/watchdog.h>
 
 #include <rookie_pico/Flag.hpp>
@@ -20,6 +19,7 @@ enum class SYSTEM_STATE : uint8_t
     ESTOP = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ESTOP),
     ERROR = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ERROR), // Could this maybe be "FAULT" instead?
     READY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::READY),
+    TEST = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::TEST),
 };
 
 class System
@@ -29,6 +29,11 @@ public:
     System()
     {
         critical_section_init(&this->critical_section);
+    };
+
+    System(SYSTEM_STATE system_state, Flag::STATE flag_state)
+    {
+        this->_setState(system_state, flag_state);
     };
 
     ~System()
@@ -44,7 +49,15 @@ public:
 
     void onCycle()
     {
-        watchdog_update();
+        if (this->state == SYSTEM_STATE::TEST)
+        {
+            // disable the watchdog
+            hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
+        } 
+        else 
+        {
+            watchdog_update();
+        }
 
         // TODO: check the last time that we saw a heartbeat message...
         absolute_time_t timeout = delayed_by_ms(
@@ -70,8 +83,6 @@ public:
         return returned;
     };
 
-    // TODO: might be redundant; why do this here when I could just 
-    // do it inside the private version, _setState()?
     bool setState(SYSTEM_STATE new_state)
     {
         switch (this->state) {
@@ -83,6 +94,8 @@ public:
                 return this->_stateError(new_state);
             case SYSTEM_STATE::READY:
                 return this->_stateReady(new_state);
+            case SYSTEM_STATE::TEST:
+                return this->_stateTest(new_state);
             default:
                 return false;
         };
@@ -100,7 +113,15 @@ public:
             return false;
         }
 
-        return setState(static_cast<SYSTEM_STATE>(state_cmd.state));
+        if (setState(static_cast<SYSTEM_STATE>(state_cmd.state)))
+        {
+            this->status = "OK";
+            return true;
+        } 
+        else 
+        {
+            return false;
+        }
     };
 
     bool handleHeartbeat(const std::string heartbeat)
@@ -172,6 +193,9 @@ private: // FUNCTIONS
                 // For now, just allow it.
                 this->_setState(SYSTEM_STATE::READY, Flag::STATE::OK);
                 break;
+            case SYSTEM_STATE::TEST:
+                this->_setState(SYSTEM_STATE::TEST, Flag::STATE::OK);
+                break;
             default:
                 return false;
         }
@@ -199,6 +223,9 @@ private: // FUNCTIONS
                 // No. Need to go back through the STANDBY phase to 
                 // get to READY from ESTOP.
                 this->status = "Transition not allowed <ESTOP->READY>. Must go to STANDBY first.";
+                return false;
+            case SYSTEM_STATE::TEST:
+                this->status = "Transition not allowed <ESTOP->TEST>. Must go to STANDBY first.";
                 return false;
             default:
                 return false;
@@ -229,6 +256,9 @@ private: // FUNCTIONS
                 // get to READY from ERROR.
                 this->status = "Transition not allowed <ERROR->READY>. Must go to STANDBY first.";
                 return false;
+            case SYSTEM_STATE::TEST:
+                this->status = "Transition not allowed <ERROR->TEST>. Must go to STANDBY first.";
+                return false;
             default:
                 return false;
         }
@@ -252,6 +282,35 @@ private: // FUNCTIONS
                 break;
             case SYSTEM_STATE::READY:
                 // NO-OP
+                break;
+            case SYSTEM_STATE::TEST:
+                this->status = "Transition not allowed <READY->TEST>. Must go to STANDBY first.";
+                return false;
+            default:
+                return false;
+        }
+
+        return true;
+    };
+
+    bool _stateTest(SYSTEM_STATE new_state)
+    {
+        switch (new_state)
+        {
+            case SYSTEM_STATE::STANDBY:
+                // re-enable the watchdog timer
+                watchdog_enable(WATCHDOG_PERIOD_MS, true);
+                this->_setState(SYSTEM_STATE::STANDBY, Flag::STATE::STOP);
+                break;
+            case SYSTEM_STATE::ESTOP:
+                [[fallthrough]];
+            case SYSTEM_STATE::ERROR:
+                [[fallthrough]];
+            case SYSTEM_STATE::READY:
+                this->status = "Transition from TEST not allowed. Only valid transition from TEST is to STANDBY.";
+                return false;
+            case SYSTEM_STATE::TEST:
+                // no-op
                 break;
             default:
                 return false;

@@ -31,34 +31,44 @@ heartbeat_timer_callback(
 
     printf(out.c_str());
 
+    // Returning true here ensures that the timer keeps firing.
     return true;
 }
 
 bool
 split_input(
     std::string input, 
-    CommandCallbacks& callbacks,
+    const CommandCallbacks& callbacks,
     std::string& header,
     std::string& body)
 {
+    printf("RAW: <%s>\n", input.c_str());
     // split on string to get first 
     size_t posEndOfPrefix = input.find_first_of(" ");
-    if (posEndOfPrefix == std::string::npos) {
+    if (posEndOfPrefix == std::string::npos)
+    {
         return false;
     }
 
     // split into prefix + the rest
     std::string prefix(input, 0, posEndOfPrefix);
-    if (prefix.empty()) { return false; }
+    if (prefix.empty()) 
+    { 
+        printf("$ERR: Failed to split prefix from body.\n");
+        return false; 
+    }
 
     header = prefix;
     body = input.substr(posEndOfPrefix + 1);
-    
-    return (callbacks.find(prefix) != callbacks.end());
+
+    return true;
 }
 
 pico_interface::Msg_Ack
-create_ack(std::string header, std::string body, const bool status)
+create_ack(
+    std::string header, 
+    std::string body, 
+    const bool status)
 {
     pico_interface::Msg_Ack ack;
 
@@ -75,11 +85,16 @@ bool
 call_command(
     const std::string header, 
     const std::string body,
-    CommandCallbacks& callbacks)
+    const CommandCallbacks& callbacks)
 {
     auto it = callbacks.find(header);
-    if (it == callbacks.end()) { return false; }
+    if (it == callbacks.end()) 
+    {
+        printf("$ERR: Failed to match prefix <%s> to callback.\n", prefix.c_str());
+        return false; 
+    }
 
+    // Call the command associated with the header.
     bool status = it->second(body);
     return status;
 }
@@ -175,7 +190,7 @@ int main()
         system.getFlag());
 
     // Set up the map of callbacks that will determine the message handlers for each inbound message type
-    CommandCallbacks callbacks = {
+    const CommandCallbacks callbacks = {
         // This is the incantation necessary to make a callback to a member function
         // (test_callback), of a POINTER TO AN OBJECT (controller) with one parameter (placeholder)
         {pico_interface::MSG_ID_VELOCITY_CMD, std::bind(&ClosedLoopController::handleCommand, controller, std::placeholders::_1)},
@@ -199,7 +214,8 @@ int main()
         // Process any commands that might have been captured by core_1.
         if (queue_try_remove(&intercore_queue, &input)) 
         {
-            std::string header, body;
+            std::string header;
+            std::string body;
             if (!split_input(std::string(input), callbacks, header, body)) 
             {
                 printf("$ERR: Failed to process input: <%s>\n", input);
@@ -229,8 +245,8 @@ int main()
         controller.onCycle();
         
         // REPORT
-        controller.report();
         system.report();
+        controller.report();
 
         sleep_ms(20);
     }
