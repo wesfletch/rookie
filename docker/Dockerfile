@@ -54,12 +54,12 @@ RUN groupadd --gid ${GUID} ${USER} \
 RUN gpasswd --add ${USER} dialout
 
 # update our bashrc
-COPY bashrc_additions /home/${USER}/bashrc_additions
+COPY docker/bashrc_additions /home/${USER}/bashrc_additions
 RUN cat /home/${USER}/bashrc_additions >> /home/${USER}/.bashrc
 
 RUN chown -R ${USER}:${USER} /home/${USER}
 
-# Prerequisites for building the rookie_pico code
+# Prerequisites for cross-compiling the rookie_pico code
 RUN sudo apt update && \
     sudo apt install --no-install-recommends -y \
         cmake \
@@ -67,3 +67,12 @@ RUN sudo apt update && \
         libnewlib-arm-none-eabi \
         libstdc++-arm-none-eabi-newlib \
         minicom
+
+# Build the pico_interface lib, because doing it manually is annoying
+COPY pico_interface /home/${USER}/pico_interface
+WORKDIR /home/${USER}/pico_interface
+RUN mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && make \
+    && sudo make install
