@@ -24,23 +24,33 @@ static constexpr uint TICKS_PER_ROTATION = 2048;
 static constexpr uint COUNTS_PER_TICK = 4;
 static constexpr uint COUNTS_PER_ROTATION = COUNTS_PER_TICK * TICKS_PER_ROTATION;
 
+/*
+ * @brief Convert encoder ticks to radians
+ * 
+ * @param ticks Number of ticks
+ * @return float equivalent radians for provided ticks.
+ */
+static inline float
+ticksToRadians(int ticks)
+{
+    return ticks * ((2 * M_PI) / TICKS_PER_ROTATION); 
+}
+
 
 /**
  * @brief Represents a single quadrature encodder.
  */
-typedef struct Encoder {
+class Encoder 
+{
+public:
+
     /* GPIO pin of channel A. */
     uint channelAPin;
     /* GPIO pin of channel B. */
     uint channelBPin;
 
-    /* Critical section to protect read/write to data fields below. */
-    critical_section_t criticalSection;
-    /* Number of ticks since last read. */
-    volatile int32_t counter = 0;
-    volatile int32_t prevCounter = 0;
-    /* Current rotational velocity of this encoder in rads/sec. */
-    float angularVel = 0.0;
+    // /* Current rotational velocity of this encoder in rads/sec. */
+    // float angularVel = 0.0;
     /* The last time this encoders velocity was updated. */
     absolute_time_t lastUpdateStamp = nil_time;
 
@@ -81,6 +91,34 @@ typedef struct Encoder {
         );
     };
 
+    void update()
+    {        
+        if (is_nil_time(this->lastUpdateStamp)) {
+            this->_setAngularVel(0.0f);
+            return; 
+        }
+
+        // get the diff of ticks between now and the last time update was called
+        int ticks = this->counter - this->prevCounter;
+        this->prevCounter = this->counter;
+
+        // Roll-over if we reach the max counter.
+        if (this->counter == INT32_MAX) {
+            this->counter = 0;
+            this->prevCounter = 0 - this->prevCounter;
+        }
+
+        // get the time diff since we last updated
+        int64_t diff_us = absolute_time_diff_us(
+            this->lastUpdateStamp,
+            get_absolute_time()
+        );
+        float diffInSecs = diff_us / 1000000.0; 
+
+        float rads_per_sec = ticksToRadians(ticks) / diffInSecs;
+        this->_setAngularVel(rads_per_sec);
+    };
+
     float getAngularVel()
     {
         float returned = 0.0;
@@ -91,10 +129,39 @@ typedef struct Encoder {
         return returned;
     };
 
-} Encoder;
+    void addToCounter(int delta)
+    {
+        critical_section_enter_blocking(&this->criticalSection);
+        this->counter += delta;
+        critical_section_exit(&this->criticalSection);
+    }
+
+protected:
+
+private: // FUNCTIONS
+
+    void _setAngularVel(float new_vel)
+    {
+        critical_section_enter_blocking(&this->criticalSection);
+        this->angularVel = new_vel;
+        critical_section_exit(&this->criticalSection);
+        
+        this->lastUpdateStamp = get_absolute_time();
+    };
+
+private: // MEMBERS
+
+    /* Critical section to protect read/write to data fields below. */
+    critical_section_t criticalSection;
+    /* Number of ticks since last read. */
+    volatile int32_t counter = 0;
+    volatile int32_t prevCounter = 0;
+
+    /* Current rotational velocity of this encoder in rads/sec. */
+    float angularVel = 0.0;
+};
 
 using EncoderList = std::vector<std::shared_ptr<Encoder>>;
-
 
 /**
  * @brief Initialize encoders.
@@ -123,18 +190,5 @@ static void AMT102V_callback(
  */
 bool encoder_timer_callback(
     struct repeating_timer *t);
-
-/**
- * @brief Convert encoder ticks to radians
- * 
- * @param ticks Number of ticks
- * @return float equivalent radians for provided ticks.
- */
-static inline float
-ticksToRadians(int ticks)
-{
-    return ticks * ((2 * M_PI) / TICKS_PER_ROTATION); 
-}
-
 
 #endif // ENCODERS_HPP

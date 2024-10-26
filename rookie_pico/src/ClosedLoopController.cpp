@@ -40,10 +40,11 @@ ClosedLoopController::onCycle()
         this->status = "OK";
     }
 
-    // Get encoder speeds
+    // Update and read encoder speeds
+    this->encoder1->update();
+    this->encoder2->update();
 
     // Actually assert our motor velocities here
-    // TODO: need to convert these to PWMs
     std::tuple<float, float> desired_vels = this->getDesiredVelocities();
 
     // velocities that are handed to us are in rads/s
@@ -140,6 +141,7 @@ ClosedLoopController::getCurrentVelocities()
 void
 ClosedLoopController::report()
 {
+    // Report the current velocity of the wheels as reported by our encoders.
     pico_interface::Msg_Velocity vel;
     vel.motor_1_velocity = this->encoder1->getAngularVel();
     vel.motor_2_velocity = this->encoder2->getAngularVel();
@@ -150,6 +152,7 @@ ClosedLoopController::report()
     if (result != pico_interface::E_MSG_SUCCESS) {
         out = pico_interface::MESSAGE_GET_ERROR(result);
     }
-
     printf(out.c_str());
+
+    this->controller->report();
 }

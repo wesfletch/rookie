@@ -16,7 +16,6 @@ static constexpr float ENCODER_FREQ = 50; // Hz
 static constexpr int32_t ENCODER_PERIOD_MS = (1 / ENCODER_FREQ) * 1000;
 static std::map<uint, std::shared_ptr<Encoder>> pinToEncoderMap;
 
-
 void
 init_encoders(
     EncoderList* encoders,
@@ -41,12 +40,12 @@ init_encoders(
         encoder->init();
     }
 
-    // // Set up timer for calculating encoder speeds
-    add_repeating_timer_ms(
-        ENCODER_PERIOD_MS /** milliseconds */,
-        encoder_timer_callback,
-        static_cast<void*>(encoders),
-        timer);
+    // // // Set up timer for calculating encoder speeds
+    // add_repeating_timer_ms(
+    //     ENCODER_PERIOD_MS /** milliseconds */,
+    //     encoder_timer_callback,
+    //     static_cast<void*>(encoders),
+    //     timer);
 }
 
 static void
@@ -93,71 +92,67 @@ AMT102V_callback(
         } else { return; }
     }
 
-    // Modify our counter only within critical sections
-    // (This may turn out to be completely unnecessary)
-    critical_section_enter_blocking(&quad->criticalSection);
-    quad->counter += delta;
-    critical_section_exit(&quad->criticalSection);
+    quad->addToCounter(delta);
 }
 
 bool
 encoder_timer_callback(
-    struct repeating_timer *t)
+    [[maybe_unused]] struct repeating_timer *t)
 {
-    // Doing this as a loop of all encoders instead
-    // of a separate timer for each is lazy, but...
+//     // Doing this as a loop of all encoders instead
+//     // of a separate timer for each is lazy, but...
 
     // re-constitute our vector of encoders here
-    EncoderList* encoders = 
-        static_cast<EncoderList*>
-        (t->user_data);
+    // EncoderList* encoders = 
+    //     static_cast<EncoderList*>
+    //     (t->user_data);
 
-    int ticks = 0;
-    for (auto const& encoder : *encoders) {
-        critical_section_enter_blocking(&encoder->criticalSection);
+//     int ticks = 0;
+//     for (auto const& encoder : *encoders) {
+//         critical_section_enter_blocking(&encoder->criticalSection);
         
-        if (is_nil_time(encoder->lastUpdateStamp)) {
-            encoder->lastUpdateStamp = get_absolute_time();
-            encoder->angularVel = 0.0;
-            continue; 
-        }
+//         if (is_nil_time(encoder->lastUpdateStamp)) {
+//             encoder->lastUpdateStamp = get_absolute_time();
+//             encoder->angularVel = 0.0;
+//             continue; 
+//         }
 
-        // get the diff of ticks between now and the last time this timer was called
-        // printf("TICKS == %d - %d\n", encoder->counter, encoder->prevCounter);
-        ticks = encoder->counter - encoder->prevCounter;
+//         // get the diff of ticks between now and the last time this timer was called
+//         // printf("TICKS == %d - %d\n", encoder->counter, encoder->prevCounter);
+//         ticks = encoder->counter - encoder->prevCounter;
         
-        encoder->prevCounter = encoder->counter;
-        if (encoder->counter == INT32_MAX) {
-            encoder->counter = 0;
-            encoder->prevCounter = 0 - encoder->prevCounter;
-        }
+//         encoder->prevCounter = encoder->counter;
+//         if (encoder->counter == INT32_MAX) {
+//             encoder->counter = 0;
+//             encoder->prevCounter = 0 - encoder->prevCounter;
+//         }
 
-        critical_section_exit(&encoder->criticalSection);
+//         critical_section_exit(&encoder->criticalSection);
 
-        // get the time diff
-        int64_t diff_us = absolute_time_diff_us(
-            encoder->lastUpdateStamp,
-            get_absolute_time()
-        );
-        float diffInSecs = diff_us / 1000000.0; 
+//         // get the time diff
+//         int64_t diff_us = absolute_time_diff_us(
+//             encoder->lastUpdateStamp,
+//             get_absolute_time()
+//         );
+//         float diffInSecs = diff_us / 1000000.0; 
 
-        // using diff and ticks, determine rotational speed
-        encoder->angularVel = ticksToRadians(ticks) / diffInSecs;
-        encoder->lastUpdateStamp = get_absolute_time();
+//         // using diff and ticks, determine rotational speed
+//         encoder->angularVel = ticksToRadians(ticks) / diffInSecs;
+//         encoder->lastUpdateStamp = get_absolute_time();
 
-// #ifdef DEBUG
-        // if (ticks != 0) {
-        //     printf("ENCODER: ");
-        //     printf(" TICKS=%d, RADIANS=%f,", ticks, ticksToRadians(ticks));
-        //     printf(" DIFF=%llu,", diff_us);
-        //     printf(" SECS=%f,", diffInSecs);
-        //     printf(" VEL=%f", encoder->angularVel);
-        //     printf(" RPM=%f", encoder->angularVel * (60 / (2 * M_PI)));
-        //     printf("\n");
-        // }
-// #endif // DEBUG
+// // #ifdef DEBUG
+//         // if (ticks != 0) {
+//         //     printf("ENCODER: ");
+//         //     printf(" TICKS=%d, RADIANS=%f,", ticks, ticksToRadians(ticks));
+//         //     printf(" DIFF=%llu,", diff_us);
+//         //     printf(" SECS=%f,", diffInSecs);
+//         //     printf(" VEL=%f", encoder->angularVel);
+//         //     printf(" RPM=%f", encoder->angularVel * (60 / (2 * M_PI)));
+//         //     printf("\n");
+//         // }
+// // #endif // DEBUG
 
-    }
+    // }
 
     return true;
 }

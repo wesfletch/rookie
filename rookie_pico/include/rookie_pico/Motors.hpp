@@ -34,7 +34,7 @@ static constexpr int MOTOR_MAX_RPM = 250;
 static constexpr float MOTOR_MAX_VEL_RADS = (MOTOR_MAX_RPM / 60) * (2 * M_PI); 
 
 // Wheel parameters
-static constexpr float WHEEL_DIAMETER_MM = 73.025; // 2"7/8 inches
+static constexpr float WHEEL_DIAMETER_MM = 98.425; // 3 7/8"
 static constexpr float WHEEL_DIAMETER_M = WHEEL_DIAMETER_MM / 1000;
 static constexpr float WHEEL_RADIUS_MM = WHEEL_DIAMETER_MM / 2;
 static constexpr float WHEEL_RADIUS_M = WHEEL_RADIUS_MM / 1000;
@@ -149,12 +149,19 @@ public:
 
     bool handleMsg_Motors(const std::string input);
 
+    void report();
+
 protected:
 private:
     const uint dir_1_pin;
     const uint pwm_1_pin;
     const uint dir_2_pin;
     const uint pwm_2_pin;
+
+    uint motor_1_pwm_command = 0.0;
+    bool motor_1_dir_command = true;
+    uint motor_2_pwm_command = 0.0;
+    uint motor_2_dir_command = true;
 
 }; // class MDD10A
 
