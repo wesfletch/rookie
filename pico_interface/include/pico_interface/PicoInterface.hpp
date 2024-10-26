@@ -60,8 +60,8 @@ pack_HeartbeatMessage(
 {
     std::stringstream ss;
 
-    ss << MSG_ID_HEARTBEAT << " ";
-    ss << heartbeat.seq << "\n";
+    ss << MSG_ID_HEARTBEAT << DELIM;
+    ss << heartbeat.seq << END;
     str = ss.str();
 
     return MESSAGE_ERR::E_MSG_SUCCESS;
@@ -161,6 +161,7 @@ typedef struct Msg_SystemState {
         ESTOP = 1,
         ERROR = 2,
         READY = 3,
+        TEST = 4,
     };
 
     STATE state = STATE::STANDBY;
@@ -178,9 +179,9 @@ pack_SystemState(Msg_SystemState& msg, const std::string header, std::string& st
         return E_MSG_ENCODE_FAILURE;
     }
 
-    ss << header << " ";
-    ss << std::to_string(static_cast<uint8_t>(msg.state)) << " ";
-    ss << msg.status << "\n";
+    ss << header << DELIM;
+    ss << std::to_string(static_cast<uint8_t>(msg.state)) << DELIM;
+    ss << msg.status << END;
 
     str = ss.str();
     return E_MSG_SUCCESS;
@@ -205,7 +206,7 @@ unpack_SystemState(const std::string msg, Msg_SystemState& state)
 
 static const std::string MSG_ID_MOTORS_CMD = "$MTR.C";
 static const std::string MSG_ID_MOTORS_STATUS = "$MTR.S";
-typedef struct Msg_MotorsCommand {
+typedef struct Msg_Motors {
 
     enum class DIRECTION : uint8_t {
         FORWARD = 0,
@@ -218,20 +219,26 @@ typedef struct Msg_MotorsCommand {
     DIRECTION motor_2_direction;
     uint8_t motor_2_pwm;
 
-} MOTORS_CMD;
+} Msg_Motors;
 
 static message_error_t
-pack_MotorsCommand(
-    Msg_MotorsCommand& msg,
+pack_Motors(
+    Msg_Motors& msg,
+    const std::string header,
     std::string& str)
 {
     std::stringstream ss;
 
-    ss << MSG_ID_MOTORS_CMD << " ";
-    ss << std::to_string(static_cast<uint8_t>(msg.motor_1_direction)) << " ";
-    ss << std::to_string(msg.motor_1_pwm) << " ";
-    ss << std::to_string(static_cast<uint8_t>(msg.motor_2_direction)) << " ";
-    ss << std::to_string(msg.motor_2_pwm) << "\n";
+    if (header != MSG_ID_MOTORS_CMD && 
+        header != MSG_ID_MOTORS_STATUS) {
+        return MESSAGE_ERR::E_MSG_ENCODE_FAILURE;
+    }
+
+    ss << header << DELIM;
+    ss << std::to_string(static_cast<uint8_t>(msg.motor_1_direction)) << DELIM;
+    ss << std::to_string(msg.motor_1_pwm) << DELIM;
+    ss << std::to_string(static_cast<uint8_t>(msg.motor_2_direction)) << DELIM;
+    ss << std::to_string(msg.motor_2_pwm) << END;
 
     str = ss.str();
 
@@ -239,9 +246,9 @@ pack_MotorsCommand(
 };
 
 static message_error_t
-unpack_MotorsCommand(
+unpack_Motors(
     const std::string msg,
-    Msg_MotorsCommand& motors_cmd) 
+    Msg_Motors& motors) 
 {
     std::stringstream ss(msg);
     
@@ -251,22 +258,22 @@ unpack_MotorsCommand(
 
     std::string token;
     ss >> token;
-    motors_cmd.motor_1_direction = 
-        static_cast<Msg_MotorsCommand::DIRECTION>(std::atoi(token.c_str()));
+    motors.motor_1_direction = 
+        static_cast<Msg_Motors::DIRECTION>(std::atoi(token.c_str()));
     
     ss >> token;
-    motors_cmd.motor_1_pwm = static_cast<uint8_t>(std::atoi(token.c_str()));
-    if (motors_cmd.motor_1_pwm > 100) {
+    motors.motor_1_pwm = static_cast<uint8_t>(std::atoi(token.c_str()));
+    if (motors.motor_1_pwm > 100) {
         return MESSAGE_ERR::E_MSG_DECODE_OUT_OF_BOUNDS;
     }
 
     ss >> token;
-    motors_cmd.motor_2_direction = 
-        static_cast<Msg_MotorsCommand::DIRECTION>(std::atoi(token.c_str()));
+    motors.motor_2_direction = 
+        static_cast<Msg_Motors::DIRECTION>(std::atoi(token.c_str()));
     
     ss >> token;
-    motors_cmd.motor_2_pwm = static_cast<uint8_t>(std::atoi(token.c_str()));
-    if (motors_cmd.motor_1_pwm > 100) {
+    motors.motor_2_pwm = static_cast<uint8_t>(std::atoi(token.c_str()));
+    if (motors.motor_1_pwm > 100) {
         return MESSAGE_ERR::E_MSG_DECODE_OUT_OF_BOUNDS;
     }
 
@@ -299,9 +306,9 @@ pack_Velocity(
         return E_MSG_ENCODE_FAILURE;
     }
 
-    ss << header << " ";
-    ss << msg.motor_1_velocity << " ";
-    ss << msg.motor_2_velocity << "\n";
+    ss << header << DELIM;
+    ss << msg.motor_1_velocity << DELIM;
+    ss << msg.motor_2_velocity << END;
 
     str = ss.str();
     return E_MSG_SUCCESS;
