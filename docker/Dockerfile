@@ -66,7 +66,8 @@ RUN sudo apt update && \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
         libstdc++-arm-none-eabi-newlib \
-        minicom
+        minicom \
+        cppcheck
 
 # Build the pico_interface lib, because doing it manually is annoying
 COPY pico_interface /home/${USER}/pico_interface
