@@ -7,7 +7,6 @@
 #include <string>
 
 // hardware includes
-#include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "pico/util/queue.h"
 #include "hardware/uart.h"

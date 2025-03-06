@@ -1,6 +1,7 @@
 #include <string>
 #include <cstring>
 
+#include "pico/stdlib.h"
 #include <pico/multicore.h>
 
 #include <rookie_pico/main.h>
@@ -38,7 +39,6 @@ heartbeat_timer_callback(
 bool
 split_input(
     std::string input, 
-    const CommandCallbacks& callbacks,
     std::string& header,
     std::string& body)
 {
@@ -90,7 +90,7 @@ call_command(
     auto it = callbacks.find(header);
     if (it == callbacks.end()) 
     {
-        printf("$ERR: Failed to match prefix <%s> to callback.\n", prefix.c_str());
+        printf("$ERR: Failed to match header <%s> to callback.\n", header.c_str());
         return false; 
     }
 
@@ -178,25 +178,38 @@ int main()
         Encoder(LEFT_CHANNEL_A_GPIO, LEFT_CHANNEL_B_GPIO));
     std::shared_ptr<Encoder> rightEncoder = std::make_shared<Encoder>(
         Encoder(RIGHT_CHANNEL_A_GPIO, RIGHT_CHANNEL_B_GPIO));
-
     EncoderList encoders = {leftEncoder, rightEncoder};
-    struct repeating_timer encoder_timer;
-    init_encoders(&encoders, &encoder_timer);
+    init_encoders(&encoders);
+
+    Flag controllerFlag;
+    system.registerFlag(&controllerFlag, Flag::STATE::STOP);
 
     ClosedLoopController controller(
         motor_controller, 
         leftEncoder, 
         rightEncoder,
-        system.getFlag());
+        &controllerFlag);
 
     // Set up the map of callbacks that will determine the message handlers for each inbound message type
     const CommandCallbacks callbacks = {
         // This is the incantation necessary to make a callback to a member function
         // (test_callback), of a POINTER TO AN OBJECT (controller) with one parameter (placeholder)
-        {pico_interface::MSG_ID_VELOCITY_CMD, std::bind(&ClosedLoopController::handleCommand, controller, std::placeholders::_1)},
-        {pico_interface::MSG_ID_MOTORS_CMD, std::bind(&MDD10A::handleMsg_Motors, motor_controller, std::placeholders::_1)},
-        {pico_interface::MSG_ID_SYSTEM_STATE_CMD, std::bind(&System::handleCommand, &system, std::placeholders::_1)},
-        {pico_interface::MSG_ID_HEARTBEAT, std::bind(&System::handleHeartbeat, &system, std::placeholders::_1)}
+        {
+            pico_interface::MSG_ID_VELOCITY_CMD, 
+            std::bind(&ClosedLoopController::handleCommand, controller, std::placeholders::_1)
+        },
+        {
+            pico_interface::MSG_ID_MOTORS_CMD, 
+            std::bind(&MDD10A::handleMsg_Motors, motor_controller, std::placeholders::_1)
+        },
+        {
+            pico_interface::MSG_ID_SYSTEM_STATE_CMD, 
+            std::bind(&System::handleCommand, &system, std::placeholders::_1)
+        },
+        {
+            pico_interface::MSG_ID_HEARTBEAT, 
+            std::bind(&System::handleHeartbeat, &system, std::placeholders::_1)
+        }
     };
 
     // STDIN/STDOUT IO
@@ -216,7 +229,7 @@ int main()
         {
             std::string header;
             std::string body;
-            if (!split_input(std::string(input), callbacks, header, body)) 
+            if (!split_input(std::string(input), header, body)) 
             {
                 printf("$ERR: Failed to process input: <%s>\n", input);
                 continue;
@@ -234,6 +247,7 @@ int main()
             printf(ack_string.c_str());
         }
 
+        // If we're not started yet, START
         static bool started = false;
         if (!started) {
             system.start();

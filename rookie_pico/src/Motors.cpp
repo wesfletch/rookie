@@ -53,12 +53,13 @@ MDD10A::configure()
 }
 
 /**
- * @brief 
+ * @brief Set speed and direction of both motors
  * 
  * @param left_dir true for forward, false for reverse
  * @param left_speed [0-100] STOP --> FULL SPEED
  * @param right_dir true for forward, false for reverse
  * @param right_speed [0-100] STOP --> FULL SPEED
+ * @return pwm_error_t 
  */
 pwm_error_t 
 MDD10A::setMotors(
@@ -67,25 +68,35 @@ MDD10A::setMotors(
 {
     pwm_error_t status;
 
-    // Set MOTOR_1
+    // Set MOTOR_1...
     status = this->setMotor(MOTOR::MOTOR_1, dir_1, speed_1);
     if (status != E_PWM_SUCCESS) {
         return status;
     }
+    // ... And record this latest command to be reported later.
     this->motor_1_pwm_command = speed_1;
     this->motor_1_dir_command = dir_1;
 
-    // Set MOTOR_2
+    // Set MOTOR_2...
     status = this->setMotor(MOTOR::MOTOR_2, dir_2, speed_2);
     if (status != E_PWM_SUCCESS) {
         return status;
     }
+    // ... And record this latest command to be reported later.
     this->motor_2_pwm_command = speed_2;
     this->motor_2_dir_command = dir_2;
 
     return E_PWM_SUCCESS;
 }
 
+/**
+ * @brief Set speed and direction of a single motor
+ * 
+ * @param motor Which motor we're commanding
+ * @param dir true for forward, false for reverse 
+ * @param speed [0-100] STOP --> FULL SPEED
+ * @return pwm_error_t 
+ */
 pwm_error_t
 MDD10A::setMotor(
     MDD10A::MOTOR motor, bool dir, int speed)
@@ -109,6 +120,13 @@ MDD10A::setMotor(
     return E_PWM_SUCCESS;
 }
 
+/**
+ * @brief Handle an incoming pico_interface::Motors command.
+ * 
+ * @param input 
+ * @return true 
+ * @return false 
+ */
 bool
 MDD10A::handleMsg_Motors(
     const std::string input)
@@ -121,7 +139,6 @@ MDD10A::handleMsg_Motors(
         printf("$ERR: %s\n", MESSAGE_GET_ERROR(unpacked).c_str());
         return false;
     }
-
 
     pwm_error_t status = this->setMotors(
         (motors.motor_1_direction == pico_interface::Msg_Motors::DIRECTION::FORWARD) ? true : false,

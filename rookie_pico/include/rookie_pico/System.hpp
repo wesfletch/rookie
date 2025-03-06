@@ -15,6 +15,7 @@ static const uint32_t HEARTBEAT_TIMEOUT_PERIOD_MS = 500;
 
 enum class SYSTEM_STATE : uint8_t 
 {
+    // INIT = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::INIT), // TODO
     STANDBY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::STANDBY),
     ESTOP = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ESTOP),
     ERROR = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ERROR), // Could this maybe be "FAULT" instead?
@@ -31,14 +32,17 @@ public:
         critical_section_init(&this->critical_section);
     };
 
-    System(SYSTEM_STATE system_state, Flag::STATE flag_state)
+    // TODO: this doesn't work since we're trying to set flag with no guarantee that
+    // any flags are registered.
+    System(SYSTEM_STATE system_state, Flag::STATE flag_state) : System()
     {
         this->_setState(system_state, flag_state);
     };
 
     ~System()
     {
-        this->FLAG._setState(Flag::STATE::STOP);
+        // this->FLAG._setState(Flag::STATE::STOP);
+        this->_setFlags(Flag::STATE::STOP);
         critical_section_deinit(&this->critical_section);
     };
 
@@ -164,7 +168,13 @@ public:
         printf(out.c_str());
     };
 
-    Flag* getFlag() { return &this->FLAG; };
+    // Flag* getFlag() { return &this->FLAG; };
+
+    void registerFlag(Flag* flag, Flag::STATE flag_state = Flag::STATE::STOP)
+    {
+        flag->_setState(flag_state);
+        this->flags.push_back(flag);
+    };
 
 protected:
 
@@ -327,9 +337,17 @@ private: // FUNCTIONS
         this->state = new_state;
         critical_section_exit(&this->critical_section);
 
-        this->FLAG._setState(flag_state);
+        // this->FLAG._setState(flag_state);
+        this->_setFlags(flag_state);
     };
 
+    void _setFlags(Flag::STATE flag_state)
+    {
+        for (auto const& flag : this->flags)
+        {
+            flag->_setState(flag_state);
+        }
+    };
 
 private: // MEMBERS
 
@@ -341,7 +359,9 @@ private: // MEMBERS
     // TODO: this should be handed to System as a ref/pointer, just like it
     // is to ClosedLoopController. Otherwise, we run the risk of null-ptr access
     // in the (hopefully unlikely) case that System goes down before ClosedLoopController.
-    Flag FLAG;
+    std::vector<Flag*> flags;
+    // Flag FLAG;
+
 
     uint32_t last_heartbeat_seq = 0;
     absolute_time_t last_heartbeat_time = nil_time;

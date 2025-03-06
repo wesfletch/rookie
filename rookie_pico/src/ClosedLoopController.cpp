@@ -1,4 +1,6 @@
 
+#include <string>
+
 #include <rookie_pico/Motors.hpp>
 #include <rookie_pico/ClosedLoopController.hpp>
 
@@ -35,10 +37,8 @@ ClosedLoopController::onCycle()
         this->setVelocities(0.0, 0.0);
         this->status = "Velocity command time-out. Velocities zeroed.";
     }
-    else 
-    {
-        this->status = "OK";
-    }
+
+    this->status = "OK";
 
     // Update and read encoder speeds
     this->encoder1->update();
@@ -79,6 +79,14 @@ bool
 ClosedLoopController::handleCommand(
     const std::string command)
 {
+    // If our flag is not OK, don't do anything with this.
+    if (!(*this->FLAG)) 
+    { 
+        this->status = "Ignoring command because: Flag disabled.\n";
+        return false; 
+    }
+
+    // Unpack the Velocity command.
     pico_interface::Msg_Velocity vel;
     pico_interface::message_error_t result = pico_interface::unpack_Velocity(
         command, vel);
@@ -87,8 +95,6 @@ ClosedLoopController::handleCommand(
         printf("$ERR: %s\n", MESSAGE_GET_ERROR(result).c_str());
         return false;
     }
-
-    if (!(*this->FLAG)) { return false; }
 
     this->setVelocities(vel.motor_1_velocity, vel.motor_2_velocity);
     this->last_cmd_time = get_absolute_time();
@@ -154,5 +160,6 @@ ClosedLoopController::report()
     }
     printf(out.c_str());
 
+    // Trigger our controller to report as well.
     this->controller->report();
 }
