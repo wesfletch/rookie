@@ -67,6 +67,7 @@ set(LIBS ${LIBS} ${PROJECT_NAME}_lib)
 add_executable(rookie
     ${HEADERS}
     src/main.cpp
+    # src/encoder_test.cpp
 )
 target_link_libraries(rookie
     ${LIBS}
