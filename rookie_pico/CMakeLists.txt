@@ -75,6 +75,15 @@ target_link_libraries(rookie
     ${LIBS}
 )
 
+
+add_executable(command_test
+    ${HEADERS}
+    src/command_test.cpp
+)
+target_link_libraries(command_test
+    ${LIBS}
+)   
+
 # enable usb output, disable uart output
 pico_enable_stdio_usb(rookie 1)
 pico_enable_stdio_uart(rookie 0)
