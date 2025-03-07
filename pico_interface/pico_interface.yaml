@@ -1,0 +1,54 @@
+messages:
+
+  - name: Heartbeat
+    id: HBT
+    fields:
+      - { name: seq, type: uint32 }
+
+  - name: Ack
+    id: ACK
+    enums:
+      - name: STATUS
+        type: uint8
+        enums:
+          - { name: SUCCESS, value: 0 }
+          - { name: FAILURE, value: 1 }
+    fields:
+      - { name: header, type: string }
+      - { name: fields, type: string }
+      - { name: status, type: STATUS }
+
+  - name: SystemState
+    id: SYS
+    enums:
+      - name: STATE
+        type: uint8
+        enums: 
+        - { name: STANDBY,  value: 0 }
+        - { name: ESTOP,    value: 1 }
+        - { name: ERROR,    value: 2 }
+        - { name: READY,    value: 3 }
+        - { name: TEST,     value: 4 }
+    fields:
+      - { name: state, type: STATE, }
+      - { name: status, type: string }
+
+  - name: Motors
+    id: MTR
+    enums:
+      - name: DIRECTION
+        type: uint8
+        enums:
+          - { name: FORWARD, value: 0 }
+          - { name: REVERSE, value: 1 }
+    fields:
+      - { name: motor_1_direction, type: DIRECTION }
+      - { name: motor_1_pwm, type: uint8 }
+      - { name: motor_2_direction, type: DIRECTION }
+      - { name: motor_2_pwm, type: uint8 }
+  
+  - name: Velocity
+    id: VEL
+    fields:
+      - { name: motor_1_velocity, type: float }
+      - { name: motor_2_velocity, type: float }
