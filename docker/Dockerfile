@@ -65,9 +65,15 @@ RUN sudo apt update && \
         cmake \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
-        libstdc++-arm-none-eabi-newlib \
+        libstdc++-arm-none-eabi-newlib
+
+# Other useful things
+RUN sudo apt update && \
+    sudo apt install --no-install-recommends -y \
         minicom \
-        cppcheck
+        cppcheck \
+        python3-serial \
+        python3-pipx
 
 # Build the pico_interface lib, because doing it manually is annoying
 COPY pico_interface /home/${USER}/pico_interface
