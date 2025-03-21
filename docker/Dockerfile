@@ -83,3 +83,10 @@ RUN mkdir -p build \
     && cmake .. \
     && make \
     && sudo make install
+
+
+# ROS dependencies
+RUN sudo apt update \
+    && sudo apt install -y --no-install-recommends \
+        ros-rolling-rviz2 \
+        ros-rolling-tf2-ros
