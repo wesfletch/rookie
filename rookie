@@ -27,6 +27,8 @@ if [[ "${COMMAND,,:-}" == "run" ]]; then
         --workdir "/home/${USERNAME}/" \
         --env "TERM=xterm-256color" \
         --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk" \
+        --net=host \
+        --env "DISPLAY" \
         "${CONTAINER_NAME}":latest
 
         # --device=/dev/ttyACM0 \
