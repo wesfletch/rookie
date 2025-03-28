@@ -73,7 +73,7 @@ RUN sudo apt update && \
         minicom \
         cppcheck \
         python3-serial \
-        python3-pipx
+        pipx
 
 # Build the pico_interface lib, because doing it manually is annoying
 COPY pico_interface /home/${USER}/pico_interface
