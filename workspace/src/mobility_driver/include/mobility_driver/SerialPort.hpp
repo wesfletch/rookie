@@ -11,19 +11,17 @@ class SerialPort
 {
 public:
 
-    SerialPort() = default;
+    SerialPort(std::string_view device_name, const int& frequency);
 
     ~SerialPort();
 
-    bool configure(int frequency);
+    void configure_tty(struct termios* tty);
 
     std::optional<std::string> spinOnce();
 
     void spin();
 
     bool write(std::string out);
-
-    bool isConfigured() { return configured; }
 
 protected:
 private:
@@ -33,12 +31,12 @@ private:
      */
     int serial_port;
 
+    std::string device_name;
+
     /**
      * NOTE: `frequency` not usable unless isConfigured();
      */
     int frequency;
-
-    bool configured = false;
 
 }; // class SerialPort
 

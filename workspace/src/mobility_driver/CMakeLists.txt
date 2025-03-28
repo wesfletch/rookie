@@ -3,7 +3,10 @@ project(mobility_driver)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Werror -Wextra -Wpedantic)
+    set(CMAKE_CXX_STANDARD 20)
 endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 # find ROS dependencies
 find_package(ament_cmake REQUIRED)

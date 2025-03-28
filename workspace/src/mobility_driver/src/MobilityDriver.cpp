@@ -1,16 +1,8 @@
 
-// C headers
-#include <errno.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <termios.h>
-#include <unistd.h>
-
 // CPP headers
+#include "mobility_driver/SerialPort.hpp"
 #include <chrono>
-// I HATE this
 using namespace std::chrono_literals;
-
 #include <optional>
 
 // ROS headers
@@ -28,40 +20,41 @@ namespace mobility_driver
 {
 
 
-MobilityDriver::MobilityDriver()
+MobilityDriver::MobilityDriver(
+    const std::string& node_name,
+    const std::string& output_topic,
+    const int& spin_rate,
+    const std::string& serial_device_name)
+    :
+    spin_rate(spin_rate),
+    serial_port(SerialPort(std::string_view(serial_device_name), spin_rate))
 {
-    this->_node = rclcpp::Node::make_shared("mobility_driver");
-
-    if (!this->serial_port.configure(100)) 
-    { 
-        throw std::runtime_error("Failed to configure serial port.");  
-    }
+    this->_node = rclcpp::Node::make_shared(node_name);
 
     // We'll publish all(-ish) messages from the pico on this topic
     this->pico_out_pub = this->_node->create_publisher<std_msgs::msg::String>(
-        "pico_out", 10
+        output_topic, 10
     );
 
     // Subscribe to /cmd_vel, velocities will be transformed and passed to the pico
     this->vel_sub = this->_node->create_subscription<geometry_msgs::msg::Twist>(
         "cmd_vel", 
-        10, 
-        std::bind(&MobilityDriver::cmdVelCallback, this, std::placeholders::_1));
+        10, // TODO: This is the QOS parameter, but 10 is the queue_size... Not finding a good doc on how this should be used in ROS2...
+        std::bind(&MobilityDriver::cmdVelCallback, this, std::placeholders::_1)
+    );
 
     // Configure a timer to send heartbeat messages
     this->heartbeat_timer = this->_node->create_wall_timer(
         1s, 
         std::bind(&MobilityDriver::pushHeartbeat, this));
-
-    
 }
 
 void
 MobilityDriver::run()
 {
-    int x = 100;
+    // int x = 100;
 
-    rclcpp::Rate loop_rate(100); // roughly 2x the spin rate of the pico to avoid buffer-filling
+    rclcpp::Rate loop_rate(this->spin_rate);
     while (rclcpp::ok()) 
     {   
         std::optional<std::string> out = this->serial_port.spinOnce();
@@ -70,10 +63,10 @@ MobilityDriver::run()
             RCLCPP_INFO_STREAM(this->_node->get_logger(), "RX: " << *out);
         }
 
-        if ((++x % 100) == 0)
-        {
-            this->pushVelocity();
-        }
+        // if ((++x % 100) == 0)
+        // {
+        //     this->pushVelocity();
+        // }
 
         loop_rate.sleep();
 
@@ -92,7 +85,7 @@ MobilityDriver::pushHeartbeat()
         heartbeat, msg);
     if (result != pico_interface::MESSAGE_ERR::E_MSG_SUCCESS) 
     {
-        RCLCPP_ERROR_STREAM(this->_node->get_logger(), "HEARTBEAT FUCK");
+        RCLCPP_ERROR_STREAM(this->_node->get_logger(), "HEARTBEAT");
         return;
     }
 
@@ -123,7 +116,6 @@ MobilityDriver::pushVelocity()
         std::lock_guard<std::mutex> lock(this->serial_port_mtx);
         this->serial_port.write(output);
     }
-    
 }
 
 void 

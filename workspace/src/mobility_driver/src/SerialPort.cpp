@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <stdexcept>
 #include <termios.h>
 #include <unistd.h>
 
@@ -17,124 +18,117 @@
 namespace mobility_driver
 {
 
+
+SerialPort::SerialPort(
+    std::string_view device_name,
+    const int& frequency)
+    :
+    device_name(std::string(device_name)),
+    frequency(frequency)
+{
+    this->serial_port = ::open(this->device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (serial_port < 0) 
+    {
+        std::stringstream err;
+        err << "Error opening serial port " << this->device_name << ": <" << errno << "> == " << strerror(errno);
+        throw std::runtime_error(err.str());
+    }
+
+    struct termios tty;
+    if (tcgetattr(serial_port, &tty) != 0) 
+    {
+        std::stringstream err;
+        err << "Error getting terminal settings: <" << errno << "> == " << strerror(errno);
+        throw std::runtime_error(err.str());
+    }
+    
+    this->configure_tty(&tty); 
+    
+    if (tcsetattr(serial_port, TCSANOW, &tty) != 0)
+    {
+        std::stringstream err;
+        err << "Failed to configure TTY: <" << errno << "> == " << strerror(errno);
+        throw std::runtime_error(err.str());
+    }
+}
+
+
 SerialPort::~SerialPort()
 {
     close(this->serial_port);
 }
 
 
-bool
-SerialPort::configure(int frequency)
+void
+SerialPort::configure_tty(struct termios* tty)
 {
-    this->serial_port = ::open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NONBLOCK);
-    if (serial_port < 0) 
-    {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"),
-            "Error opening serial port: <" << errno << "> == " << strerror(errno));
-        return false;
-    }
-
-    struct termios tty;
-    if (tcgetattr(serial_port, &tty) != 0) 
-    {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"),
-            "Error getting terminal settings: <" << errno << "> == " << strerror(errno));
-        return false;
-    }
-    
     // Configure Control Modes.
-    // PARITY
-    tty.c_cflag &= ~PARENB; // no parity bit
-    // STOP BIT
-    tty.c_cflag &= ~CSTOPB; // use ONE stop bit
+    tty->c_cflag &= ~PARENB; // No parity bit
+    tty->c_cflag &= ~CSTOPB; // use ONE stop bit
     // (DATA) BITS PER BYTE
-    tty.c_cflag &= ~CSIZE;  // first clear...
-    tty.c_cflag |= CS8;     // ... then set; 8 bits per byte
-    // HW FLOW CONTROL
-    tty.c_cflag &= ~CRTSCTS; // disabled
-    // CREAD and CLOCAL
-    tty.c_cflag |= CREAD | CLOCAL;   // allow reading, ignore control lines
+    tty->c_cflag &= ~CSIZE;  // first clear...
+    tty->c_cflag |= CS8;     // ... then set; 8 bits per byte
+    
+    // Flow control
+    tty->c_cflag &= ~CRTSCTS; // HW flow control disabled
+    tty->c_iflag &= ~(IXON | IXOFF | IXANY); // SW flow control disabled
 
     // Configure local modes.
-    // CANONICAL-MODE: receive only on '\n' (no) or constantly (yes)
-    tty.c_lflag &= ~ICANON; // disable canonical mode
-    // ECHO: bits we send get sent back (no thanks)
-    tty.c_lflag &= ~ECHO;   // Disable echo
-    tty.c_lflag &= ~ECHOE;  // Disable erasure
-    tty.c_lflag &= ~ECHONL; // Disable new-line echo
-    // SIGNAL CHARS (INTR, QUIT, SUSP)
-    tty.c_lflag &= ~ISIG; // disable signal chars
+    tty->c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // disable canonical mode
+    tty->c_oflag &= ~OPOST;
 
     // Configure input modes.
-    // SW FLOW CONTROL
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // disable sw flow control
-    // Disable any special handling of bytes on receive
-    tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+    tty->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
 
     // Configure output modes.
-    tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
-    tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+    tty->c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
+    tty->c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
 
-    // VMIN/VTIME
     // We want non-blocking (polling) reads
-    tty.c_cc[VTIME] = 0;    // Do not wait for any period of time.
-    tty.c_cc[VMIN] = 0;     // No minimum amount of bytes before returning.
+    tty->c_cc[VTIME] = 0;    // Do not wait for any period of time.
+    tty->c_cc[VMIN] = 0;     // No minimum amount of bytes before returning.
 
-    // BAUDRATE
-    cfsetispeed(&tty, B115200);
-    cfsetospeed(&tty, B115200);
-
-    if (tcsetattr(serial_port, TCSANOW, &tty) != 0)
-    {
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"),
-            "Failed to set serial settings: <" << errno << "> == " << strerror(errno));
-        return false;
-    }
-
-    this->frequency = frequency;
-    this->configured = true;
-    return true;
+    // BAUDRATE, IN and OUT
+    cfsetspeed(tty, B115200);
 }
+
 
 std::optional<std::string>
 SerialPort::spinOnce()
 {
-    if (!this->isConfigured()) { return std::nullopt; }
-
-    char buffer[256];
+    std::string buffer;
     char ch = '\n';
 
-    memset(&buffer, '\0', sizeof(buffer));
-
-    int total_bytes = 0;
     int num_bytes = ::read(this->serial_port, &ch, 1);
     while (ch != '\n')
     {
-        if (num_bytes <= 0)
+        if (num_bytes < 0)
         {
-            RCLCPP_DEBUG_STREAM(rclcpp::get_logger("serial_port"), 
+            // We got some sort of read error.
+            RCLCPP_WARN_STREAM(rclcpp::get_logger("serial_port"), 
                 "Bytes read ==  " << num_bytes << ", errno == " << errno << ", " << strerror(errno)); 
             return std::nullopt;
         }
-
-        if (ch == '\n' || total_bytes == (sizeof(buffer))-1) 
+        else if (num_bytes > 0)
         {
-            buffer[total_bytes] = '\0';
+            buffer.push_back(ch);
+        }
+        else 
+        {
+            // We got nothing; turf and come back later.
             break;
         }
-        buffer[total_bytes++] = ch;
+
         // get next char
         num_bytes = ::read(this->serial_port, &ch, 1);
     }
 
-    return std::optional<std::string>{std::string(buffer)};
+    return std::optional<std::string>{buffer};
 }
 
 void
 SerialPort::spin()
 {
-    if (!this->isConfigured()) { return; }
-
     char buffer[256];
     memset(&buffer, '\0', sizeof(buffer));
 
@@ -157,7 +151,8 @@ SerialPort::spin()
 
         // TODO: trying to do string accumulation here, but it's not going very well for me.
         buffer_out += std::string(buffer);
-        if (buffer_out.find(std::string("\n")) == std::string::npos) {
+        if (buffer_out.find(std::string("\n")) == std::string::npos) 
+        {
             continue;
         }
         buffer[num_bytes] = '\0';
@@ -173,8 +168,6 @@ bool
 SerialPort::write(
     std::string out)
 {
-    if (!this->isConfigured()) { return false; }
-
     RCLCPP_INFO_STREAM(rclcpp::get_logger("serial_port"), "TX: " << out);
 
     uint num_bytes = ::write(this->serial_port, out.c_str(), out.size());
