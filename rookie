@@ -5,36 +5,76 @@ set -o pipefail
 set -o nounset
 # set -o xtrace
 
-COMMAND="${1:-"run"}"
+COMMAND="${1:-"run_container"}"
 
 USERNAME="${USER:-ubuntu}"
+
+CONTAINER_IMG="rookie"
 CONTAINER_NAME="rookie"
 
 PICO_REPO="git@github.com:wesfletch/rookie_pico.git"
 PICO_REPO_PATH="./rookie_pico"
 
-if [[ "${COMMAND,,:-}" == "run" ]]; then
 
-    docker run \
-        -it \
-        --rm \
-        --privileged \
-        --user "${UID}" \
-        -v "${PWD}/workspace:/home/${USERNAME}/workspace" \
-        -v "${PWD}/pico_interface:/home/${USERNAME}/pico_interface" \
-        -v "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico" \
-        -v /dev/bus/usb:/dev/bus/usb \
-        --workdir "/home/${USERNAME}/" \
-        --env "TERM=xterm-256color" \
-        --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk" \
-        --net=host \
-        --env "DISPLAY" \
-        "${CONTAINER_NAME}":latest
+function handle_error()
+{
+    exit_code="${1:?}"
+    error_msg="${2:-}"
 
-        # --device=/dev/ttyACM0 \
-        # --cap-add=SYS_RAWIO \
+    if [[ "${exit_code}" -eq 0 ]]; then
+        return 0
+    else
+        echo "ERR: ${error_msg}"
+        exit 1
+    fi
+}
 
-elif [[ "${COMMAND,,:-}" == "build" ]]; then
+function dont_run_in_container()
+{
+    if [[ -f "/.dockerenv" ]]; then
+        echo "Don't run this script inside a docker container, man"
+        return 1
+    fi
+}
+
+function check_dependencies()
+{
+    dont_run_in_container; handle_error $?
+
+    deps=(
+        git
+        vcstool
+    )
+}
+
+function run_container()
+{
+    dont_run_in_container; handle_error $?
+
+    args=(
+        -it
+        --rm
+        --privileged
+        --user "${UID}"
+        --volume "${PWD}/workspace:/home/${USERNAME}/workspace"
+        --volume "${PWD}/pico_interface:/home/${USERNAME}/pico_interface"
+        --volume "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico"
+        --volume /dev/bus/usb:/dev/bus/usb
+        --workdir "/home/${USERNAME}/"
+        --env "TERM=xterm-256color"
+        --env "DISPLAY"
+        --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk"
+        --net=host
+    )
+
+    docker run "${args[@]}" "${CONTAINER_NAME}":latest
+
+}
+
+function build_container()
+{
+    dont_run_in_container; handle_error $?
+
     echo "--- Building ${CONTAINER_NAME} image ---"
     
     # Pull in our other repo dependencies
@@ -42,29 +82,45 @@ elif [[ "${COMMAND,,:-}" == "build" ]]; then
         git clone "${PICO_REPO}" --recurse-submodules
     fi
 
-    docker build \
-        --tag "${CONTAINER_NAME}:latest" \
-        --build-arg USER="${USERNAME}" \
-        --build-arg UID="${UID}" \
+    args=(
+        --tag "${CONTAINER_NAME}:latest"
+        --build-arg USER="${USERNAME}"
+        --build-arg UID="${UID}"
         -f docker/Dockerfile .
+    )
 
-elif [[ "${COMMAND,,:-}" == "deploy" ]]; then
+    docker build "${args[@]}"
+}
 
-    docker buildx build \
-        --platform linux/arm64 \
-        --tag rookie-runtime:latest \
-        -f ./docker/deploy.Dockerfile \
-        .
-    
-    mkdir -p ./deploy
 
-    docker save -o ./deploy/rookie-runtime.tar rookie-runtime:latest
+while [[ "${#}" -gt 0 ]]; do
+    ARG="${1}"
+    case "${ARG}" in
+        # Verbs
+        "build")
+            COMMAND="build_container"
+            ;;
+        "run")
+            COMMAND="run_container"
+            ;;
+        # Options
+        "-i" | "--image")
+            CONTAINER_IMG="${2}"
+            shift
+            ;;
+        "-n" | "--name")
+            CONTAINER_NAME="${2}"
+            shift
+            ;;
+        "--dump" | "--dump-command")
+            DUMP=1
+            ;;
+        # Default
+        *)
+            echo "What? ${ARG}"
+            exit 1
+    esac
+    shift
+done
 
-    # on remote: docker load -i rookie-runtime.tar
-
-else
-    echo "What? -- ${COMMAND,,}"
-    exit 1
-fi
-
-exit 0
+"${COMMAND:?}"
