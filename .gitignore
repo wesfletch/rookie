@@ -8,3 +8,5 @@ workspace/**/log
 rookie_pico/
 
 deploy/
+
+.venv
