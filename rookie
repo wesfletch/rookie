@@ -10,7 +10,7 @@ COMMAND="${1:-"run_container"}"
 USERNAME="${USER:-ubuntu}"
 
 CONTAINER_IMG="rookie"
-CONTAINER_NAME="rookie"
+CONTAINER_NAME="rookie-dev"
 
 PICO_REPO="git@github.com:wesfletch/rookie_pico.git"
 PICO_REPO_PATH="./rookie_pico"
@@ -52,6 +52,7 @@ function run_container()
     dont_run_in_container; handle_error $?
 
     args=(
+        --name "${CONTAINER_NAME:?}"
         -it
         --rm
         --privileged
@@ -67,7 +68,7 @@ function run_container()
         --net=host
     )
 
-    docker run "${args[@]}" "${CONTAINER_NAME}":latest
+    docker run "${args[@]}" "${CONTAINER_IMG:?}":latest
 
 }
 
@@ -75,7 +76,7 @@ function build_container()
 {
     dont_run_in_container; handle_error $?
 
-    echo "--- Building ${CONTAINER_NAME} image ---"
+    echo "--- Building ${CONTAINER_IMG:?} image ---"
     
     # Pull in our other repo dependencies
     if [[ ! -d "${PICO_REPO_PATH}" ]]; then
