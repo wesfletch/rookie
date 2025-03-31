@@ -3,11 +3,12 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <stdexcept>
 #include <termios.h>
 #include <unistd.h>
 
 // CPP headers
+#include <stdexcept>
+#include <stop_token>
 #include <optional>
 
 // ROS headers
@@ -99,7 +100,14 @@ SerialPort::spinOnce()
     std::string buffer;
     char ch = '\n';
 
+    // First read
     int num_bytes = ::read(this->serial_port, &ch, 1);
+    if (num_bytes == 0) { 
+        // Nothing's wrong, but we didn't get anything.
+        return std::nullopt; 
+    }
+
+    // Read the rest of the chars
     while (ch != '\n')
     {
         if (num_bytes < 0)
@@ -123,50 +131,91 @@ SerialPort::spinOnce()
         num_bytes = ::read(this->serial_port, &ch, 1);
     }
 
+    // This shouldn't actually happen...
+    if (buffer.size() == 0) { return std::nullopt; }
+
     return std::optional<std::string>{buffer};
 }
 
-void
-SerialPort::spin()
+
+void 
+SerialPort::start_jthread()
 {
-    char buffer[256];
-    memset(&buffer, '\0', sizeof(buffer));
+    // TODO: idempotency, or maybe it doesn't matter.
 
-    std::string buffer_out;
+    // Thread starts running when jthread is initialized, will be joined automatically
+    // on destruction.
+    this->thread = std::jthread(std::bind_front(&SerialPort::spin_jthread, this));
+}
+    
+void 
+SerialPort::stop_jthread()
+{
+    this->thread.request_stop();
+}
 
-    rclcpp::Rate loop_rate(this->frequency);
-    while (rclcpp::ok())
+void
+SerialPort::spin_jthread(std::stop_token stop_token)
+{
+    std::optional<std::string> in_string;
+    while (!stop_token.stop_requested()) 
     {
-        int num_bytes = ::read(this->serial_port, &buffer, 256);
-        if (num_bytes == 0) 
+        // READ
+        in_string = this->spinOnce();
+        if (in_string) 
         {
-            continue; 
+            {
+                std::unique_lock<std::mutex> lock_inbound(this->mtx_inbound);
+                this->inbound.push(*in_string);
+            }
         }
-        else if (num_bytes < 0) 
-        { 
-            RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"), 
-                "ERR " << errno << ", " << strerror(errno)); 
-            continue; 
-        }
-
-        // TODO: trying to do string accumulation here, but it's not going very well for me.
-        buffer_out += std::string(buffer);
-        if (buffer_out.find(std::string("\n")) == std::string::npos) 
+        
+        // WRITE
         {
-            continue;
+            std::unique_lock<std::mutex> lock_outbound(this->mtx_outbound);
+            if (!this->outbound.empty()) 
+            {
+                if (this->_write(outbound.front()))
+                {
+                    // If we wrote the message successfully, then we can pop
+                    // it off the queue. Otherwise, try again on the next spin. 
+                    outbound.pop();
+                }
+            }
         }
-        buffer[num_bytes] = '\0';
-        RCLCPP_ERROR_STREAM(rclcpp::get_logger("serial_port"), 
-            "read: <" << num_bytes << ">, \"" << std::string(buffer) << "\"");
-
-        loop_rate.sleep();
     }
 }
 
+void 
+SerialPort::enqueue(const std::string_view message)
+{
+    std::unique_lock<std::mutex> lock_outbound(this->mtx_outbound);
+
+    this->outbound.push(std::string(message));
+}
+
+std::optional<std::string>
+SerialPort::pop()
+{
+    std::unique_lock<std::mutex> lock_inbound(this->mtx_inbound, std::defer_lock);
+    if (!lock_inbound.try_lock()) 
+    {
+        return std::nullopt;
+    }
+
+    if (this->inbound.empty())
+    {
+        return std::nullopt;
+    }
+    
+    std::string inbound = this->inbound.front();
+    this->inbound.pop();
+
+    return inbound;
+}
 
 bool
-SerialPort::write(
-    std::string out)
+SerialPort::_write(std::string out)
 {
     RCLCPP_INFO_STREAM(rclcpp::get_logger("serial_port"), "TX: " << out);
 

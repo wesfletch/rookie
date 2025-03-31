@@ -1,6 +1,4 @@
-
 // CPP headers
-#include "mobility_driver/SerialPort.hpp"
 #include <chrono>
 using namespace std::chrono_literals;
 #include <optional>
@@ -12,8 +10,8 @@ using namespace std::chrono_literals;
 #include <geometry_msgs/msg/twist.hpp>
 
 // Rookie-specific
+#include <mobility_driver/SerialPort.hpp>
 #include <mobility_driver/MobilityDriver.hpp>
-#include <pico_interface/PicoInterface.hpp>
 
 
 namespace mobility_driver
@@ -33,17 +31,18 @@ MobilityDriver::MobilityDriver(
 
     // We'll publish all(-ish) messages from the pico on this topic
     this->pico_out_pub = this->_node->create_publisher<std_msgs::msg::String>(
-        output_topic, 10
+        output_topic, 
+        10
     );
 
     // Subscribe to /cmd_vel, velocities will be transformed and passed to the pico
     this->vel_sub = this->_node->create_subscription<geometry_msgs::msg::Twist>(
         "cmd_vel", 
-        10, // TODO: This is the QOS parameter, but 10 is the queue_size... Not finding a good doc on how this should be used in ROS2...
+        10, // TODO: This is the QOS parameter, but 10 is the queue_size?... Not finding a good doc on how this should be used in ROS2...
         std::bind(&MobilityDriver::cmdVelCallback, this, std::placeholders::_1)
     );
 
-    // Configure a timer to send heartbeat messages
+    // Send heartbeat messages at 1Hz
     this->heartbeat_timer = this->_node->create_wall_timer(
         1s, 
         std::bind(&MobilityDriver::pushHeartbeat, this));
@@ -52,26 +51,42 @@ MobilityDriver::MobilityDriver(
 void
 MobilityDriver::run()
 {
-    // int x = 100;
+    this->serial_port.start_jthread();
 
     rclcpp::Rate loop_rate(this->spin_rate);
+
+    std::optional<std::string> inbound;
     while (rclcpp::ok()) 
     {   
-        std::optional<std::string> out = this->serial_port.spinOnce();
-        if (out) 
+        // Get inbound messages from the serial port
+        inbound = this->serial_port.pop();
+        if (inbound)
         {
-            RCLCPP_INFO_STREAM(this->_node->get_logger(), "RX: " << *out);
+            RCLCPP_INFO_STREAM(this->_node->get_logger(), "RX: " << *inbound);
+            std::optional<MessageData> msg = this->splitMessage(std::string_view(*inbound));
+            
+            if (msg) 
+            {
+                // TODO:
+                // Here's where the ugliness starts; how do I map prefixes to message types to be
+                // constructed? The way that PicoInterface is implemented right now doesn't 
+                // make this simple. Some options to explore:
+                // Option 1) make static functions inside the message structs that return an instance
+                //      of that message.
+                // Option 2) do some sort of template nonsense?
+                // Option 3) skip all of this struct malarkey, go with a base Message() class
+                //      and make all of the messages subclasses of that. Then I can just build a factory...
+                // Option 4) stop wasting time on this, and just do it the hard-coded way...
+                std::cout << (*msg).str() << std::endl;
+            }
         }
-
-        // if ((++x % 100) == 0)
-        // {
-        //     this->pushVelocity();
-        // }
 
         loop_rate.sleep();
 
         rclcpp::spin_some(this->_node);
     }
+
+    this->serial_port.stop_jthread();
 }
 
 void
@@ -89,10 +104,7 @@ MobilityDriver::pushHeartbeat()
         return;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(this->serial_port_mtx);
-        this->serial_port.write(msg);
-    }
+    this->serial_port.enqueue(std::string_view(msg));
 }
 
 void
@@ -112,10 +124,7 @@ MobilityDriver::pushVelocity()
         return;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(this->serial_port_mtx);
-        this->serial_port.write(output);
-    }
+    this->serial_port.enqueue(std::string_view(output));
 }
 
 void 
