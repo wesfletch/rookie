@@ -2,7 +2,10 @@
 #define SERIAL_PORT_HPP
 
 #include <optional>
+#include <queue>
 #include <string>
+#include <string_view>
+#include <thread>
 
 namespace mobility_driver 
 {
@@ -21,10 +24,20 @@ public:
 
     void spin();
 
-    bool write(std::string out);
+    void spin_jthread(std::stop_token stop_token);
 
+    void enqueue(std::string_view message);
+    
+    std::optional<std::string> pop();
+    
+    void start_jthread();
+    
+    void stop_jthread();
+    
 protected:
 private:
+    
+    bool _write(std::string out);
 
     /**
      * NOTE: `serial_port` not usable unless isConfigured();
@@ -32,6 +45,14 @@ private:
     int serial_port;
 
     std::string device_name;
+
+    std::mutex mtx_outbound;
+    std::queue<std::string> outbound;
+
+    std::mutex mtx_inbound;
+    std::queue<std::string> inbound;
+
+    std::jthread thread;
 
     /**
      * NOTE: `frequency` not usable unless isConfigured();
