@@ -63,7 +63,10 @@ MobilityDriver::run()
         if (inbound)
         {
             RCLCPP_INFO_STREAM(this->_node->get_logger(), "RX: " << *inbound);
-            std::optional<MessageData> msg = this->splitMessage(std::string_view(*inbound));
+            std::optional<MessageData> msg = MessageData::splitMessage(
+                std::string_view(*inbound),
+                this->_node->now()
+            );
             
             if (msg) 
             {

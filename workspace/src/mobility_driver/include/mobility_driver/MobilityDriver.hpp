@@ -43,7 +43,28 @@ struct MessageData {
     std::string body;
     rclcpp::Time stamp;
 
-    std::string str()
+    static std::optional<MessageData> 
+    splitMessage(std::string_view message, const rclcpp::Time& stamp)
+    {
+        size_t posEndOfPrefix = message.find_first_of(pico_interface::DELIM);
+        if (posEndOfPrefix == std::string::npos)
+        {
+            // std::stringstream ss;
+            // ss << "Failed to get message prefix: `" << message << "`" << std::endl;
+            // RCLCPP_DEBUG_STREAM(this->_node->get_logger(), ss.str());
+            return std::nullopt;
+        }
+    
+        // split into prefix + the rest
+        std::string prefix(message, 0, posEndOfPrefix);
+        std::string body(message, posEndOfPrefix + 1, std::string::npos);
+        // rclcpp::Time stamp = this->_node->now();
+
+        return MessageData{prefix, body, rclcpp::Time(stamp)};
+    };
+
+    std::string 
+    str()
     {
         std::stringstream ss;
         ss << "PREFIX: '" << this->prefix << "', ";
@@ -72,26 +93,6 @@ public:
 
     void cmdVelCallback(
         geometry_msgs::msg::Twist::UniquePtr msg);
-
-    std::optional<MessageData> splitMessage(std::string_view message)
-    {
-        size_t posEndOfPrefix = message.find_first_of(pico_interface::DELIM);
-        if (posEndOfPrefix == std::string::npos)
-        {
-            std::stringstream ss;
-            ss << "Failed to get message prefix: `" << message << "`" << std::endl;
-            RCLCPP_DEBUG_STREAM(this->_node->get_logger(), ss.str());
-            return std::nullopt;
-        }
-    
-        // split into prefix + the rest
-        std::string prefix(message, 0, posEndOfPrefix);
-        std::string body(message, posEndOfPrefix + 1, std::string::npos);
-        rclcpp::Time stamp = this->_node->now();
-
-        return MessageData{prefix, body, stamp};
-    };
-
 
 protected:
 private:
