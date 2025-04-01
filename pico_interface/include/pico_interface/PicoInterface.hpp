@@ -1,3 +1,8 @@
+/**
+ * TODO: If I'm willing to give up human-readable/-writable messages on the wire,
+ * I could just use an off-the-shelf solution (like flatbuffers) instead of having
+ * to roll my own brittle quasi-serialization solution here. Might be worth it...
+ */
 #ifndef PICO_INTERFACE_HPP
 #define PICO_INTERFACE_HPP
 
