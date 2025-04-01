@@ -187,7 +187,7 @@ SerialPort::spin_jthread(std::stop_token stop_token)
 }
 
 void 
-SerialPort::enqueue(const std::string_view message)
+SerialPort::push(const std::string_view message)
 {
     std::unique_lock<std::mutex> lock_outbound(this->mtx_outbound);
 
@@ -208,10 +208,10 @@ SerialPort::pop()
         return std::nullopt;
     }
     
-    std::string inbound = this->inbound.front();
+    std::string inbound_str = this->inbound.front();
     this->inbound.pop();
 
-    return inbound;
+    return inbound_str;
 }
 
 bool
