@@ -26,7 +26,7 @@ public:
 
     void spin_jthread(std::stop_token stop_token);
 
-    void enqueue(std::string_view message);
+    void push(std::string_view message);
     
     std::optional<std::string> pop();
     

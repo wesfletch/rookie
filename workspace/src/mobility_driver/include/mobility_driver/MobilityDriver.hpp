@@ -38,11 +38,13 @@ enum class MobilityState
     TEST = static_cast<int>(pico_interface::Msg_SystemState::STATE::TEST),
 };
 
-struct MessageData {
+
+struct MessageData
+{
     std::string prefix;
     std::string body;
     rclcpp::Time stamp;
-
+    
     static std::optional<MessageData> 
     splitMessage(std::string_view message, const rclcpp::Time& stamp)
     {
@@ -54,31 +56,45 @@ struct MessageData {
             // RCLCPP_DEBUG_STREAM(this->_node->get_logger(), ss.str());
             return std::nullopt;
         }
-    
+        
         // split into prefix + the rest
         std::string prefix(message, 0, posEndOfPrefix);
         std::string body(message, posEndOfPrefix + 1, std::string::npos);
         // rclcpp::Time stamp = this->_node->now();
-
+        
         return MessageData{prefix, body, rclcpp::Time(stamp)};
+    };
+    
+    static std::string
+    toString(const MessageData& msg)
+    {
+        std::stringstream ss;
+        ss << "PREFIX: '" << msg.prefix << "', ";
+        ss << "BODY: '" << msg.body << "', ";
+        ss << "TIMESTAMP: '" << msg.stamp.nanoseconds() << "'" << std::endl;
+        
+        return ss.str();
     };
 
     std::string 
-    str()
+    str() const
     {
         std::stringstream ss;
         ss << "PREFIX: '" << this->prefix << "', ";
         ss << "BODY: '" << this->body << "', ";
         ss << "TIMESTAMP: '" << this->stamp.nanoseconds() << "'" << std::endl;
-    
+        
         return ss.str();
     }
 };
+
+using MessageCallback = std::function<bool(const MessageData&)>;
 
 
 class MobilityDriver
 {
 public:
+
     MobilityDriver(
         const std::string& node_name = DEFAULT_NODE_NAME,
         const std::string& output_topic = DEFAULT_TOPIC_PICO_OUT,
@@ -94,6 +110,9 @@ public:
     void cmdVelCallback(
         geometry_msgs::msg::Twist::UniquePtr msg);
 
+
+    bool onReceiveHeartbeat(const MessageData& msg);
+
 protected:
 private:
 
@@ -101,11 +120,19 @@ private:
 
     MobilityState state = MobilityState::STANDBY;
 
+    // Map inbound message prefixes (e.g., `$HBT`) to callbacks
+    std::unordered_map<std::string, MessageCallback> callbacks = {
+        {
+                pico_interface::MSG_ID_HEARTBEAT, 
+                std::bind(&MobilityDriver::onReceiveHeartbeat, this, std::placeholders::_1)
+            }
+    };
+
     const int spin_rate;
 
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pico_out_pub;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr vel_sub;
-        
+
     SerialPort serial_port;
 
     rclcpp::TimerBase::SharedPtr heartbeat_timer;
@@ -113,6 +140,9 @@ private:
 
     float desired_vel_left = 0.0;
     float desired_vel_right = 0.0;
+
+    // State of the other side of this connection; could be encapsulated eventually
+    uint32_t last_heartbeat = 0;
 };
 
 } // namespace mobility_driver

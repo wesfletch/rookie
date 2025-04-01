@@ -68,7 +68,7 @@ MobilityDriver::run()
                 this->_node->now()
             );
             
-            if (msg) 
+            if (msg)
             {
                 // TODO:
                 // Here's where the ugliness starts; how do I map prefixes to message types to be
@@ -80,7 +80,16 @@ MobilityDriver::run()
                 // Option 3) skip all of this struct malarkey, go with a base Message() class
                 //      and make all of the messages subclasses of that. Then I can just build a factory...
                 // Option 4) stop wasting time on this, and just do it the hard-coded way...
+                // Option 5) Could I map names of message struct fields to offsets and do some
+                //      jank homebrew reflection-esque strangeness? (Pretty sure that's just protobuf-ish shenanigans at this point)
                 std::cout << (*msg).str() << std::endl;
+
+                if (auto cb = this->callbacks.find((*msg).prefix); cb != this->callbacks.end())
+                {
+                    // Execute callbuck function
+                    bool status = cb->second(*msg);
+                    if (!status) { std::cout << "Failed when processing message: " << *inbound << std::endl; }
+                }
             }
         }
 
@@ -107,7 +116,7 @@ MobilityDriver::pushHeartbeat()
         return;
     }
 
-    this->serial_port.enqueue(std::string_view(msg));
+    this->serial_port.push(std::string_view(msg));
 }
 
 void
@@ -127,12 +136,12 @@ MobilityDriver::pushVelocity()
         return;
     }
 
-    this->serial_port.enqueue(std::string_view(output));
+    this->serial_port.push(std::string_view(output));
 }
 
 void 
 MobilityDriver::cmdVelCallback(
-    [[maybe_unused]] geometry_msgs::msg::Twist::UniquePtr msg)
+    geometry_msgs::msg::Twist::UniquePtr msg)
 {
     // Do the whole unicycle-model -> diff. drive song and dance number.
     // In the future, I can break this out into its own library
@@ -152,6 +161,40 @@ MobilityDriver::cmdVelCallback(
 
     this->desired_vel_left = angular_left;
     this->desired_vel_right = angular_right;
+}
+
+bool
+MobilityDriver::onReceiveHeartbeat(
+    const MessageData& msg)
+{
+    RCLCPP_DEBUG_STREAM(
+        this->_node->get_logger(), 
+        "GOT A HEARTBEAT: `" << MessageData::toString(msg) << "'"
+    );
+
+    // Unpack message
+    pico_interface::Msg_Heartbeat heartbeat;
+    pico_interface::message_error_t result = pico_interface::unpack_Heartbeat(msg.body, heartbeat);
+    if (result != pico_interface::MESSAGE_ERR::E_MSG_SUCCESS) 
+    {
+        RCLCPP_ERROR_STREAM(this->_node->get_logger(), 
+            pico_interface::MESSAGE_GET_ERROR(result));
+        return false;
+    }
+
+    if (heartbeat.seq < this->last_heartbeat) 
+    {
+        // TODO: For now, do nothing. in the future, we may want to actually handle this situation,
+        // maybe by invalidating our state and starting over? In practice, I think that the 
+        // serial connection will lose its mind well before we get to this point.
+        RCLCPP_WARN_STREAM(this->_node->get_logger(), 
+            "Got heartbeat from the past: " 
+            << heartbeat.seq 
+            << ", the other end of the connection may have been reset.");    
+    }
+    this->last_heartbeat = heartbeat.seq;
+
+    return true;
 }
 
 } // namespace mobility_driver
