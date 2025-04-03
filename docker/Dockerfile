@@ -88,7 +88,10 @@ RUN mkdir -p build \
 
 
 # ROS dependencies
+# TODO: just use rosdep for this...
 RUN sudo apt update \
     && sudo apt install -y --no-install-recommends \
         ros-rolling-rviz2 \
-        ros-rolling-tf2-ros
+        ros-rolling-tf2-ros \
+        ros-rolling-xacro \
+        ros-rolling-joint-state-publisher
