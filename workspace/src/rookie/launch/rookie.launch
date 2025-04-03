@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <let name="robot_urdf" value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" />
+
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param
+            name="robot_description"
+            type="str"
+            value="$(var robot_urdf)"
+        />
+    </node>
+
+    <node pkg="joint_state_publisher" exec = "joint_state_publisher">
+        <param name="publish_default_position" value="true" />
+    </node>
+
+</launch>
