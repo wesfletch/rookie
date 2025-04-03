@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<robot name="rookie" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="wheel_base" value="0.129" />
+    <xacro:property name="track_width" value="0.204" />
+    <xacro:property name="ground_clearance" value="0.020" /> <!-- approximate -->
+
+    <!-- Base link dimensions -->
+    <xacro:property name="base_length" value="0.226155" />
+    <xacro:property name="base_width" value="0.147" />
+    <xacro:property name="base_height" value="0.079" />
+
+    <!-- Critical dimensions of the wheels-->
+    <xacro:property name="wheel_width" value="0.02032" />
+    <xacro:property name="wheel_diameter" value="0.098425" /> <!-- 3 7/8" -->
+    <xacro:property name="wheel_spacing" value="0.00546" /> <!-- clearance between wheel and body -->
+
+    <xacro:macro name="wheel_dimensions">
+        <origin xyz="0 ${-1 * wheel_width / 2} 0" rpy="1.570796327 0 0"/>
+        <geometry>
+            <cylinder length="${wheel_width}" radius="${wheel_diameter / 2}" />
+        </geometry>
+    </xacro:macro>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <xacro:macro name="wheel_joint" params="wheel_name mirror_x mirror_y">
+        <parent link="base_link" />
+        <child link="${wheel_name}" />
+        <xacro:if value="${mirror_y == -1}">
+            <xacro:property name="yaw" value="3.14159" />
+        </xacro:if>
+        <xacro:unless value="${mirror_y == -1}">
+            <xacro:property name="yaw" value="0" />
+        </xacro:unless>
+        <origin
+            xyz="${(wheel_base / 2) * mirror_x}
+                 ${((track_width / 2) + wheel_spacing - (wheel_width / 2)) * mirror_y}
+                 ${-(base_height / 2) - ground_clearance + (wheel_diameter / 2)}"
+            rpy="0.0
+                0.0
+                ${yaw}"/>
+    </xacro:macro>
+
+    <link name="front_left_wheel">
+        <visual>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <xacro:wheel_dimensions />
+        </collision>
+    </link>
+    <joint name="front_left_wheel_joint" type="continuous">
+        <xacro:wheel_joint wheel_name="front_left_wheel" mirror_x="1" mirror_y="1" />
+    </joint>
+
+    <link name="front_right_wheel">
+        <visual>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <xacro:wheel_dimensions />
+        </collision>
+    </link>
+    <joint name="front_right_wheel_joint" type="continuous">
+        <xacro:wheel_joint wheel_name="front_right_wheel" mirror_x="1" mirror_y="-1" />
+    </joint>
+
+    <link name="rear_left_wheel">
+        <visual>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <xacro:wheel_dimensions />
+        </collision>
+    </link>
+    <joint name="rear_left_wheel_joint" type="continuous">
+        <xacro:wheel_joint wheel_name="rear_left_wheel" mirror_x="-1" mirror_y="1" />
+    </joint>
+
+    <link name="rear_right_wheel">
+        <visual>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <xacro:wheel_dimensions />
+        </collision>
+    </link>
+    <joint name="rear_right_wheel_joint" type="continuous">
+        <xacro:wheel_joint wheel_name="rear_right_wheel" mirror_x="-1" mirror_y="-1" />
+    </joint>
+
+</robot>
