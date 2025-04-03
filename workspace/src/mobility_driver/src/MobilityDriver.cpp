@@ -25,7 +25,10 @@ MobilityDriver::MobilityDriver(
     const std::string& serial_device_name)
     :
     spin_rate(spin_rate),
-    serial_port(SerialPort(std::string_view(serial_device_name), spin_rate))
+    serial_port(
+        SerialPort(
+            std::string_view(serial_device_name), 
+            spin_rate))
 {
     this->_node = rclcpp::Node::make_shared(node_name);
 
