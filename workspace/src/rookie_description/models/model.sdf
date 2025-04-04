@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+    <model name="Banebots_T81_Wheel">
+        <static>false</static>
+        <link name="wheel">
+            <visual name="visual">
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="model://Banebots_T81_Wheel/meshes/Banebots_T81_Wheel.dae"/>
+                </geometry>
+            </visual>
+            <collision name="collision">
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="model://Banebots_T81_Wheel/meshes/Banebots_T81_Wheel.dae"/>
+                </geometry>
+            </collision>
+        </link>
+    </model>
+</sdf>

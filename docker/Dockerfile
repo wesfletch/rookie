@@ -94,4 +94,5 @@ RUN sudo apt update \
         ros-rolling-rviz2 \
         ros-rolling-tf2-ros \
         ros-rolling-xacro \
-        ros-rolling-joint-state-publisher
+        ros-rolling-joint-state-publisher \
+        ros-rolling-ros-gz
