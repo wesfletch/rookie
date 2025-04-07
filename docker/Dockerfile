@@ -86,7 +86,6 @@ RUN mkdir -p build \
     && make \
     && sudo make install
 
-
 # ROS dependencies
 # TODO: just use rosdep for this...
 RUN sudo apt update \

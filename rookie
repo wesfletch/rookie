@@ -84,7 +84,7 @@ function build_container()
     fi
 
     args=(
-        --tag "${CONTAINER_NAME}:latest"
+        --tag "${CONTAINER_IMG:?}:latest"
         --build-arg USER="${USERNAME}"
         --build-arg UID="${UID}"
         -f docker/Dockerfile .
@@ -98,10 +98,10 @@ while [[ "${#}" -gt 0 ]]; do
     ARG="${1}"
     case "${ARG}" in
         # Verbs
-        "build")
+        "build" | "build-container")
             COMMAND="build_container"
             ;;
-        "run")
+        "run" | "run-container")
             COMMAND="run_container"
             ;;
         # Options

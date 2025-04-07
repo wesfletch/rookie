@@ -1,4 +1,7 @@
-
 source /opt/ros/${ROS_DISTRO}/setup.bash
+
+if [[ -f "/home/${USER}/install/setup.bash" ]]; then
+    source "/home/${USER}/install/setup.bash"
+fi
 
 export ROS_DOMAIN_ID=55
