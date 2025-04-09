@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
+    <arg name="sim" 
+         default="true"
+         description="Whether to launch the Gazebo sim or not" />
+
     <!-- Expand our robot description xacro -->
     <let name="robot_urdf" 
          value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" />
@@ -12,5 +16,11 @@
     <node pkg="joint_state_publisher" exec = "joint_state_publisher">
         <param name="publish_default_position" value="true" />
     </node>
+
+    <include if="$(var sim)" file="$(find-pkg-share rookie)/launch/sim.launch">
+        <arg name="robot_description_str" value="$(var robot_urdf)" />
+        <arg name="model_name" value="rookie" />
+        <arg name="headless" value="false" />
+    </include>
 
 </launch>

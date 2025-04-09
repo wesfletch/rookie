@@ -21,6 +21,10 @@
     <xacro:property name="wheel_spacing" value="0.00546" /> 
     <xacro:property name="wheel_mass" value="0.0992233" />
 
+    <!-- Rather than deal with whatever URDF/SDF package-finding weirdness Gazebo has going on,
+         just get our mesh paths directly here so we can use them later.-->
+    <xacro:property name="mesh_directory" value="$(find rookie_description)/meshes/" />
+
     <!-- Macros -->
     <xacro:include filename="$(find rookie_description)/urdf/macros.xacro" />
 
@@ -67,7 +71,7 @@
         <visual>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
@@ -84,7 +88,7 @@
         <visual>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
@@ -101,7 +105,7 @@
         <visual>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
@@ -118,7 +122,7 @@
         <visual>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://rookie_description/meshes/Banebots_T81_Wheel.dae"/>
+                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
@@ -130,5 +134,44 @@
         <xacro:wheel_joint wheel_name="rear_right_wheel" mirror_x="-1" mirror_y="-1" />
     </joint>
 
+    <link name="lidar_slamtec_c1">
+        <visual>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <cylinder length="0.0413" radius="0.0278" />
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.0413" radius="0.0278" />
+            </geometry>        
+        </collision>
+    </link>
+    <joint name="lidar_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="lidar_slamtec_c1" />
+        <origin
+            xyz="0 0 ${(base_height / 2) + (0.0413 / 2)}"
+            rpy="0.0 0.0 0"/>
+    </joint>
+
+    <link name="camera">
+        <static>true</static>
+        <visual name='visual'>
+            <geometry>
+                <box size="0.01 0.05 0.01" />
+            </geometry>
+        </visual>
+    </link>
+    <joint name="camera_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="camera" />
+        <origin
+            xyz="${base_length / 2} 0 0"
+            rpy="0.0 0.0 0"/> 
+    </joint>
+
+    <!-- Gazebo-specific -->
+    <xacro:include filename="$(find rookie_description)/urdf/rookie_gazebo.xacro" />
 
 </robot>
