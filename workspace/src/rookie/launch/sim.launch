@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <arg name="model_name"
+         default=""
+         description="name of the spawned model"
+    />
+    <arg name="robot_description_str"
+         default=""
+         description="The expanded URDF for the model." 
+    />
+    <arg name="headless" 
+         default="true" 
+         description="Run gz without the GUI"
+    />
+
+
+    <!-- gz server args -->
+    <arg name="world_sdf_file" default="empty.sdf" />
+    <arg name="world_sdf_string" default="" />
+    <arg name="container_name" default="ros_gz_container" />
+    <arg name="create_own_container" default="False" />
+    <arg name="use_composition" default="False" />
+
+    <!-- spawn model args -->
+    <!-- <arg name="model_string" 
+         default="" 
+         description="" 
+    /> -->
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.0" />
+    <arg name="roll" default="0.0" />
+    <arg name="pitch" default="0.0" />
+    <arg name="yaw" default="0.0" />
+
+    <!-- Here, we use the UNNECESSARY AND UNDOCUMENTED custom gz tags
+         to launch all of the gz stuff we need. -->
+    <gz_server
+        world_sdf_file="$(var world_sdf_file)"
+        world_sdf_string="$(var world_sdf_string)"
+        container_name="$(var container_name)"
+        create_own_container="$(var create_own_container)"
+        use_composition="$(var use_composition)">
+    </gz_server>
+
+    <ros_gz_bridge
+        bridge_name="bridge"
+        config_file=""
+        container_name="ros_gz_container"
+        create_own_container="False"
+        namespace=""
+        use_composition="False"
+        use_respawn="False"
+        log_level="info">
+    </ros_gz_bridge>
+
+    <include file="$(find-pkg-share rookie)/launch/gz_spawn_model.launch.py">
+        <arg name="string" value="$(var robot_description_str)" />
+        <arg name="name" value="$(var model_name)" />
+        <arg name="x" value="$(var x)" />
+        <arg name="y" value="$(var y)" />
+        <arg name="z" value="$(var z)" />
+        <arg name="roll" value="$(var roll)" />
+        <arg name="pitch" value="$(var pitch)" />
+        <arg name="yaw" value="$(var yaw)" />
+    </include>
+
+    <!-- <gz_spawn_model
+        world="$(var world_sdf_file)"
+        file=""
+        model_string="$(var robot_description_str)"
+        topic=""
+        entity_name="$(var model_name)"
+        allow_renaming="False"
+        x="$(var x)"
+        y="$(var y)"
+        z="$(var z)"
+        roll="$(var roll)"
+        pitch="$(var pitch)"
+        yaw="$(var yaw)">
+    </gz_spawn_model> -->
+
+    <group unless="$(var headless)">
+        <executable cmd="gz sim -g" />
+    </group>
+
+
+</launch>
