@@ -49,6 +49,7 @@
                  ${((track_width / 2) + wheel_spacing - (wheel_width / 2)) * mirror_y}
                  ${-(base_height / 2) - ground_clearance + (wheel_diameter / 2)}"
             rpy="0.0 0.0 ${yaw}"/>
+        <axis xyz="0 1 0" />
     </xacro:macro>
     <!-- /Macros -->
 

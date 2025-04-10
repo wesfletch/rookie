@@ -9,11 +9,15 @@
     <let name="robot_urdf" 
          value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" />
 
+    <!-- TODO: does this also need to be turned off when simulating?
+         If so, I need to get my robot_urdf into a topic some other way... -->
     <node pkg="robot_state_publisher" exec="robot_state_publisher">
         <param name="robot_description" type="str" value="$(var robot_urdf)" />
     </node>
 
-    <node pkg="joint_state_publisher" exec = "joint_state_publisher">
+    <!-- If we're simulating the robot, gz will handle publishing joint states instead
+         of this node. -->
+    <node unless="$(var sim)" pkg="joint_state_publisher" exec="joint_state_publisher">
         <param name="publish_default_position" value="true" />
     </node>
 
