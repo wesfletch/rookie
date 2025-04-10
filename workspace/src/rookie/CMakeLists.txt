@@ -24,10 +24,15 @@ if(BUILD_TESTING)
 endif()
 
 
-# Install launch files
+# Install ./launch dir
 install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
+    DIRECTORY launch
+    DESTINATION share/${PROJECT_NAME}
+)
+# Install ./config dir
+install(
+    DIRECTORY config
+    DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()

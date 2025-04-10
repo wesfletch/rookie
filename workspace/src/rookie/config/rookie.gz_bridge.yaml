@@ -1,0 +1,56 @@
+# Joint state publishing
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/model/rookie/state"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS
+
+# Odometry
+- ros_topic_name: "odom"
+  gz_topic_name: "/model/rookie/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# IMU
+- ros_topic_name: "imu"
+  gz_topic_name: "/model/rookie/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# Camera image output
+- ros_topic_name: "camera"
+  gz_topic_name: "/model/rookie/camera"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# LiDAR point output
+- ros_topic_name: "lidar/points"
+  gz_topic_name: "/model/rookie/lidar/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+# LiDAR laser scan output
+- ros_topic_name: "lidar/scan"
+  gz_topic_name: "/model/rookie/lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: GZ_TO_ROS
+
+# Commanded velocities
+- ros_topic_name: "cmd_vel"
+  gz_topic_name: "/model/rookie/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "gz.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# TODO: Do I want to do this here, or can I use the "normal" non-sim robot_state_publisher?
+# # Transforms
+# - ros_topic_name: "/tf"
+#   gz_topic_name: "/model/rookie/tf"
+#   ros_type_name: "tf2_msgs/msg/TFMessage"
+#   gz_type_name: "gz.msgs.Pose_V"
+#   direction: GZ_TO_ROS

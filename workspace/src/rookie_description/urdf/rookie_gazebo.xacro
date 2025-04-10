@@ -6,8 +6,10 @@
         <!-- plugin type "imu" -->
         <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
 
-        <!-- LiDAR ('gpu_lidar') plugin, Camera ('camera') -->
-        <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors" />
+        <!-- LiDAR ('gpu_lidar'), Camera ('camera') -->
+        <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
     </gazebo>
     
     <!-- "Global" sensors, not explicitly attached to any link -->
@@ -27,7 +29,15 @@
 
             <odom_publish_frequency>50</odom_publish_frequency>
             <frame_id>odom</frame_id>
-            <topic>cmd_vel</topic>
+            <!-- Internal gazebo topic, NOT ROS topic -->
+            <topic>/model/rookie/cmd_vel</topic>
+        </plugin>
+
+        <!-- Joint state publishing -->
+        <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+            <!-- Internal gazebo topic, NOT ROS topic -->
+            <topic>/model/rookie/state</topic>
+            <update_rate>50</update_rate>
         </plugin>
     </gazebo>
 
@@ -38,7 +48,8 @@
             <always_on>1</always_on>
             <update_rate>20</update_rate>
             <visualize>false</visualize>
-            <topic>imu</topic>
+            <!-- Internal gazebo topic, NOT ROS topic -->
+            <topic>/model/rookie/imu</topic>
         </sensor>
     </gazebo>
 
@@ -46,9 +57,9 @@
     <gazebo reference="lidar_slamtec_c1">
         <sensor name="lidar_slamtec_c1_sensor" type="gpu_lidar">
             <pose relative_to='lidar_joint'>0 0 0 0 0 0</pose>
-            <always_on>1</always_on>
-            <visualize>true</visualize>
-            <topic>lidar</topic>
+            <!-- Internal gazebo topic, NOT ROS topic -->
+            <topic>/model/rookie/lidar</topic>
+            <frame_id>lidar_slamtec_c1</frame_id>
             <update_rate>10</update_rate>
             <ray>
                 <scan>
@@ -71,6 +82,8 @@
                     <resolution>0.01</resolution>
                 </range>
             </ray>
+            <always_on>1</always_on>
+            <visualize>true</visualize>
         </sensor>
     </gazebo>
 
@@ -90,7 +103,8 @@
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <topic>camera</topic>
+          <!-- Internal gazebo topic, NOT ROS topic -->
+          <topic>/model/rookie/camera</topic>
         </sensor>
     </gazebo>
 

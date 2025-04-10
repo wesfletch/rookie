@@ -2,18 +2,25 @@
 <launch>
 
     <arg name="model_name"
-         default=""
+         default="rookie"
          description="name of the spawned model"
     />
     <arg name="robot_description_str"
          default=""
          description="The expanded URDF for the model." 
     />
+    <arg name="robot_description_topic"
+         default="/robot_description"
+         description="Topic containing the URDF"
+    />
     <arg name="headless" 
          default="true" 
          description="Run gz without the GUI"
     />
-
+    <arg name="verbose"
+         default="false"
+         description="Run gz with verbose (debug) output"
+    />
 
     <!-- gz server args -->
     <arg name="world_sdf_file" default="empty.sdf" />
@@ -23,41 +30,43 @@
     <arg name="use_composition" default="False" />
 
     <!-- spawn model args -->
-    <!-- <arg name="model_string" 
-         default="" 
-         description="" 
-    /> -->
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
-    <arg name="z" default="0.0" />
+    <arg name="z" default="0.1" /> <!-- Spawn above the ground plane -->
     <arg name="roll" default="0.0" />
     <arg name="pitch" default="0.0" />
     <arg name="yaw" default="0.0" />
 
-    <!-- Here, we use the UNNECESSARY AND UNDOCUMENTED custom gz tags
-         to launch all of the gz stuff we need. -->
+    <!-- This is syntax "sugar" (read: "vinegar") wrapping ros_gz_sim/ros_gz_sim/actions/gzserver.py -->
     <gz_server
         world_sdf_file="$(var world_sdf_file)"
         world_sdf_string="$(var world_sdf_string)"
         container_name="$(var container_name)"
         create_own_container="$(var create_own_container)"
-        use_composition="$(var use_composition)">
+        use_composition="$(var use_composition)"
+        verbose="$(var verbose)"
+        >
     </gz_server>
 
     <ros_gz_bridge
         bridge_name="bridge"
-        config_file=""
+        config_file="$(find-pkg-share rookie)/config/rookie.gz_bridge.yaml"
         container_name="ros_gz_container"
         create_own_container="False"
-        namespace=""
+        namespace="$(var model_name)"
         use_composition="False"
         use_respawn="False"
-        log_level="info">
+        log_level="debug">
     </ros_gz_bridge>
 
+    <!-- Spawn our robot into the sim -->
     <include file="$(find-pkg-share rookie)/launch/gz_spawn_model.launch.py">
         <arg name="string" value="$(var robot_description_str)" />
         <arg name="name" value="$(var model_name)" />
+        <!-- TODO: This is annoying, but I have to use the /robot_description topic to 
+             spawn the model, since neither the URDF string nor the filename are working
+             for me right now.-->
+        <arg name="topic" value="/robot_description" />
         <arg name="x" value="$(var x)" />
         <arg name="y" value="$(var y)" />
         <arg name="z" value="$(var z)" />
@@ -66,21 +75,7 @@
         <arg name="yaw" value="$(var yaw)" />
     </include>
 
-    <!-- <gz_spawn_model
-        world="$(var world_sdf_file)"
-        file=""
-        model_string="$(var robot_description_str)"
-        topic=""
-        entity_name="$(var model_name)"
-        allow_renaming="False"
-        x="$(var x)"
-        y="$(var y)"
-        z="$(var z)"
-        roll="$(var roll)"
-        pitch="$(var pitch)"
-        yaw="$(var yaw)">
-    </gz_spawn_model> -->
-
+    <!-- If we're not running the sim headless, launch the gz gui -->
     <group unless="$(var headless)">
         <executable cmd="gz sim -g" />
     </group>
