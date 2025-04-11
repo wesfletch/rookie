@@ -56,7 +56,7 @@
         namespace="$(var model_name)"
         use_composition="False"
         use_respawn="False"
-        log_level="debug">
+        log_level="info">
     </ros_gz_bridge>
 
     <!-- Spawn our robot into the sim -->

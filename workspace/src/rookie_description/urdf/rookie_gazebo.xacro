@@ -31,6 +31,9 @@
             <frame_id>odom</frame_id>
             <!-- Internal gazebo topic, NOT ROS topic -->
             <topic>/model/rookie/cmd_vel</topic>
+
+            <!-- TODO: I have no idea if this param is even doing anything...-->
+            <max_wheel_torque>${drive_motor_torque_kg_cm / 2}</max_wheel_torque>
         </plugin>
 
         <!-- Joint state publishing -->
