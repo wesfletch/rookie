@@ -4,7 +4,10 @@
     <!-- Wheelbase: center to center distance between front and back wheels -->
     <xacro:property name="wheel_base" value="0.129" />
     <!-- Track width: center to center distance between left and right wheels -->
-    <xacro:property name="track_width" value="0.204" />
+    <!-- <xacro:property name="track_width" value="0.204" /> -->
+    <!-- TODO: need to widen the robot (or make the wheel_base shorter) so that it can
+         actually turn in place. -->
+    <xacro:property name="track_width" value="${0.204 + .02}" />
     <!-- Ground clearance: distance from bottom of chassis to the ground -->
     <xacro:property name="ground_clearance" value="0.020" /> <!-- approximate -->
 
@@ -17,9 +20,18 @@
     <!-- Critical dimensions of the wheels-->
     <xacro:property name="wheel_width" value="0.02032" />
     <xacro:property name="wheel_diameter" value="0.098425" /> <!-- == 3 7/8" -->
-    <!-- wheel spacing: clearance between wheel and body -->
-    <xacro:property name="wheel_spacing" value="0.00546" /> 
+    <!-- clearance between wheel and body -->
+    <xacro:property name="wheel_clearance" value="0.00546" /> 
     <xacro:property name="wheel_mass" value="0.0992233" />
+    <!-- The spacing between left and right wheels, made complicated by the fact that within
+         this URDF, the coordinates of the wheels start at the EDGE, not the CENTER;
+         so, this is edge-to-edge distance, rather than center-to-center -->
+    <xacro:property name="left_right_wheel_spacing" value="${track_width - (wheel_width * 2)}" />
+ 
+
+    <xacro:property name="drive_motor_torque_kg_cm" value="5" />
+
+
 
     <!-- Rather than deal with whatever URDF/SDF package-finding weirdness Gazebo has going on,
          just get our mesh paths directly here so we can use them later.-->
@@ -28,8 +40,8 @@
     <!-- Macros -->
     <xacro:include filename="$(find rookie_description)/urdf/macros.xacro" />
 
-    <xacro:macro name="wheel_dimensions">
-        <origin xyz="0 ${-1 * wheel_width / 2} 0" rpy="1.570796327 0 0"/>
+    <xacro:macro name="wheel_dimensions" params="mirror_y">
+        <origin xyz="0 ${mirror_y * wheel_width / 2} 0" rpy="1.570796327 0 0"/>
         <geometry>
             <cylinder length="${wheel_width}" radius="${wheel_diameter / 2}" />
         </geometry>
@@ -38,17 +50,11 @@
     <xacro:macro name="wheel_joint" params="wheel_name mirror_x mirror_y">
         <parent link="base_link" />
         <child link="${wheel_name}" />
-        <xacro:if value="${mirror_y == -1}">
-            <xacro:property name="yaw" value="3.14159" />
-        </xacro:if>
-        <xacro:unless value="${mirror_y == -1}">
-            <xacro:property name="yaw" value="0" />
-        </xacro:unless>
         <origin
             xyz="${(wheel_base / 2) * mirror_x}
-                 ${((track_width / 2) + wheel_spacing - (wheel_width / 2)) * mirror_y}
+                 ${((left_right_wheel_spacing / 2) + wheel_clearance - ((mirror_y * wheel_width) / 2)) * mirror_y}
                  ${-(base_height / 2) - ground_clearance + (wheel_diameter / 2)}"
-            rpy="0.0 0.0 ${yaw}"/>
+            rpy="0.0 0.0 0.0"/>
         <axis xyz="0 1 0" />
     </xacro:macro>
     <!-- /Macros -->
@@ -70,13 +76,13 @@
 
     <link name="front_left_wheel">
         <visual>
-            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0.0 0.0 3.14159" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
-            <xacro:wheel_dimensions />
+            <xacro:wheel_dimensions mirror_y="-1" />
         </collision>
         <xacro:cylinder_inertia name="front_left_wheel" radius="${wheel_diameter / 2}" height="${wheel_width}" mass="${wheel_mass}" />
     </link>
@@ -85,32 +91,15 @@
     </joint>
 
 
-    <link name="front_right_wheel">
-        <visual>
-            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
-            </geometry>
-        </visual>
-        <collision>
-            <xacro:wheel_dimensions />
-        </collision>
-        <xacro:cylinder_inertia name="front_right_wheel" radius="${wheel_diameter / 2}" height="${wheel_width}" mass="${wheel_mass}" />
-    </link>
-    <joint name="front_right_wheel_joint" type="continuous">
-        <xacro:wheel_joint wheel_name="front_right_wheel" mirror_x="1" mirror_y="-1" />
-    </joint>
-
-
     <link name="rear_left_wheel">
         <visual>
-            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0.0 0.0 3.14159" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
-            <xacro:wheel_dimensions />
+            <xacro:wheel_dimensions mirror_y="-1" />
         </collision>
         <xacro:cylinder_inertia name="rear_left_wheel" radius="${wheel_diameter / 2}" height="${wheel_width}" mass="${wheel_mass}" />
     </link>
@@ -119,15 +108,32 @@
     </joint>
 
 
-    <link name="rear_right_wheel">
+    <link name="front_right_wheel">
         <visual>
-            <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0.0 0.0 3.14159" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
             </geometry>
         </visual>
         <collision>
-            <xacro:wheel_dimensions />
+            <xacro:wheel_dimensions mirror_y="1"/>
+        </collision>
+        <xacro:cylinder_inertia name="front_right_wheel" radius="${wheel_diameter / 2}" height="${wheel_width}" mass="${wheel_mass}" />
+    </link>
+    <joint name="front_right_wheel_joint" type="continuous">
+        <xacro:wheel_joint wheel_name="front_right_wheel" mirror_x="1" mirror_y="-1" />
+    </joint>
+
+
+    <link name="rear_right_wheel">
+        <visual>
+            <origin rpy="0.0 0.0 3.14159" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="${mesh_directory}/Banebots_T81_Wheel.dae"/>
+            </geometry>
+        </visual>
+        <collision>
+            <xacro:wheel_dimensions mirror_y="1"/>
         </collision>
         <xacro:cylinder_inertia name="rear_right_wheel" radius="${wheel_diameter / 2}" height="${wheel_width}" mass="${wheel_mass}" />
     </link>
