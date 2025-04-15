@@ -44,8 +44,7 @@
         container_name="$(var container_name)"
         create_own_container="$(var create_own_container)"
         use_composition="$(var use_composition)"
-        verbose="$(var verbose)"
-        >
+        verbose="$(var verbose)">
     </gz_server>
 
     <ros_gz_bridge

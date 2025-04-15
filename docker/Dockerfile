@@ -94,4 +94,6 @@ RUN sudo apt update \
         ros-rolling-tf2-ros \
         ros-rolling-xacro \
         ros-rolling-joint-state-publisher \
-        ros-rolling-ros-gz
+        ros-rolling-ros-gz \
+        ros-rolling-nav-msgs \
+        ros-rolling-robot-localization
