@@ -3,28 +3,49 @@
 
     <arg name="sim" 
          default="true"
-         description="Whether to launch the Gazebo sim or not" />
+         description="Whether to launch the Gazebo sim or not"
+    />
+    <arg name="headless"
+         default="false"
+         description="Run without opening rviz/gzclient/etc."
+    />
 
     <!-- Expand our robot description xacro -->
     <let name="robot_urdf" 
          value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" />
 
-    <!-- TODO: does this also need to be turned off when simulating?
-         If so, I need to get my robot_urdf into a topic some other way... -->
     <node pkg="robot_state_publisher" exec="robot_state_publisher">
         <param name="robot_description" type="str" value="$(var robot_urdf)" />
+        <param name="use_sim_time" value="$(var sim)" />
     </node>
 
     <!-- If we're simulating the robot, gz will handle publishing joint states instead
          of this node. -->
+    <!-- TODO: it's unclear to me that I actually CARE about joint states for this particular
+         robot, since the only non-fixed joints are the wheels, and I don't need to know their
+         specific positions (I think). Might be something to not think about. -->
     <node unless="$(var sim)" pkg="joint_state_publisher" exec="joint_state_publisher">
         <param name="publish_default_position" value="true" />
+        <param name="use_sim_time" value="$(var sim)" />
     </node>
+
+    <!-- EKF to integrate IMU/odom data into the odom>>>baselink transform -->
+    <node pkg="robot_localization" exec="ekf_node" name="ekf_node">
+        <param from="$(find-pkg-share rookie)/config/ekf.sim.yaml" />
+        <param name="use_sim_time" value="$(var sim)" />
+
+        <!-- TODO: I should just do namespaces correctly instead of this silliness. -->
+        <remap from="/odometry/filtered" to="/rookie/odom/filtered" />
+        <remap from="/accel/filtered" to="/rookie/accel/filtered" />
+    </node>
+
+    <!-- RVIZ -->
+    <executable unless="$(var headless)" cmd="rviz2 -d $(find-pkg-share rookie)/config/rookie.rviz" />
 
     <include if="$(var sim)" file="$(find-pkg-share rookie)/launch/sim.launch">
         <arg name="robot_description_str" value="$(var robot_urdf)" />
         <arg name="model_name" value="rookie" />
-        <arg name="headless" value="false" />
+        <arg name="headless" value="$(var headless)" />
     </include>
 
 </launch>

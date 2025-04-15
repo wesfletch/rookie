@@ -1,3 +1,10 @@
+# Clock (for 'use_sim_time')
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
 # Joint state publishing
 - ros_topic_name: "/joint_states"
   gz_topic_name: "/model/rookie/state"
@@ -47,10 +54,13 @@
   gz_type_name: "gz.msgs.Twist"
   direction: ROS_TO_GZ
 
-# TODO: Do I want to do this here, or can I use the "normal" non-sim robot_state_publisher?
-# Transforms
-- ros_topic_name: "/tf"
-  gz_topic_name: "/model/rookie/tf"
-  ros_type_name: "tf2_msgs/msg/TFMessage"
-  gz_type_name: "gz.msgs.Pose_V"
-  direction: GZ_TO_ROS
+# # TODO: Do I want to do this here, or can I use the "normal" non-sim robot_state_publisher?
+# #   Confirmed by the documentation, I don't want this on when I have sensor fusion 
+# #   (robot_localization or similar) working. Still working out a way to conditionally enable this,
+# #   or maybe that won't matter. We'll see.
+# # Transforms
+# - ros_topic_name: "/tf"
+#   gz_topic_name: "/model/rookie/tf"
+#   ros_type_name: "tf2_msgs/msg/TFMessage"
+#   gz_type_name: "gz.msgs.Pose_V"
+#   direction: GZ_TO_ROS

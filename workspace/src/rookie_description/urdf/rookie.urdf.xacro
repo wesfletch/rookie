@@ -28,10 +28,8 @@
          so, this is edge-to-edge distance, rather than center-to-center -->
     <xacro:property name="left_right_wheel_spacing" value="${track_width - (wheel_width * 2)}" />
  
-
+    <!-- Motor params -->
     <xacro:property name="drive_motor_torque_kg_cm" value="5" />
-
-
 
     <!-- Rather than deal with whatever URDF/SDF package-finding weirdness Gazebo has going on,
          just get our mesh paths directly here so we can use them later.-->
@@ -178,7 +176,23 @@
             rpy="0.0 0.0 0"/> 
     </joint>
 
+    <link name="imu" type="fixed">
+        <static>true</static>
+        <visual name='visual'>
+            <geometry>
+                <box size="0.01 0.01 0.01" />
+            </geometry>
+        </visual>
+    </link>
+    <joint name="imu_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="imu" />
+        <origin
+            xyz="0.0 0.0 0.0"
+            rpy="0.0 0.0 0"/> 
+    </joint>
+
     <!-- Gazebo-specific -->
-    <xacro:include filename="$(find rookie_description)/urdf/rookie_gazebo.xacro" />
+    <xacro:include filename="$(find rookie_description)/urdf/rookie.gazebo.xacro" />
 
 </robot>
