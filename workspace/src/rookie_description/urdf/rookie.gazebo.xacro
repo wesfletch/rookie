@@ -54,7 +54,10 @@
         <sensor name="imu_sensor" type="imu">
             <!-- Internal gazebo topic, NOT ROS topic -->
             <topic>/model/rookie/imu</topic>
-            <frame_id>imu</frame_id>
+            <!-- <frame_id>imu</frame_id> -->
+            <!-- `frame_id` is correct for ROS Rolling, but since I'm being forced to use Jazzy now, I'm
+                 stuck with gz_frame_id and/or ign_frame_id-->
+            <gz_frame_id>imu</gz_frame_id>
             <always_on>1</always_on>
             <update_rate>20</update_rate>
             <visualize>false</visualize>
@@ -67,7 +70,12 @@
             <pose relative_to='lidar_joint'>0 0 0 0 0 0</pose>
             <!-- Internal gazebo topic, NOT ROS topic -->
             <topic>/model/rookie/lidar</topic>
-            <frame_id>lidar_slamtec_c1</frame_id>
+
+            <!-- `frame_id` is correct for ROS Rolling, but since I'm being forced to use Jazzy now, I'm
+                 stuck with gz_frame_id and/or ign_frame_id-->
+            <!-- <frame_id>lidar_slamtec_c1</frame_id> -->
+            <gz_frame_id>lidar_slamtec_c1</gz_frame_id>
+            
             <update_rate>10</update_rate>
             <ray>
                 <scan>
@@ -113,6 +121,9 @@
             <visualize>true</visualize>
             <!-- Internal gazebo topic, NOT ROS topic -->
             <topic>/model/rookie/camera</topic>
+            <!-- `frame_id` is correct for ROS Rolling, but since I'm being forced to use Jazzy now, I'm
+                 stuck with gz_frame_id and/or ign_frame_id-->
+            <gz_frame_id>camera</gz_frame_id>
         </sensor>
     </gazebo>
 

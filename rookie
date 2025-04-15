@@ -8,7 +8,7 @@ set -o nounset
 COMMAND="${1:-"run_container"}"
 DUMP=0
 NO_CACHE=0
-
+ROS_DISTRO="jazzy"
 
 USERNAME="${USER:-ubuntu}"
 
@@ -90,6 +90,7 @@ function build_container()
         --tag "${CONTAINER_IMG:?}:latest"
         --build-arg USER="${USERNAME}"
         --build-arg UID="${UID}"
+        --build-arg ROS_DISTRO="${ROS_DISTRO:?}"
         -f docker/Dockerfile
     )
 
@@ -119,6 +120,9 @@ while [[ "${#}" -gt 0 ]]; do
             COMMAND="run_container"
             ;;
         # Options
+        "--dump" | "--dump-command")
+            DUMP=1
+            ;;
         "-i" | "--image")
             CONTAINER_IMG="${2}"
             shift
@@ -127,11 +131,12 @@ while [[ "${#}" -gt 0 ]]; do
             CONTAINER_NAME="${2}"
             shift
             ;;
-        "--dump" | "--dump-command")
-            DUMP=1
-            ;;
         "--no-cache")
             NO_CACHE=1
+            ;;
+        "--ros" | "--ros-distro")
+            ROS_DISTRO="${2}"
+            shift
             ;;
         # Default
         *)

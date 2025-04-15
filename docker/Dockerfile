@@ -1,33 +1,6 @@
-ARG USER="ubuntu"
-ARG UID=1000
+ARG ROS_DISTRO=jazzy
 
-FROM ubuntu:noble AS ubuntu
-
-ARG USER
-ARG UID
-
-ENV USER=${USER}
-ENV UID=${UID}
-ENV GUID=${UID}
-
-# RUN apt update && \
-#     apt install -y \
-#         git \
-#         openssh-server
-
-# RUN userdel -r ubuntu
-
-# Add user w/ sudo privileges; helps to resolve annoyances
-# with building/modifying files inside and outside of container
-# RUN groupadd --gid ${GUID} ${USER} \
-#     && useradd --uid ${UID} --gid ${GUID} -ms /bin/bash -m ${USER} \
-#     && adduser ${USER} sudo \
-#     && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-# RUN useradd -u ${UID} -ms /bin/bash ${USER} \
-#     && echo "${USER}:${USER}" | chpasswd && adduser ${USER} sudo \
-#     && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-FROM ros:rolling AS ros
+FROM ros:${ROS_DISTRO} AS ros
 
 ARG USER
 ARG UID
@@ -90,10 +63,12 @@ RUN mkdir -p build \
 # TODO: just use rosdep for this...
 RUN sudo apt update \
     && sudo apt install -y --no-install-recommends \
-        ros-rolling-rviz2 \
-        ros-rolling-tf2-ros \
-        ros-rolling-xacro \
-        ros-rolling-joint-state-publisher \
-        ros-rolling-ros-gz \
-        ros-rolling-nav-msgs \
-        ros-rolling-robot-localization
+        ros-${ROS_DISTRO}-rviz2 \
+        ros-${ROS_DISTRO}-tf2-ros \
+        ros-${ROS_DISTRO}-xacro \
+        ros-${ROS_DISTRO}-joint-state-publisher \
+        ros-${ROS_DISTRO}-ros-gz \
+        ros-${ROS_DISTRO}-nav-msgs \
+        ros-${ROS_DISTRO}-robot-localization \
+        ros-${ROS_DISTRO}-teleop-twist-keyboard \
+        ros-${ROS_DISTRO}-navigation2
