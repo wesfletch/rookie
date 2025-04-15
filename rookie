@@ -69,6 +69,7 @@ function run_container()
         --env "DISPLAY"
         --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk"
         --env "CONTAINER_NAME=${CONTAINER_NAME:?}"
+        --env "RCUTILS_COLORIZED_OUTPUT=1"
         --net=host
     )
 
