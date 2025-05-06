@@ -5,6 +5,10 @@
          default="true"
          description="Whether to launch the Gazebo sim or not"
     />
+    <arg name="nav"
+         default="true"
+         description="Whether to launch the navigation subsystem"
+    />
     <arg name="headless"
          default="false"
          description="Run without opening rviz/gzclient/etc."
@@ -12,7 +16,8 @@
 
     <!-- Expand our robot description xacro -->
     <let name="robot_urdf" 
-         value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" />
+         value="$(command 'xacro $(find-pkg-share rookie_description)/urdf/rookie.urdf.xacro')" 
+    />
 
     <node pkg="robot_state_publisher" exec="robot_state_publisher">
         <param name="robot_description" type="str" value="$(var robot_urdf)" />
@@ -42,10 +47,16 @@
     <!-- RVIZ -->
     <executable unless="$(var headless)" cmd="rviz2 -d $(find-pkg-share rookie)/config/rookie.rviz" />
 
+    <!-- Simulation -->
     <include if="$(var sim)" file="$(find-pkg-share rookie)/launch/sim.launch">
         <arg name="robot_description_str" value="$(var robot_urdf)" />
         <arg name="model_name" value="rookie" />
         <arg name="headless" value="$(var headless)" />
+    </include>
+
+    <!-- Navigation sub-system -->
+    <include if="$(var nav)" file="$(find-pkg-share rookie)/launch/navigation.launch">
+        <arg name="sim" value="$(var sim)" />
     </include>
 
 </launch>

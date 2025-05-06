@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <arg name="sim" 
+         default="false"
+         description="Whether we're simulating the robot or not"
+    />
+
+    <!-- slam_toolbox provides the map>>>odom frame we need for navigation -->
+    <include file="$(find-pkg-share slam_toolbox)/launch/online_async_launch.py">
+        <arg name="use_sim_time" value="$(var sim)" />
+        <arg name="slam_params_file" value="$(find-pkg-share rookie)/config/slam_toolbox.yaml" />
+    </include>
+
+</launch>
