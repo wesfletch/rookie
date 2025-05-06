@@ -71,4 +71,5 @@ RUN sudo apt update \
         ros-${ROS_DISTRO}-nav-msgs \
         ros-${ROS_DISTRO}-robot-localization \
         ros-${ROS_DISTRO}-teleop-twist-keyboard \
-        ros-${ROS_DISTRO}-navigation2
+        ros-${ROS_DISTRO}-navigation2 \
+        ros-${ROS_DISTRO}-slam-toolbox
