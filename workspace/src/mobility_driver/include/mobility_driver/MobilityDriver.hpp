@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 // Project specific
 #include <mobility_driver/SerialPort.hpp>
@@ -21,6 +22,7 @@ namespace mobility_driver
 static const std::string DEFAULT_NODE_NAME = "mobility_driver";
 static const std::string DEFAULT_TOPIC_PICO_OUT = "pico_out";
 static const std::string DEFAULT_SERIAL_DEVICE_NAME = "/dev/ttyACM0";
+static const std::string DEFAULT_TOPIC_ODOM_OUT = "/rookie/odom";
 
 // TODO: Spin rate seems really high just for polling an MCU (which publishes at 50Hz max),
 // but if the spin rate is too low we can hang...
@@ -110,8 +112,9 @@ public:
     void cmdVelCallback(
         geometry_msgs::msg::Twist::UniquePtr msg);
 
-
     bool onReceiveHeartbeat(const MessageData& msg);
+
+    bool onReceiveWheelVelocities(const MessageData& msg);
 
 protected:
 private:
@@ -125,13 +128,21 @@ private:
         {
                 pico_interface::MSG_ID_HEARTBEAT, 
                 std::bind(&MobilityDriver::onReceiveHeartbeat, this, std::placeholders::_1)
+            },
+            {
+                pico_interface::MSG_ID_VELOCITY_STATUS,
+                std::bind(&MobilityDriver::onReceiveWheelVelocities, this, std::placeholders::_1)
             }
     };
 
     const int spin_rate;
 
+    // Messages received will be published on this topic.
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pico_out_pub;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr vel_sub;
+    // Command velocities to be decomposed into wheel velocities and sent to the base controller.
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub;
+    // Outputs wheel odometry for sensor fusion.
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
 
     SerialPort serial_port;
 
@@ -141,7 +152,8 @@ private:
     float desired_vel_left = 0.0;
     float desired_vel_right = 0.0;
 
-    // State of the other side of this connection; could be encapsulated eventually
+    // State of the other side of this connection; could be encapsulated eventually along
+    // with any other information I need to track, but for right now this is fine.
     uint32_t last_heartbeat = 0;
 };
 
