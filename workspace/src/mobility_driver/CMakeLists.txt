@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_STANDARD 20)
 endif()
 
+# Export compile_commands.json for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 # find ROS dependencies
@@ -13,6 +14,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 # find OTHER dependencies
 find_package(pico_interface 0.0.1 REQUIRED)
@@ -37,6 +39,7 @@ ament_target_dependencies(mobility_driver_lib
         rclcpp
         std_msgs
         geometry_msgs
+        nav_msgs
 )
 
 ########################
@@ -53,6 +56,7 @@ ament_target_dependencies(mobility_driver_node
     rclcpp
     std_msgs
     geometry_msgs
+    nav_msgs
 )
 
 ########################
@@ -86,6 +90,8 @@ ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
     rclcpp 
     std_msgs
+    geometry_msgs
+    nav_msgs
 )
 
 #######################
@@ -110,6 +116,5 @@ install(
     DIRECTORY config
     DESTINATION share/${PROJECT_NAME}
 )
-
 
 ament_package()
