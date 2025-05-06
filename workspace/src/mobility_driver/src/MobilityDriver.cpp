@@ -8,6 +8,7 @@ using namespace std::chrono_literals;
 
 #include <std_msgs/msg/string.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 // Rookie-specific
 #include <mobility_driver/SerialPort.hpp>
@@ -39,11 +40,18 @@ MobilityDriver::MobilityDriver(
     );
 
     // Subscribe to /cmd_vel, velocities will be transformed and passed to the pico
-    this->vel_sub = this->_node->create_subscription<geometry_msgs::msg::Twist>(
+    this->cmd_vel_sub = this->_node->create_subscription<geometry_msgs::msg::Twist>(
         "cmd_vel", 
         10, // TODO: This is the QOS parameter, but 10 is the queue_size?... Not finding a good doc on how this should be used in ROS2...
         std::bind(&MobilityDriver::cmdVelCallback, this, std::placeholders::_1)
     );
+
+    // Publish wheel odometry
+    this->odom_pub = this->_node->create_publisher<nav_msgs::msg::Odometry>(
+        DEFAULT_TOPIC_ODOM_OUT, // TODO: make configurable
+        10
+    );
+
 
     // Send heartbeat messages at 1Hz
     this->heartbeat_timer = this->_node->create_wall_timer(
@@ -172,7 +180,7 @@ MobilityDriver::onReceiveHeartbeat(
 {
     RCLCPP_DEBUG_STREAM(
         this->_node->get_logger(), 
-        "GOT A HEARTBEAT: `" << MessageData::toString(msg) << "'"
+        "GOT A HEARTBEAT: `" << MessageData::toString(msg) << "`"
     );
 
     // Unpack message
@@ -196,6 +204,23 @@ MobilityDriver::onReceiveHeartbeat(
             << ", the other end of the connection may have been reset.");    
     }
     this->last_heartbeat = heartbeat.seq;
+
+    return true;
+}
+
+bool
+MobilityDriver::onReceiveWheelVelocities(
+    [[maybe_unused]] const MessageData& msg)
+{
+    RCLCPP_DEBUG_STREAM(
+        this->_node->get_logger(), 
+        "GOT WHEEL VELOCITIES: `" << MessageData::toString(msg) << "`"
+    );
+
+    // TODO: This is where I need to convert wheel velocities to the velocity portion
+    // of the odometry message, which is effectively the inverse of this->cmdVelCallback().
+    // Not sure if I need to be tracking position as well, or if I can trust robot_localization to
+    // do that for me.
 
     return true;
 }

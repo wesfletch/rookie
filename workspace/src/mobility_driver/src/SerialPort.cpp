@@ -20,21 +20,24 @@ namespace mobility_driver
 {
 
 
-SerialPort::SerialPort(
+    SerialPort::SerialPort(
     std::string_view device_name,
     const int& frequency)
     :
     device_name(std::string(device_name)),
     frequency(frequency)
 {
+    // Open the serial device
     this->serial_port = ::open(this->device_name.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (serial_port < 0) 
     {
         std::stringstream err;
-        err << "Error opening serial port " << this->device_name << ": <" << errno << "> == " << strerror(errno);
+        err << "Error opening serial port " << this->device_name << ": <" 
+            << errno << "> == " << strerror(errno);
         throw std::runtime_error(err.str());
     }
 
+    // Configure our TTY
     struct termios tty;
     if (tcgetattr(serial_port, &tty) != 0) 
     {
@@ -42,8 +45,8 @@ SerialPort::SerialPort(
         err << "Error getting terminal settings: <" << errno << "> == " << strerror(errno);
         throw std::runtime_error(err.str());
     }
-    
-    this->configure_tty(&tty); 
+
+    this->_configure_tty(&tty); 
     
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0)
     {
@@ -61,7 +64,7 @@ SerialPort::~SerialPort()
 
 
 void
-SerialPort::configure_tty(struct termios* tty)
+SerialPort::_configure_tty(struct termios* tty)
 {
     // Configure Control Modes.
     tty->c_cflag &= ~PARENB; // No parity bit
@@ -110,20 +113,21 @@ SerialPort::spinOnce()
     // Read the rest of the chars
     while (ch != '\n')
     {
+        // We got some sort of read error.
         if (num_bytes < 0)
         {
-            // We got some sort of read error.
             RCLCPP_WARN_STREAM(rclcpp::get_logger("serial_port"), 
                 "Bytes read ==  " << num_bytes << ", errno == " << errno << ", " << strerror(errno)); 
             return std::nullopt;
         }
+        // Happy path: we have bytes to read.
         else if (num_bytes > 0)
         {
             buffer.push_back(ch);
         }
+        // We got nothing; turf and come back later.
         else 
         {
-            // We got nothing; turf and come back later.
             break;
         }
 
