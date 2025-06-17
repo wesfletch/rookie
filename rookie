@@ -124,18 +124,21 @@ while [[ "${#}" -gt 0 ]]; do
             DUMP=1
             ;;
         "-i" | "--image")
-            CONTAINER_IMG="${2}"
+            CONTAINER_IMG="${2:\
+                "Must provide a name for the --image flag"}"
             shift
             ;;
         "-n" | "--name")
-            CONTAINER_NAME="${2}"
+            CONTAINER_NAME="${2:\
+                "Must provide a name for the --name flag"}"
             shift
             ;;
         "--no-cache")
             NO_CACHE=1
             ;;
         "--ros" | "--ros-distro")
-            ROS_DISTRO="${2}"
+            ROS_DISTRO="${2:\
+                "Must provide a ROS distro for the --ros-distro flag"}"
             shift
             ;;
         # Default

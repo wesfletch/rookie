@@ -20,7 +20,7 @@ namespace mobility_driver
 {
 
 
-    SerialPort::SerialPort(
+SerialPort::SerialPort(
     std::string_view device_name,
     const int& frequency)
     :
