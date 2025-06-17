@@ -3,6 +3,7 @@
 
 #include "pico/stdlib.h"
 #include <pico/multicore.h>
+#include <hardware/watchdog.h>
 
 #include <rookie_pico/main.h>
 #include <rookie_pico/Motors.hpp>
@@ -43,11 +44,21 @@ split_input(
     std::string& body)
 {
     printf("RAW: <%s>\n", input.c_str());
+
+    // This is an empty message, something is wrong
+    if (input.size() == 0)
+    {
+        return false;
+    }
+
     // split on string to get first 
     size_t posEndOfPrefix = input.find_first_of(" ");
     if (posEndOfPrefix == std::string::npos)
     {
-        return false;
+        // There're no space characters in this string, but it isn't empty.
+        // Maybe this command is JUST a header?
+        header = std::string(input);
+        return true;
     }
 
     // split into prefix + the rest
@@ -97,6 +108,16 @@ call_command(
     // Call the command associated with the header.
     bool status = it->second(body);
     return status;
+}
+
+bool
+reset(
+    [[maybe_unused]] const std::string body)
+{
+    // Enable the watchdog that will reset the MCU after 1sec...
+    watchdog_enable(1000, 1);
+    // ... and then wait indefinitely to ensure that we reset. 
+    while(1);
 }
 
 queue_t intercore_queue;
@@ -209,6 +230,10 @@ int main()
         {
             pico_interface::MSG_ID_HEARTBEAT, 
             std::bind(&System::handleHeartbeat, &system, std::placeholders::_1)
+        },
+        {
+            pico_interface::MSG_ID_RESET,
+            std::bind(reset, std::placeholders::_1)
         }
     };
 
