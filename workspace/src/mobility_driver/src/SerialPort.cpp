@@ -45,7 +45,6 @@ SerialPort::SerialPort(
         err << "Error getting terminal settings: <" << errno << "> == " << strerror(errno);
         throw std::runtime_error(err.str());
     }
-
     this->_configure_tty(&tty); 
     
     if (tcsetattr(serial_port, TCSANOW, &tty) != 0)
@@ -113,20 +112,20 @@ SerialPort::spinOnce()
     // Read the rest of the chars
     while (ch != '\n')
     {
+        // Happy path: we have bytes to read.
+        if (num_bytes > 0) [[likely]] // NOTE: Only using [[likely]] because I just learned about it; performance increase likely negligible.
+        {
+            buffer.push_back(ch);
+        }
         // We got some sort of read error.
-        if (num_bytes < 0)
+        else if (num_bytes < 0) [[unlikely]]
         {
             RCLCPP_WARN_STREAM(rclcpp::get_logger("serial_port"), 
                 "Bytes read ==  " << num_bytes << ", errno == " << errno << ", " << strerror(errno)); 
             return std::nullopt;
         }
-        // Happy path: we have bytes to read.
-        else if (num_bytes > 0)
-        {
-            buffer.push_back(ch);
-        }
         // We got nothing; turf and come back later.
-        else 
+        else
         {
             break;
         }
@@ -134,7 +133,7 @@ SerialPort::spinOnce()
         // get next char
         num_bytes = ::read(this->serial_port, &ch, 1);
     }
-
+ 
     // This shouldn't actually happen...
     if (buffer.size() == 0) { return std::nullopt; }
 
