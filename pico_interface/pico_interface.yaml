@@ -5,6 +5,9 @@ messages:
     fields:
       - { name: seq, type: uint32 }
 
+  - name: Reset
+    id: RST
+
   - name: Ack
     id: ACK
     enums:

@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
 #include <map>
 #include <string>
 #include <sstream>
@@ -96,6 +97,31 @@ unpack_Heartbeat(
     return MESSAGE_ERR::E_MSG_SUCCESS;
 }
 
+static const std::string MSG_ID_RESET = "$RST";
+typedef struct Msg_Reset {
+} RESET;
+
+static message_error_t
+pack_ResetMessage(
+    [[maybe_unused]] Msg_Reset& reset,
+    std::string& str)
+{
+    std::stringstream ss;
+
+    ss << MSG_ID_RESET << END;
+    str = ss.str();
+
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
+static message_error_t
+unpack_Reset(
+    [[maybe_unused]] const std::string msg,
+    [[maybe_unused]] Msg_Reset& reset )
+{
+    return MESSAGE_ERR::E_MSG_SUCCESS;
+}
+
 static const std::string MSG_ID_ACK = "$ACK";
 typedef struct Msg_Ack {
 
@@ -120,7 +146,12 @@ pack_Ack(
 
     ss << MSG_ID_ACK << DELIM;
     ss << ack.header << DELIM;
-    ss << ack.fields << DELIM;
+    // ss << ack.fields << DELIM;
+    ss << std::hex << std::setfill('0');
+    for (unsigned char c : ack.fields) {
+        ss << std::setw(2) << static_cast<int>(c);
+    }
+    ss << DELIM;
     ss << std::to_string(static_cast<uint8_t>(ack.status)) << END;
     str = ss.str();
 
