@@ -130,8 +130,22 @@ export ROS_DOMAIN_ID=55
 export RCUTILS_COLORIZED_OUTPUT=1
 
 # ROS convenience function: teleop node
-function teleop()
+teleop()
 {
     local topic="${1:-"/rookie/cmd_vel"}"
     ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:="${topic}"
+}
+
+# Convenience function: build the pico firmware
+build_pico()
+{
+    pushd "${HOME}/rookie_pico" >> /dev/null || return 1
+    
+    mkdir -p build
+    pushd "./build" >> /dev/null || return 1
+    cmake ..
+    make
+    popd  >> /dev/null || return # build
+    
+    popd  >> /dev/null || return  # ${HOME}/rookie_pico
 }
