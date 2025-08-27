@@ -5,7 +5,10 @@ set -o pipefail
 set -o nounset
 # set -o xtrace
 
-COMMAND="${1:-"run_container"}"
+SCRIPT_DIR="$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+PARENT_DIR="$(dirname "${SCRIPT_DIR}")"
+
+COMMAND=""
 DUMP=0
 NO_CACHE=0
 ROS_DISTRO="jazzy"
@@ -18,6 +21,41 @@ CONTAINER_NAME="rookie-dev"
 PICO_REPO="git@github.com:wesfletch/rookie_pico.git"
 PICO_REPO_PATH="./rookie_pico"
 
+
+function usage()
+{
+    cat <<EOF
+Usage: $(basename "$0") <command> [options]
+
+Commands:
+  build, build-container      Build the Docker image for development
+  run, run-container          Run a container from the image
+
+Options:
+  --dump, --dump-command      Print the docker command instead of executing
+  -i, --image <name>          Set container image name (default: ${CONTAINER_IMG})
+  -n, --name <name>           Set container name (default: ${CONTAINER_NAME})
+  --no-cache                  Disable Docker build cache
+  --ros, --ros-distro <distro>
+                              Set ROS distro (default: ${ROS_DISTRO})
+
+General:
+  -h, --help                  Show this help message and exit
+
+Examples:
+  # Build the container image
+  $(basename "$0") build --ros humble
+
+  # Build without cache and just show the command
+  $(basename "$0") build --no-cache --dump
+
+  # Run a container with custom name
+  $(basename "$0") run -n rookie-test
+
+  # Run and just show the docker command
+  $(basename "$0") run --dump
+EOF
+}
 
 function handle_error()
 {
@@ -64,6 +102,9 @@ function run_container()
         --volume "${PWD}/pico_interface:/home/${USERNAME}/pico_interface"
         --volume "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico"
         --volume /dev/bus/usb:/dev/bus/usb
+        --volume "${HOME}/.ssh:${HOME}/.ssh"
+        --volume /dev/serial/by-id/:/dev/serial/by-id/
+        --device-cgroup-rule='c 188:* rmw'
         --workdir "/home/${USERNAME}/"
         --env "TERM=xterm-256color"
         --env "DISPLAY"
@@ -72,6 +113,12 @@ function run_container()
         --env "RCUTILS_COLORIZED_OUTPUT=1"
         --net=host
     )
+
+    # If we're just dumping the command, we're done here
+    if [[ "${DUMP}" == 1 ]]; then
+        echo "docker run ${args[*]}"
+        return 0
+    fi
 
     docker run "${args[@]}" "${CONTAINER_IMG:?}":latest
 
@@ -119,25 +166,29 @@ while [[ "${#}" -gt 0 ]]; do
         "run" | "run-container")
             COMMAND="run_container"
             ;;
+        "help" | "-h" | "--help")
+            usage
+            exit 0
+            ;;
         # Options
         "--dump" | "--dump-command")
             DUMP=1
             ;;
         "-i" | "--image")
-            CONTAINER_IMG="${2:\
-                "Must provide a name for the --image flag"}"
+            CONTAINER_IMG="${2:?\
+                "Must provide an image name for the --image flag"}"
             shift
             ;;
         "-n" | "--name")
-            CONTAINER_NAME="${2:\
-                "Must provide a name for the --name flag"}"
+            CONTAINER_NAME="${2:?\
+                "Must provide a container name for the --name flag"}"
             shift
             ;;
         "--no-cache")
             NO_CACHE=1
             ;;
         "--ros" | "--ros-distro")
-            ROS_DISTRO="${2:\
+            ROS_DISTRO="${2:?\
                 "Must provide a ROS distro for the --ros-distro flag"}"
             shift
             ;;
@@ -149,4 +200,8 @@ while [[ "${#}" -gt 0 ]]; do
     shift
 done
 
-"${COMMAND:?}"
+if [[ -n "${COMMAND:-}" ]]; then 
+    "${COMMAND}"
+else
+    usage
+fi
