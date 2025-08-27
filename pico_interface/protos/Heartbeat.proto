@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+// Heartbeat messages are sent to ensure both sides of the connection are still alive.
+message Heartbeat
+{
+    int32 seq = 1;
+}

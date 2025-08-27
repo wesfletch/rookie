@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+// The linear/angular velocity of the base.
+// Complies with ROS REP 103.
+// Ya know, like a geometry_msgs/Twist message, but less universal.
+message Velocity
+{
+    // Linear velocity; + is forward, - is backwards
+    float linear_vel = 1;
+    // Angular velocity (rotation about center);
+    // + is counter-clockwise, - is clockwise.
+    float angular_vel = 2;
+}
+
+// Set the velocities of the base.
+message VelocityCommand
+{
+    // Sequence number, will be mirrored in the response.
+    int32 seq = 1;
+    // Desired state.
+    Velocity commanded_velocity = 2;
+}
+
+// Response to VelocityCommand.
+message VelocityResponse
+{
+    // Sequence number mirrored from the command.
+    int32 seq = 1;
+    // Current motor speeds and settings.
+    // Doesn't necessarily match the commanded state -- check the `success` field.     
+    Velocity current_velocity = 2;
+    // Whether the VelocityCommand succeeded or not.
+    bool success = 3;
+    // Status message.
+    optional string status = 4;
+}
+
+// Periodic, unsolicited report of current motor values.
+message MotorsReport
+{
+    // Current state of the MCU.
+    Velocity current_velocity = 1;
+    // Status message.
+    optional string status = 2;
+}

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+// Current state of the MCU system.
+enum State
+{
+    STANDBY = 0;
+    ESTOP = 1;
+    ERROR = 2;
+    READY = 3;
+    TEST = 4;
+}
+
+// Command the MCU to change states. Idempotent.
+message StateCommand
+{
+    // Sequence number, will be mirrored in the response.
+    int32 seq = 1;
+    // Desired state.
+    State command_state = 2;
+}
+
+// Response to StateCommand.
+message StateResponse
+{
+    // Sequence number mirrored from the command.
+    int32 seq = 1;
+    // Current state of the MCU.
+    // Doesn't necessarily match the commanded state -- check the `success` field.     
+    State current_state = 2;
+    // Whether the StateCommand succeeded or not.
+    bool success = 3;
+    // Status message.
+    optional string status = 4;
+}
+
+// un-requested/unsolicited state info.
+message StateReport
+{
+    // Current state of the MCU.
+    State current_state = 1;
+    // Status message.
+    optional string status = 2;
+}

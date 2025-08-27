@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+
+enum Direction
+{
+    FORWARD = 0;
+    REVERSE = 1;
+}
+
+// Speed/direction of the motors.
+// Not the most "universal" message since it supposes two
+// left-right motors controlled via PWM, but it'll do for now.
+message Motors
+{
+    // Direction of motor travel.
+    Direction motor_1_direction = 1;
+    // Duty cycle, i.e., PWM signal [0-100] of the motor.
+    int32 motor_1_pwm = 2;
+    // Direction of motor travel.
+    Direction motor_2_direction = 3;
+    // Duty cycle, i.e., PWM signal [0-100] of the motor.
+    int32 motor_2_pwm = 4;
+}
+
+// Directly set the speed of motors.
+message MotorsCommand
+{
+    // Sequence number, will be mirrored in the response.
+    int32 seq = 1;
+    // Desired state.
+    Motors commanded_motors = 2;
+}
+
+// Response to MotorsCommand.
+message MotorsResponse
+{
+    // Sequence number mirrored from the command.
+    int32 seq = 1;
+    // Current motor speeds and settings.
+    // Doesn't necessarily match the commanded state -- check the `success` field.     
+    Motors current_motors = 2;
+    // Whether the MotorsCommand succeeded or not.
+    bool success = 3;
+    // Status message.
+    optional string status = 4;
+}
+
+// Periodic, unsolicited report of current motor values.
+message MotorsReport
+{
+    // Current state of the MCU.
+    Motors current_motors = 1;
+    // Status message.
+    optional string status = 2;
+}

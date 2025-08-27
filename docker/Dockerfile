@@ -46,6 +46,7 @@ RUN sudo apt update && \
         minicom \
         cppcheck \
         python3-serial \
+        python3-pip \
         pipx \
         gdb \
         clangd
@@ -73,3 +74,6 @@ RUN sudo apt update \
         ros-${ROS_DISTRO}-teleop-twist-keyboard \
         ros-${ROS_DISTRO}-navigation2 \
         ros-${ROS_DISTRO}-slam-toolbox
+
+# We need this for nanopb
+RUN pip install grpcio-tools --break-system-packages

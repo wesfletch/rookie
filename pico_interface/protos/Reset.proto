@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+// A command to soft reset the MCU.
+message Reset
+{
+}
