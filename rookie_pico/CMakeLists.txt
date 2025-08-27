@@ -1,20 +1,32 @@
 cmake_minimum_required(VERSION 3.13)
 
-# initialize pico-sdk from submodule
-include(cmake/pico_sdk_import.cmake)
-if (PICO_SDK_VERSION_STRING VERSION_LESS "1.3.0")
-    message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.3.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
-endif()
+# Where to put external dependencies that we fetch
+set(EXTERNAL_DIR "${CMAKE_CURRENT_LIST_DIR}/external")
+file(MAKE_DIRECTORY "${EXTERNAL_DIR}")
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Dependency: pico_sdk, the toolchain for building code for the RPi Pico
+include(FetchContent)
+file(MAKE_DIRECTORY "${EXTERNAL_DIR}/pico-sdk")
+FetchContent_Declare(
+    pico_sdk_FETCH
+    GIT_REPOSITORY https://github.com/raspberrypi/pico-sdk
+    GIT_TAG 1.5.1 # TODO: update this to 2.0
+    SOURCE_DIR "${EXTERNAL_DIR}/pico-sdk"
+    GIT_SUBMODULES_RECURSE FALSE
+)
+if (NOT pico_sdk_FETCH)
+    FetchContent_Populate(pico_sdk_FETCH)
+endif()
+set(PICO_SDK_PATH "${EXTERNAL_DIR}/pico-sdk" CACHE PATH "Path to the Raspberry Pi Pico SDK")
+set(PICO_SDK_INIT_CMAKE_FILE "${PICO_SDK_PATH}/pico_sdk_init.cmake")
+
+# Must be done before call to project()
+include("${PICO_SDK_INIT_CMAKE_FILE}")
 
 project(rookie_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-
-# initialize the Raspberry Pi Pico SDK
-pico_sdk_init()
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(
     -Wall
     -Werror
@@ -24,11 +36,15 @@ add_compile_options(
     -Wno-maybe-uninitialized
 )
 
-find_package(pico_interface 0.0.1 REQUIRED)
+# initialize the Raspberry Pi Pico SDK
+# Needs PICO_SDK_PATH and PICO_SDK_INIT_CMAKE_FILE set
+pico_sdk_init()
+
+
+find_package(pico_interface REQUIRED)
 
 ######################################################
 #### Libraries
-
 
 add_library(${PROJECT_NAME}_lib
     src/ClosedLoopController.cpp
@@ -39,7 +55,7 @@ add_library(${PROJECT_NAME}_lib
 target_include_directories(${PROJECT_NAME}_lib
     PUBLIC
         include
-        ${PICO_INTERFACE_INCLUDE_DIRS}
+        # ${pico_interface_INCLUDE_DIRS}
 )
 set(LIBS
     pico_stdlib
@@ -53,6 +69,7 @@ set(LIBS
 )
 target_link_libraries(${PROJECT_NAME}_lib
     ${LIBS}
+    pico_interface::pico_interface
 )
 set_target_properties(${PROJECT_NAME}_lib
     PROPERTIES 
@@ -75,6 +92,13 @@ target_link_libraries(rookie
     ${LIBS}
 )
 
+add_executable(encoder_test
+    ${HEADERS}
+    src/encoder_test.cpp
+)
+target_link_libraries(encoder_test
+    ${LIBS}
+)
 
 add_executable(command_test
     ${HEADERS}
@@ -89,4 +113,4 @@ pico_enable_stdio_usb(rookie 1)
 pico_enable_stdio_uart(rookie 0)
 
 # create map/bin/hex file etc.
-pico_add_extra_outputs(rookie)
+# pico_add_extra_outputs(rookie)

@@ -1,0 +1,20 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "pico",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
+                "PICO_SDK_PATH": "${sourceDir}/external/pico-sdk"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "pico",
+            "configurePreset": "pico"
+        }
+    ]
+}

@@ -2,4 +2,6 @@ build/**
 
 .vscode/**
 
-pico-sdk/lib/**
+external/*
+
+.cache
