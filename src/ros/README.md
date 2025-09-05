@@ -1,0 +1,1 @@
+This directory is a ROS "workspace", intended to be used with `colcon`.

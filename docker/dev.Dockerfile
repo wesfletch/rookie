@@ -10,7 +10,7 @@ ENV UID=${UID}
 ENV GUID=${UID}
 
 WORKDIR /home/${USER}/workspace
-RUN colcon build
+# RUN colcon build
 
 # For some reason, new Ubuntu containers create this user by default
 # and it's goofing all of my stuff up...
@@ -38,7 +38,8 @@ RUN sudo apt update && \
         cmake \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
-        libstdc++-arm-none-eabi-newlib
+        libstdc++-arm-none-eabi-newlib \
+	ninja-build
 
 # Other useful things for development
 RUN sudo apt update && \
@@ -51,14 +52,14 @@ RUN sudo apt update && \
         gdb \
         clangd
 
-# Build the pico_interface lib, because doing it manually is annoying
-COPY pico_interface /home/${USER}/pico_interface
-WORKDIR /home/${USER}/pico_interface
-RUN mkdir -p build \
-    && cd build \
-    && cmake .. \
-    && make \
-    && sudo make install
+# # Build the pico_interface lib, because doing it manually is annoying
+# COPY pico_interface /home/${USER}/pico_interface
+# WORKDIR /home/${USER}/pico_interface
+# RUN mkdir -p build \
+#     && cd build \
+#     && cmake .. \
+#     && make \
+#     && sudo make install
 
 # ROS dependencies
 # TODO: just use rosdep for this...

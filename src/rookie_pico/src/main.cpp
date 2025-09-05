@@ -1,7 +1,7 @@
 #include <string>
 #include <cstring>
 
-#include "pico/stdlib.h"
+#include <pico/stdlib.h>
 #include <pico/multicore.h>
 #include <hardware/watchdog.h>
 
@@ -14,6 +14,7 @@
 #include <rookie_pico/System.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
+#include <pico_interface/protos/Heartbeat.pb.h>
 
 // for string parsing
 #define ENDSTDIN    255 // NULL

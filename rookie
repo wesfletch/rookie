@@ -18,9 +18,6 @@ USERNAME="${USER:-ubuntu}"
 CONTAINER_IMG="rookie"
 CONTAINER_NAME="rookie-dev"
 
-PICO_REPO="git@github.com:wesfletch/rookie_pico.git"
-PICO_REPO_PATH="./rookie_pico"
-
 
 function usage()
 {
@@ -28,32 +25,32 @@ function usage()
 Usage: $(basename "$0") <command> [options]
 
 Commands:
-  build, build-container      Build the Docker image for development
-  run, run-container          Run a container from the image
+    build, build-container      Build the Docker image for development
+    run, run-container          Run a container from the image
 
 Options:
-  --dump, --dump-command      Print the docker command instead of executing
-  -i, --image <name>          Set container image name (default: ${CONTAINER_IMG})
-  -n, --name <name>           Set container name (default: ${CONTAINER_NAME})
-  --no-cache                  Disable Docker build cache
-  --ros, --ros-distro <distro>
-                              Set ROS distro (default: ${ROS_DISTRO})
+    --dump, --dump-command      Print the docker command instead of executing
+    -i, --image <name>          Set container image name (default: ${CONTAINER_IMG})
+    -n, --name <name>           Set container name (default: ${CONTAINER_NAME})
+    --no-cache                  Disable Docker build cache
+    --ros, --ros-distro <distro>
+                                Set ROS distro (default: ${ROS_DISTRO})
 
 General:
-  -h, --help                  Show this help message and exit
+    -h, --help                  Show this help message and exit
 
 Examples:
-  # Build the container image
-  $(basename "$0") build --ros humble
+    # Build the container image
+    $(basename "$0") build --ros humble
 
-  # Build without cache and just show the command
-  $(basename "$0") build --no-cache --dump
+    # Build without cache and just show the command
+    $(basename "$0") build --no-cache --dump
 
-  # Run a container with custom name
-  $(basename "$0") run -n rookie-test
+    # Run a container with custom name
+    $(basename "$0") run -n rookie-test
 
-  # Run and just show the docker command
-  $(basename "$0") run --dump
+    # Run and just show the docker command
+    $(basename "$0") run --dump
 EOF
 }
 
@@ -98,9 +95,7 @@ function run_container()
         --rm
         --privileged
         --user "${UID}"
-        --volume "${PWD}/workspace:/home/${USERNAME}/workspace"
-        --volume "${PWD}/pico_interface:/home/${USERNAME}/pico_interface"
-        --volume "${PWD}/rookie_pico:/home/${USERNAME}/rookie_pico"
+        --volume "${PWD}/src:/home/${USERNAME}/workspace"
         --volume /dev/bus/usb:/dev/bus/usb
         --volume "${HOME}/.ssh:${HOME}/.ssh"
         --volume /dev/serial/by-id/:/dev/serial/by-id/
@@ -108,7 +103,6 @@ function run_container()
         --workdir "/home/${USERNAME}/"
         --env "TERM=xterm-256color"
         --env "DISPLAY"
-        --env "PICO_SDK_PATH=/home/${USERNAME}/rookie_pico/pico-sdk"
         --env "CONTAINER_NAME=${CONTAINER_NAME:?}"
         --env "RCUTILS_COLORIZED_OUTPUT=1"
         --net=host
@@ -128,17 +122,12 @@ function build_container()
 {
     dont_run_in_container; handle_error $?
 
-    # Pull in our other repo dependencies
-    if [[ ! -d "${PICO_REPO_PATH}" ]]; then
-        git clone "${PICO_REPO}" --recurse-submodules
-    fi
-
     args=(
         --tag "${CONTAINER_IMG:?}:latest"
         --build-arg USER="${USERNAME}"
         --build-arg UID="${UID}"
         --build-arg ROS_DISTRO="${ROS_DISTRO:?}"
-        -f docker/Dockerfile
+        -f docker/dev.Dockerfile
     )
 
     if [[ "${NO_CACHE:?}" -eq "1" ]]; then

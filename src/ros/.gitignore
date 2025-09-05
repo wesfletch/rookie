@@ -1,4 +1,7 @@
 .cache/
+.vscode/
+
+# ROS dev cruft
 build/
 install/
 log/

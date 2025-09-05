@@ -40,7 +40,8 @@ add_compile_options(
 # Needs PICO_SDK_PATH and PICO_SDK_INIT_CMAKE_FILE set
 pico_sdk_init()
 
-
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)  # prefer *Config.cmake over Find*.cmake
 find_package(pico_interface REQUIRED)
 
 ######################################################
