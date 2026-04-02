@@ -1,0 +1,54 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "host",
+            "displayName": "Host",
+            "generator": "Ninja",
+            "binaryDir": "build/host",
+            "cacheVariables": {
+                "BUILD_FIRMWARE": "OFF"
+            }
+        },
+        {
+            "name": "pico",
+            "displayName": "RPi Pico cross-compile",
+            "generator": "Ninja",
+            "binaryDir": "build/pico",
+            "toolchainFile": "rookie_pico/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
+            "cacheVariables": {
+                "BUILD_FIRMWARE": "ON",
+                "PICO_SDK_PATH": "${sourceDir}/rookie_pico/external/pico-sdk",
+                "CMAKE_PREFIX_PATH": "${sourceDir}/build/host/pico_interface"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "host",
+            "configurePreset": "host"
+        },
+        {
+            "name": "pico",
+            "configurePreset": "pico"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "dev-host",
+            "description": "Main dev. workflow",
+            "steps": [
+                { "type": "configure", "name": "host" },
+                { "type": "build", "name": "host" }
+            ]
+        },
+        {
+            "name": "dev-pico",
+            "description": "cross-compile workflow",
+            "steps": [
+                { "type": "configure", "name": "pico" },
+                { "type": "build", "name": "pico"}
+            ]
+        }
+    ]
+}

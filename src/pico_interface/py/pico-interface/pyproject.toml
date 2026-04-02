@@ -1,0 +1,9 @@
+[project]
+name = "pico-interface"
+version = "0.0.1"
+description = "proto intrefaces for rookie"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "protobuf"
+]

@@ -36,10 +36,10 @@ message VelocityResponse
 }
 
 // Periodic, unsolicited report of current motor values.
-message MotorsReport
-{
-    // Current state of the MCU.
-    Velocity current_velocity = 1;
-    // Status message.
-    optional string status = 2;
-}
+// message MotorsReport
+// {
+//     // Current state of the MCU.
+//     Velocity current_velocity = 1;
+//     // Status message.
+//     optional string status = 2;
+// }

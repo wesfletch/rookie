@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=jazzy
+ARG ROS_DISTRO=kilted
 
 FROM ros:${ROS_DISTRO} AS ros
 
@@ -39,7 +39,7 @@ RUN sudo apt update && \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
         libstdc++-arm-none-eabi-newlib \
-	ninja-build
+	    ninja-build
 
 # Other useful things for development
 RUN sudo apt update && \

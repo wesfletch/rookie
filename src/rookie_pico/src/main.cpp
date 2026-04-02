@@ -14,7 +14,7 @@
 #include <rookie_pico/System.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
-#include <pico_interface/protos/Heartbeat.pb.h>
+#include <pico_interface/protos/Heartbeat.pb.hpp>
 
 // for string parsing
 #define ENDSTDIN    255 // NULL

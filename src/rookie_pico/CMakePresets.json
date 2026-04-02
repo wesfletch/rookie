@@ -1,20 +1,19 @@
 {
-    "version": 6,
+    "version": 8,
     "configurePresets": [
         {
-            "name": "pico",
+            "name": "dev",
             "generator": "Ninja",
-            "binaryDir": "$env{ROOKIE_PICO_BINARY_DIR}",
+            "toolchainFile": "${sourceDir}/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
                 "PICO_SDK_PATH": "${sourceDir}/external/pico-sdk"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "pico",
-            "configurePreset": "pico"
+            "name": "dev",
+            "configurePreset": "dev"
         }
     ]
 }
