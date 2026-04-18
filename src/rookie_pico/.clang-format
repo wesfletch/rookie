@@ -1,0 +1,48 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AccessModifierOffset: -4
+IndentCaseLabels: true
+
+# Column limit
+ColumnLimit: 120
+
+# Braces: Allman (all braces on new lines)
+BreakBeforeBraces: Allman
+
+# Pointers/references: left-aligned (Type* ptr, Type& ref)
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+# Return type always on its own line
+AlwaysBreakAfterReturnType: AllDefinitions
+
+# Constructor initializers
+BreakConstructorInitializers: BeforeColon
+
+# Parameters and arguments: don't bin-pack
+BinPackParameters: false
+BinPackArguments: false
+AlignAfterOpenBracket: AlwaysBreak
+
+# Short functions
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Comments
+AlignTrailingComments: true
+ReflowComments: false
+
+# Includes: preserve manual grouping
+SortIncludes: Never
+
+# Misc
+EmptyLineAfterAccessModifier: Always
+SpaceBeforeParens: ControlStatements

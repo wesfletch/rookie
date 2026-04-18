@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+# set -o xtrace
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+STAGED="$(git diff --cached --name-only --diff-filter=ACM \
+    | grep -E '^src/rookie_pico/.*\.(c|cpp|h|hpp)$' || true)"
+
+[[ -z "${STAGED}" ]] && exit 0
+
+function check_clang_format()
+{
+    if ! command -v clang-format &>/dev/null; then
+        echo "clang-format not found, skipping format check"
+        return 0
+    fi
+
+    local failed=0
+
+    while IFS= read -r file; do
+        if ! clang-format --dry-run --Werror "${REPO_ROOT}/${file}" 2>/dev/null; then
+            echo "  needs formatting: ${file}"
+            failed=1
+        fi
+    done <<< "${STAGED}"
+
+    if [[ "${failed}" -ne 0 ]]; then
+        echo ""
+        echo "Fix with:"
+        echo "  git diff --cached --name-only | grep -E '\\.(c|cpp|h|hpp)\$' | xargs clang-format -i"
+        return 1
+    fi
+}
+
+echo "* Checking clang-format on staged rookie_pico files"
+check_clang_format

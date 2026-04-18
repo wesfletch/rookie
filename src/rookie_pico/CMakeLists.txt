@@ -1,32 +1,26 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Where to put external dependencies that we fetch
-set(EXTERNAL_DIR "${CMAKE_CURRENT_LIST_DIR}/external")
-file(MAKE_DIRECTORY "${EXTERNAL_DIR}")
-
-# Dependency: pico_sdk, the toolchain for building code for the RPi Pico
 include(FetchContent)
-file(MAKE_DIRECTORY "${EXTERNAL_DIR}/pico-sdk")
+
 FetchContent_Declare(
-    pico_sdk_FETCH
+    pico_sdk
     GIT_REPOSITORY https://github.com/raspberrypi/pico-sdk
     GIT_TAG 1.5.1 # TODO: update this to 2.0
-    SOURCE_DIR "${EXTERNAL_DIR}/pico-sdk"
+    SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/external/pico-sdk"
     GIT_SUBMODULES_RECURSE FALSE
 )
-if (NOT pico_sdk_FETCH)
-    FetchContent_Populate(pico_sdk_FETCH)
+FetchContent_GetProperties(pico_sdk)
+if(NOT pico_sdk_POPULATED)
+    FetchContent_Populate(pico_sdk)
 endif()
-set(PICO_SDK_PATH "${EXTERNAL_DIR}/pico-sdk" CACHE PATH "Path to the Raspberry Pi Pico SDK")
-set(PICO_SDK_INIT_CMAKE_FILE "${PICO_SDK_PATH}/pico_sdk_init.cmake")
 
-# Must be done before call to project()
-include("${PICO_SDK_INIT_CMAKE_FILE}")
+set(PICO_SDK_PATH "${pico_sdk_SOURCE_DIR}" CACHE PATH "Path to the Raspberry Pi Pico SDK")
+include("${PICO_SDK_PATH}/pico_sdk_init.cmake")
 
 project(rookie_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # clangd
 add_compile_options(
     -Wall
     -Werror
@@ -42,7 +36,12 @@ pico_sdk_init()
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)  # prefer *Config.cmake over Find*.cmake
-find_package(pico_interface REQUIRED)
+if(NOT TARGET pico_interface)
+    find_package(pico_interface REQUIRED)
+    set(_PICO_INTERFACE_TARGET pico_interface::pico_interface)
+else()
+    set(_PICO_INTERFACE_TARGET pico_interface)
+endif()
 
 ######################################################
 #### Libraries
@@ -70,7 +69,7 @@ set(LIBS
 )
 target_link_libraries(${PROJECT_NAME}_lib
     ${LIBS}
-    pico_interface::pico_interface
+    ${_PICO_INTERFACE_TARGET}
 )
 set_target_properties(${PROJECT_NAME}_lib
     PROPERTIES 
@@ -114,4 +113,4 @@ pico_enable_stdio_usb(rookie 1)
 pico_enable_stdio_uart(rookie 0)
 
 # create map/bin/hex file etc.
-# pico_add_extra_outputs(rookie)
+pico_add_extra_outputs(rookie)

@@ -1,0 +1,33 @@
+---
+# Start from nothing and opt into specific checks.
+# Broad wildcard groups are used where the category is generally safe for
+# embedded C++; individual noisy checks are disabled with a leading '-'.
+Checks: >-
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  modernize-loop-convert,
+  modernize-redundant-void-arg,
+  modernize-use-default-member-init,
+  modernize-use-nullptr,
+  modernize-use-override,
+  performance-for-range-copy,
+  performance-unnecessary-copy-initialization,
+  performance-unnecessary-value-param,
+  readability-const-return-type,
+  readability-container-size-empty,
+  readability-else-after-return,
+  readability-misleading-indentation,
+  readability-qualified-auto,
+  readability-redundant-access-specifiers,
+  readability-redundant-control-flow,
+  readability-simplify-boolean-expr,
+
+WarningsAsErrors: "*"
+
+# Only report issues in our own headers, not pico-sdk / nanopb.
+HeaderFilterRegex: "^.*/rookie_pico/include/.*"
+
+CheckOptions:
+  - key: modernize-use-default-member-init.UseAssignment
+    value: true

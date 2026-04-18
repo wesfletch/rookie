@@ -25,6 +25,7 @@ function usage()
 Usage: $(basename "$0") <command> [options]
 
 Commands:
+    setup                       Setup the development environment, e.g., git hooks, etc.
     build, build-container      Build the Docker image for development
     run, run-container          Run a container from the image
 
@@ -118,6 +119,23 @@ function run_container()
 
 }
 
+function setup()
+{
+    local hooks_src="${SCRIPT_DIR}/hooks"
+    local hooks_dst="${SCRIPT_DIR}/.git/hooks"
+
+    local hooks=(
+        pre-commit
+    )
+
+    echo "--- Installing git hooks ---"
+    for hook in "${hooks[@]}"; do
+        cp "${hooks_src}/${hook}" "${hooks_dst}/${hook}"
+        chmod +x "${hooks_dst}/${hook}"
+        echo "  installed: ${hook}"
+    done
+}
+
 function build_container()
 {
     dont_run_in_container; handle_error $?
@@ -149,6 +167,9 @@ while [[ "${#}" -gt 0 ]]; do
     ARG="${1}"
     case "${ARG}" in
         # Verbs
+        "setup")
+            COMMAND="setup"
+            ;;
         "build" | "build-container")
             COMMAND="build_container"
             ;;

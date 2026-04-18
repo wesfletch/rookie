@@ -50,7 +50,8 @@ RUN sudo apt update && \
         python3-pip \
         pipx \
         gdb \
-        clangd
+        clangd \
+        clang-format
 
 # # Build the pico_interface lib, because doing it manually is annoying
 # COPY pico_interface /home/${USER}/pico_interface

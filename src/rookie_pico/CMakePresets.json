@@ -4,6 +4,7 @@
         {
             "name": "dev",
             "generator": "Ninja",
+            "binaryDir": "${sourceDir}/../build/pico",
             "toolchainFile": "${sourceDir}/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
             "cacheVariables": {
                 "PICO_SDK_PATH": "${sourceDir}/external/pico-sdk"

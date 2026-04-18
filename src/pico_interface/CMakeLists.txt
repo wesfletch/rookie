@@ -45,12 +45,19 @@ find_package(Nanopb REQUIRED MODULE)
 ###################################################################################################
 ### Code generation
 
-# Generate the .cpp/.hpp files from the .protos
-add_custom_target(generate_protos
-    COMMAND bash "-c" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_protos.sh"
+file(GLOB PROTO_FILES "${CMAKE_CURRENT_SOURCE_DIR}/protos/*.proto")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROTO_FILES})
+
+message(STATUS "Generating protobuf sources...")
+execute_process(
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_protos.sh"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Generating protobuf sources"
+    RESULT_VARIABLE _proto_gen_result
+    ERROR_VARIABLE _proto_gen_error
 )
+if(NOT _proto_gen_result EQUAL 0)
+    message(FATAL_ERROR "Proto generation failed:\n${_proto_gen_error}")
+endif()
 
 set(PICO_INTERFACE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR}/include/pico_interface
@@ -67,14 +74,26 @@ file(GLOB PICO_INTERFACE_CPP
 ### Interface library
 
 add_library(${PROJECT_NAME} INTERFACE)
-add_dependencies(${PROJECT_NAME} generate_protos)
 
-target_sources(${PROJECT_NAME}
-    INTERFACE
-        # Build tree: absolute paths to generated .c plus nanopb runtime .c
-        $<BUILD_INTERFACE:${NANOPB_C}>
-        $<BUILD_INTERFACE:${PICO_INTERFACE_CPP}>
-)
+set(PICO_INTERFACE_SRC_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}/pico_interface/src")
+
+foreach(src IN LISTS NANOPB_C)
+    get_filename_component(fname "${src}" NAME)
+    install(FILES "${src}" DESTINATION "${PICO_INTERFACE_SRC_INSTALL_DIR}")
+    target_sources(${PROJECT_NAME} INTERFACE
+        $<BUILD_INTERFACE:${src}>
+        $<INSTALL_INTERFACE:${PICO_INTERFACE_SRC_INSTALL_DIR}/${fname}>
+    )
+endforeach()
+
+foreach(src IN LISTS PICO_INTERFACE_CPP)
+    get_filename_component(fname "${src}" NAME)
+    install(FILES "${src}" DESTINATION "${PICO_INTERFACE_SRC_INSTALL_DIR}/protos")
+    target_sources(${PROJECT_NAME} INTERFACE
+        $<BUILD_INTERFACE:${src}>
+        $<INSTALL_INTERFACE:${PICO_INTERFACE_SRC_INSTALL_DIR}/protos/${fname}>
+    )
+endforeach()
 
 # Propagate include paths (generated headers + nanopb headers)
 target_include_directories(${PROJECT_NAME}
@@ -115,6 +134,7 @@ configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+    PATH_VARS CMAKE_INSTALL_INCLUDEDIR
 )
 
 write_basic_package_version_file(

@@ -11,6 +11,6 @@ add_subdirectory(pico_interface)
 
 option(BUILD_FIRMWARE "Build rookie_pico firmware" OFF)
 if(BUILD_FIRMWARE)
-    add_subdirectory(rookie_pico EXCLUDE_FROM_ALL)
+    add_subdirectory(rookie_pico)
 endif()
 

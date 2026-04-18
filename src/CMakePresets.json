@@ -18,8 +18,7 @@
             "toolchainFile": "rookie_pico/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
             "cacheVariables": {
                 "BUILD_FIRMWARE": "ON",
-                "PICO_SDK_PATH": "${sourceDir}/rookie_pico/external/pico-sdk",
-                "CMAKE_PREFIX_PATH": "${sourceDir}/build/host/pico_interface"
+                "PICO_SDK_PATH": "${sourceDir}/rookie_pico/external/pico-sdk"
             }
         }
     ],
