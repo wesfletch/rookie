@@ -7,16 +7,20 @@ set -o nounset
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-STAGED="$(git diff --cached --name-only --diff-filter=ACM \
+STAGED_CPP="$(git diff --cached --name-only --diff-filter=ACM \
     | grep -E '^src/rookie_pico/.*\.(c|cpp|h|hpp)$' || true)"
 
-[[ -z "${STAGED}" ]] && exit 0
+STAGED_SH="$(git diff --cached --name-only --diff-filter=ACM \
+    | grep -vE '^src/(rookie_pico/external|pico_interface/nanopb)/' \
+    | grep -E '(\.sh$|^rookie$)' || true)"
 
 function check_clang_format()
 {
+    [[ -z "${STAGED_CPP}" ]] && return 0
+
     if ! command -v clang-format &>/dev/null; then
-        echo "clang-format not found, skipping format check"
-        return 0
+        echo "ERR: clang-format not found — install it to use this hook"
+        return 1
     fi
 
     local failed=0
@@ -26,7 +30,7 @@ function check_clang_format()
             echo "  needs formatting: ${file}"
             failed=1
         fi
-    done <<< "${STAGED}"
+    done <<< "${STAGED_CPP}"
 
     if [[ "${failed}" -ne 0 ]]; then
         echo ""
@@ -36,5 +40,37 @@ function check_clang_format()
     fi
 }
 
+function check_shellcheck()
+{
+    [[ -z "${STAGED_SH}" ]] && return 0
+
+    if ! command -v shellcheck &>/dev/null; then
+        echo "ERR: shellcheck not found — install it to use this hook"
+        return 1
+    fi
+
+    local failed=0
+
+    while IFS= read -r file; do
+        if ! shellcheck "${REPO_ROOT}/${file}"; then
+            failed=1
+        fi
+    done <<< "${STAGED_SH}"
+
+    [[ "${failed}" -ne 0 ]] && return 1
+    return 0
+}
+
+failed=0
+
 echo "* Checking clang-format on staged rookie_pico files"
-check_clang_format
+check_clang_format || failed=1
+
+echo "* Checking shellcheck on staged shell scripts"
+check_shellcheck || failed=1
+
+if [[ "${failed}" -ne 0 ]]; then
+    echo ""
+    echo "ERR: pre-commit checks failed — commit aborted"
+    exit 1
+fi

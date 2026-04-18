@@ -6,7 +6,6 @@ set -o nounset
 # set -o xtrace
 
 SCRIPT_DIR="$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")"
-PARENT_DIR="$(dirname "${SCRIPT_DIR}")"
 
 COMMAND=""
 DUMP=0
@@ -76,16 +75,6 @@ function dont_run_in_container()
     fi
 }
 
-function check_dependencies()
-{
-    dont_run_in_container; handle_error $?
-
-    deps=(
-        git
-        vcstool
-    )
-}
-
 function run_container()
 {
     dont_run_in_container; handle_error $?
@@ -124,11 +113,29 @@ function setup()
     local hooks_src="${SCRIPT_DIR}/hooks"
     local hooks_dst="${SCRIPT_DIR}/.git/hooks"
 
+    local hook_deps=(
+        clang-format
+        shellcheck
+    )
+
+    echo "* Checking hook dependencies ---"
+    local missing=0
+    for dep in "${hook_deps[@]}"; do
+        if ! command -v "${dep}" &>/dev/null; then
+            echo "  missing: ${dep}"
+            missing=1
+        fi
+    done
+    if [[ "${missing}" -ne 0 ]]; then
+        echo "ERR: install missing dependencies before running setup"
+        return 1
+    fi
+
     local hooks=(
         pre-commit
     )
 
-    echo "--- Installing git hooks ---"
+    echo "* Installing git hooks"
     for hook in "${hooks[@]}"; do
         cp "${hooks_src}/${hook}" "${hooks_dst}/${hook}"
         chmod +x "${hooks_dst}/${hook}"
