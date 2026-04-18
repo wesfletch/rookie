@@ -16,7 +16,8 @@ static constexpr float ENCODER_FREQ = 50; // Hz
 static constexpr int32_t ENCODER_PERIOD_MS = (1 / ENCODER_FREQ) * 1000;
 static std::map<uint, std::shared_ptr<Encoder>> pinToEncoderMap;
 
-void init_encoders(
+void
+init_encoders(
     EncoderList* encoders)
 {
     // Configure the callback that all GPIO interrupts (on this core) 
