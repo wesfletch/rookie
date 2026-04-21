@@ -32,7 +32,7 @@ static constexpr uint COUNTS_PER_REVOLUTION = COUNTS_PER_PULSE * PULSES_PER_REVO
 static inline float
 pulsesToRadians(int pulses)
 {
-    return (pulses * (2 * M_PI)) / PULSES_PER_REVOLUTION; 
+    return (pulses * (2 * M_PI)) / PULSES_PER_REVOLUTION;
 }
 
 /**
@@ -50,7 +50,7 @@ radiansToRPM(float radians_per_sec)
 /**
  * @brief Represents a single quadrature encoder.
  */
-class Encoder 
+class Encoder
 {
 public:
 
@@ -61,14 +61,8 @@ public:
      * @param channelB GPIO pin for pulses from encoder channel B
      * @param invert If true, reverse readings for this encoder; default false
      */
-    Encoder(
-        uint channelA,
-        uint channelB,
-        bool invert = false)
-        :
-        channelAPin(channelA),
-        channelBPin(channelB),
-        invert(invert) {};
+    Encoder(uint channelA, uint channelB, bool invert = false)
+        : channelAPin(channelA), channelBPin(channelB), invert(invert){};
 
     /**
      * @brief Initialize this Encoder object.
@@ -79,70 +73,63 @@ public:
      * 
      * After this function is called, the Encoder is ready to use.
      */
-    void init() 
+    void
+    init()
     {
         gpio_init(this->channelAPin);
         gpio_init(this->channelBPin);
 
-        // Initialize critical section for use later    
+        // Initialize critical section for use later
         critical_section_init(&this->criticalSection);
-    
+
         // Pre-set our updateStamp to avoid massive velocities
         // being reported at start-up
         this->lastUpdateStamp = get_absolute_time();
 
         // Enable the GPIO IRQ for our channel A and B pins
-        // must be done AFTER the callback is specified with gpio_set_irq_callback() 
+        // must be done AFTER the callback is specified with gpio_set_irq_callback()
         // and the IRQ is enabled with irq_set_enabled()
-        
+
         // CHANNEL A
-        gpio_set_irq_enabled(
-            this->channelAPin,
-            GPIO_IRQ_EDGE_RISE,
-            true
-        );
+        gpio_set_irq_enabled(this->channelAPin, GPIO_IRQ_EDGE_RISE, true);
         // CHANNEL B
-        gpio_set_irq_enabled(
-            this->channelBPin,
-            GPIO_IRQ_EDGE_RISE,
-            true
-        );
+        gpio_set_irq_enabled(this->channelBPin, GPIO_IRQ_EDGE_RISE, true);
     };
 
     /**
      * @brief Update reported speed by measuring pulses since last update().
      * 
      */
-    void update()
-    {   
+    void
+    update()
+    {
         // If this is the first time updating, set the vel to 0.0 to
         // avoid spurious readings.
-        if (is_nil_time(this->lastUpdateStamp)) {
+        if (is_nil_time(this->lastUpdateStamp))
+        {
             this->_setAngularVel(0.0f);
-            return; 
+            return;
         }
 
         // Get the diff of pulses between now and the last time update was called
         int pulses = this->counter - this->prevCounter;
         this->prevCounter = this->counter;
 
-        // We're capturing both A and B channel pulses, so we'll 
+        // We're capturing both A and B channel pulses, so we'll
         // have twice as many as we would expect,
         // e.g., we'll read 4096 pulses/rev instead of 2048
         pulses = pulses / 2;
 
         // Roll-over if we reach the max counter.
-        if (this->counter == INT32_MAX) {
+        if (this->counter == INT32_MAX)
+        {
             this->counter = 0;
             this->prevCounter = 0 - this->prevCounter;
         }
 
         // get the time diff since we last updated
-        int64_t diff_us = absolute_time_diff_us(
-            this->lastUpdateStamp,
-            get_absolute_time()
-        );
-        float diff_in_secs = diff_us / 1000000.0; 
+        int64_t diff_us = absolute_time_diff_us(this->lastUpdateStamp, get_absolute_time());
+        float diff_in_secs = diff_us / 1000000.0;
 
         float rads_per_sec = pulsesToRadians(pulses) / diff_in_secs;
         this->_setAngularVel(rads_per_sec);
@@ -153,7 +140,8 @@ public:
      * 
      * @return float angular velocity in rads/sec
      */
-    float getAngularVel()
+    float
+    getAngularVel()
     {
         float returned = 0.0;
         critical_section_enter_blocking(&this->criticalSection);
@@ -171,7 +159,8 @@ public:
      * 
      * @param delta Amount to add to (or subtract from) the counter
      */
-    void addToCounter(int delta)
+    void
+    addToCounter(int delta)
     {
         critical_section_enter_blocking(&this->criticalSection);
         this->counter += delta * (this->invert ? -1 : 1);
@@ -183,7 +172,8 @@ public:
      * 
      * @return int32_t number of pulses
      */
-    int32_t getCounter()
+    int32_t
+    getCounter()
     {
         int returned;
         critical_section_enter_blocking(&this->criticalSection);
@@ -197,7 +187,7 @@ public:
     const uint channelAPin;
     /* GPIO pin of channel B. */
     const uint channelBPin;
-    
+
     /* Whether to invert the speed read by this encoder. */
     const bool invert;
 
@@ -207,12 +197,13 @@ public:
 protected:
 private: // FUNCTIONS
 
-    void _setAngularVel(float new_vel)
+    void
+    _setAngularVel(float new_vel)
     {
         critical_section_enter_blocking(&this->criticalSection);
         this->angularVel = new_vel;
         critical_section_exit(&this->criticalSection);
-        
+
         this->lastUpdateStamp = get_absolute_time();
     };
 
@@ -237,8 +228,7 @@ using EncoderList = std::vector<std::shared_ptr<Encoder>>;
  * @brief Initialize encoders.
  * 
  */
-void init_encoders(
-    EncoderList* encoders);
+void init_encoders(EncoderList* encoders);
 
 /**
  * @brief IRQ for reading pulses from AMT102V quad encoders.
@@ -246,9 +236,6 @@ void init_encoders(
  * @param gpio The GPIO pin that fired the IRQ.
  * @param event_mask Bitmask of events that caused this IRQ to fire.
  */
-static void AMT102V_callback(
-    uint gpio, 
-    [[maybe_unused]] uint32_t event_mask);
-
+static void AMT102V_callback(uint gpio, [[maybe_unused]] uint32_t event_mask);
 
 #endif // ENCODERS_HPP

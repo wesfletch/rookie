@@ -12,10 +12,11 @@
 #include "pico/mutex.h"
 
 // Project headers
+#include <rookie_pico/Motors.hpp>
 #include <rookie_pico/Encoders.hpp>
 #include <rookie_pico/Flag.hpp>
 
-class ClosedLoopController 
+class ClosedLoopController
 {
 public:
 
@@ -26,7 +27,7 @@ public:
         Flag* flag);
 
     // bool init();
-    
+
     /**
      * \brief Set the desired velocity (in rads/sec) of our motors.
      * 
@@ -35,9 +36,7 @@ public:
      * \param[in] motor_1_vel desired velocity (rads/sec) of motor 1
      * \param[in] motor_2_vel desired velocity (rads/sec) of motor 2
      */
-    void setVelocities(
-        float motor_1_vel, 
-        float motor_2_vel);
+    void setVelocities(float motor_1_vel, float motor_2_vel);
 
     std::tuple<float, float> getDesiredVelocities();
 
@@ -47,9 +46,13 @@ public:
 
     bool onCycle();
 
-    bool handleCommand(const std::string command);
+    bool handleCommand(const std::string& command);
 
-    std::string getStatus() { return this->status; }
+    std::string
+    getStatus()
+    {
+        return this->status;
+    }
 
 protected:
 private:
@@ -58,7 +61,8 @@ private:
 
     absolute_time_t last_cmd_time = nil_time;
 
-    typedef struct Motor {
+    typedef struct Motor
+    {
         mutex_t mtx;
         float desired_velocity = 0.0;
         float current_velocity = 0.0;

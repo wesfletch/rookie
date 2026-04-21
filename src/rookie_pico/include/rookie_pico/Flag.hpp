@@ -17,15 +17,13 @@ class Flag
 {
 public:
 
-    enum class STATE : uint8_t {
+    enum class STATE : uint8_t
+    {
         OK = 0,
         STOP = 1
     };
 
-    Flag()
-    {
-        mutex_init(&this->mtx);
-    }
+    Flag() { mutex_init(&this->mtx); }
 
     /**
      * @brief bool() operator, when Flag is OK it's truthy
@@ -33,12 +31,14 @@ public:
      * @return true Flag::STATE::OK
      * @return false not Flag::STATE::OK
      */
-    explicit operator bool() const
+    explicit
+    operator bool() const
     {
         return (this->state == Flag::STATE::OK);
     }
 
-    Flag::STATE getState() 
+    Flag::STATE
+    getState()
     {
         Flag::STATE returned;
         mutex_enter_blocking(&this->mtx);
@@ -48,7 +48,6 @@ public:
         return returned;
     }
 
-
 protected:
 private:
 
@@ -57,7 +56,8 @@ private:
      * can change the STATE of the Flag.
      */
     friend System;
-    void _setState(Flag::STATE new_state)
+    void
+    _setState(Flag::STATE new_state)
     {
         mutex_enter_blocking(&this->mtx);
         this->state = new_state;
@@ -71,6 +71,5 @@ private:
     Flag::STATE state = Flag::STATE::STOP;
 
 }; // class Flag
-
 
 #endif // FLAG_HPP

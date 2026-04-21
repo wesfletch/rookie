@@ -9,16 +9,16 @@
 
 #include <pico_interface/PicoInterface.hpp>
 
-
 static const uint32_t WATCHDOG_PERIOD_MS = 100;
 static const uint32_t HEARTBEAT_TIMEOUT_PERIOD_MS = 500;
 
-enum class SYSTEM_STATE : uint8_t 
+enum class SYSTEM_STATE : uint8_t
 {
     // INIT = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::INIT), // TODO
     STANDBY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::STANDBY),
     ESTOP = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ESTOP),
-    ERROR = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::ERROR), // Could this maybe be "FAULT" instead?
+    ERROR = static_cast<uint8_t>(
+        pico_interface::Msg_SystemState::STATE::ERROR), // Could this maybe be "FAULT" instead?
     READY = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::READY),
     TEST = static_cast<uint8_t>(pico_interface::Msg_SystemState::STATE::TEST),
 };
@@ -27,10 +27,7 @@ class System
 {
 public:
 
-    System()
-    {
-        critical_section_init(&this->critical_section);
-    };
+    System() { critical_section_init(&this->critical_section); };
 
     // TODO: this doesn't work since we're trying to set flag with no guarantee that
     // any flags are registered.
@@ -46,26 +43,28 @@ public:
         critical_section_deinit(&this->critical_section);
     };
 
-    void start()
+    void
+    start()
     {
         watchdog_enable(WATCHDOG_PERIOD_MS, true);
     };
 
-    void onCycle()
+    void
+    onCycle()
     {
         if (this->state == SYSTEM_STATE::TEST)
         {
             // disable the watchdog
             hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
-        } 
-        else 
+        }
+        else
         {
             watchdog_update();
         }
 
         // TODO: check the last time that we saw a heartbeat message...
-        absolute_time_t timeout = delayed_by_ms(
-            this->last_heartbeat_time, HEARTBEAT_TIMEOUT_PERIOD_MS);
+        absolute_time_t timeout =
+            delayed_by_ms(this->last_heartbeat_time, HEARTBEAT_TIMEOUT_PERIOD_MS);
         if (absolute_time_diff_us(timeout, get_absolute_time()) < 0)
         {
             // We've gone too long without a heartbeat...
@@ -76,7 +75,8 @@ public:
         }
     };
 
-    SYSTEM_STATE getState()
+    SYSTEM_STATE
+    getState()
     {
         SYSTEM_STATE returned;
 
@@ -87,9 +87,11 @@ public:
         return returned;
     };
 
-    bool setState(SYSTEM_STATE new_state)
+    bool
+    setState(SYSTEM_STATE new_state)
     {
-        switch (this->state) {
+        switch (this->state)
+        {
             case SYSTEM_STATE::STANDBY:
                 return this->_stateStandby(new_state);
             case SYSTEM_STATE::ESTOP:
@@ -103,16 +105,18 @@ public:
             default:
                 return false;
         };
-        
+
         return true;
     };
 
-    bool handleCommand(const std::string command)
+    bool
+    handleCommand(const std::string command)
     {
         pico_interface::Msg_SystemState state_cmd;
-        pico_interface::message_error_t result = pico_interface::unpack_SystemState(
-            command, state_cmd);
-        if (result != pico_interface::E_MSG_SUCCESS) {
+        pico_interface::message_error_t result =
+            pico_interface::unpack_SystemState(command, state_cmd);
+        if (result != pico_interface::E_MSG_SUCCESS)
+        {
             this->status = pico_interface::MESSAGE_GET_ERROR(result);
             return false;
         }
@@ -121,25 +125,25 @@ public:
         {
             this->status = "OK";
             return true;
-        } 
-        else 
+        }
+        else
         {
             return false;
         }
     };
 
-    bool handleHeartbeat(const std::string heartbeat)
+    bool
+    handleHeartbeat(const std::string heartbeat)
     {
         pico_interface::Msg_Heartbeat hbt;
-        pico_interface::message_error_t result = pico_interface::unpack_Heartbeat(
-            heartbeat, hbt);
-        if (result != pico_interface::E_MSG_SUCCESS) 
+        pico_interface::message_error_t result = pico_interface::unpack_Heartbeat(heartbeat, hbt);
+        if (result != pico_interface::E_MSG_SUCCESS)
         {
             this->status = pico_interface::MESSAGE_GET_ERROR(result);
             return false;
         }
 
-        if (this->last_heartbeat_seq >= hbt.seq) 
+        if (this->last_heartbeat_seq >= hbt.seq)
         {
             // Sender either dropped out or reset since the last time we checked...
             // We'll return to STANDBY.
@@ -152,7 +156,8 @@ public:
         return true;
     };
 
-    void report()
+    void
+    report()
     {
         pico_interface::Msg_SystemState state;
         state.state = static_cast<pico_interface::Msg_SystemState::STATE>(this->getState());
@@ -161,7 +166,8 @@ public:
         std::string out;
         pico_interface::message_error_t result = pico_interface::pack_SystemState(
             state, pico_interface::MSG_ID_SYSTEM_STATE_STATUS, out);
-        if (result != pico_interface::E_MSG_SUCCESS) {
+        if (result != pico_interface::E_MSG_SUCCESS)
+        {
             out = pico_interface::MESSAGE_GET_ERROR(result);
         }
 
@@ -170,17 +176,18 @@ public:
 
     // Flag* getFlag() { return &this->FLAG; };
 
-    void registerFlag(Flag* flag, Flag::STATE flag_state = Flag::STATE::STOP)
+    void
+    registerFlag(Flag* flag, Flag::STATE flag_state = Flag::STATE::STOP)
     {
         flag->_setState(flag_state);
         this->flags.push_back(flag);
     };
 
 protected:
-
 private: // FUNCTIONS
 
-    bool _stateStandby(SYSTEM_STATE new_state)
+    bool
+    _stateStandby(SYSTEM_STATE new_state)
     {
         switch (new_state)
         {
@@ -213,7 +220,8 @@ private: // FUNCTIONS
         return true;
     };
 
-    bool _stateEstop(SYSTEM_STATE new_state)
+    bool
+    _stateEstop(SYSTEM_STATE new_state)
     {
         switch (new_state)
         {
@@ -230,7 +238,7 @@ private: // FUNCTIONS
                 this->_setState(new_state, Flag::STATE::STOP);
                 break;
             case SYSTEM_STATE::READY:
-                // No. Need to go back through the STANDBY phase to 
+                // No. Need to go back through the STANDBY phase to
                 // get to READY from ESTOP.
                 this->status = "Transition not allowed <ESTOP->READY>. Must go to STANDBY first.";
                 return false;
@@ -244,7 +252,8 @@ private: // FUNCTIONS
         return true;
     };
 
-    bool _stateError(SYSTEM_STATE new_state)
+    bool
+    _stateError(SYSTEM_STATE new_state)
     {
         switch (new_state)
         {
@@ -262,7 +271,7 @@ private: // FUNCTIONS
                 // NO-OP
                 break;
             case SYSTEM_STATE::READY:
-                // No. Need to go back through the STANDBY phase to 
+                // No. Need to go back through the STANDBY phase to
                 // get to READY from ERROR.
                 this->status = "Transition not allowed <ERROR->READY>. Must go to STANDBY first.";
                 return false;
@@ -276,7 +285,8 @@ private: // FUNCTIONS
         return true;
     };
 
-    bool _stateReady(SYSTEM_STATE new_state)
+    bool
+    _stateReady(SYSTEM_STATE new_state)
     {
         switch (new_state)
         {
@@ -303,7 +313,8 @@ private: // FUNCTIONS
         return true;
     };
 
-    bool _stateTest(SYSTEM_STATE new_state)
+    bool
+    _stateTest(SYSTEM_STATE new_state)
     {
         switch (new_state)
         {
@@ -317,7 +328,8 @@ private: // FUNCTIONS
             case SYSTEM_STATE::ERROR:
                 [[fallthrough]];
             case SYSTEM_STATE::READY:
-                this->status = "Transition from TEST not allowed. Only valid transition from TEST is to STANDBY.";
+                this->status = "Transition from TEST not allowed. Only valid transition from TEST "
+                               "is to STANDBY.";
                 return false;
             case SYSTEM_STATE::TEST:
                 // no-op
@@ -329,9 +341,13 @@ private: // FUNCTIONS
         return true;
     };
 
-    void _setState(SYSTEM_STATE new_state, Flag::STATE flag_state)
+    void
+    _setState(SYSTEM_STATE new_state, Flag::STATE flag_state)
     {
-        if (new_state == this->state) { return; }
+        if (new_state == this->state)
+        {
+            return;
+        }
 
         critical_section_enter_blocking(&this->critical_section);
         this->state = new_state;
@@ -341,7 +357,8 @@ private: // FUNCTIONS
         this->_setFlags(flag_state);
     };
 
-    void _setFlags(Flag::STATE flag_state)
+    void
+    _setFlags(Flag::STATE flag_state)
     {
         for (auto const& flag : this->flags)
         {
@@ -362,11 +379,9 @@ private: // MEMBERS
     std::vector<Flag*> flags;
     // Flag FLAG;
 
-
     uint32_t last_heartbeat_seq = 0;
     absolute_time_t last_heartbeat_time = nil_time;
 
 }; // class System
-
 
 #endif // SYSTEM_HPP

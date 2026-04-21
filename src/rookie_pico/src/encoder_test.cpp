@@ -8,8 +8,8 @@
 
 #include <rookie_pico/Encoders.hpp>
 
-
-int main()
+int
+main()
 {
     stdio_init_all();
 
@@ -19,7 +19,7 @@ int main()
     std::shared_ptr<Encoder> rightEncoder = std::make_shared<Encoder>(
         Encoder(RIGHT_CHANNEL_A_GPIO, RIGHT_CHANNEL_B_GPIO, false /* invert*/));
 
-    EncoderList encoders = {leftEncoder, rightEncoder};
+    EncoderList encoders = { leftEncoder, rightEncoder };
     init_encoders(&encoders);
 
     while (1)
@@ -33,8 +33,5 @@ int main()
         sleep_ms(20);
     }
 
-
     return EXIT_SUCCESS;
-
-
 }

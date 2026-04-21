@@ -18,19 +18,24 @@
  * @param IRQ_FUN   the IRQ handler (function to call when something is received on UART)
  * @return status 
  */
-int 
+int
 configure_UART(
-    uart_inst_t *UART_ID, 
-    uint BAUDRATE, 
-    uint TX_PIN, uint RX_PIN, 
-    uint DATA_BITS, uint STOP_BITS, uart_parity_t PARITY, 
-    irq_handler_t IRQ_FUN, bool useIRQ)
+    uart_inst_t* UART_ID,
+    uint BAUDRATE,
+    uint TX_PIN,
+    uint RX_PIN,
+    uint DATA_BITS,
+    uint STOP_BITS,
+    uart_parity_t PARITY,
+    irq_handler_t IRQ_FUN,
+    bool useIRQ)
 {
     // int status;
 
     // Set up our UART with provided UART_ID and BAUDRATE
     uint actual_baudrate = uart_init(UART_ID, BAUDRATE);
-    if (actual_baudrate != BAUDRATE) {
+    if (actual_baudrate != BAUDRATE)
+    {
         ;
     }
     // if (!status) { return EXIT_FAILURE; }
@@ -59,7 +64,7 @@ configure_UART(
         // And set up and enable the interrupt handlers
         irq_set_exclusive_handler(UART_IRQ, IRQ_FUN);
         irq_set_enabled(UART_IRQ, true);
-        
+
         // Now enable the UART to send interrupts - RX only
         uart_set_irq_enables(UART_ID, true, false);
     }
@@ -72,8 +77,7 @@ configure_UART(
  * 
  */
 bool
-status_led_timer_callback(
-    [[maybe_unused]] struct repeating_timer* t)
+status_led_timer_callback([[maybe_unused]] struct repeating_timer* t)
 {
     // toggle status LED gpio
     gpio_xor_mask(status_led_mask);
@@ -86,9 +90,8 @@ status_led_timer_callback(
  * @param timer 
  * @return config_error_t 
  */
-config_error_t 
-configure_status_LED(
-    struct repeating_timer *timer)
+config_error_t
+configure_status_LED(struct repeating_timer* timer)
 {
     // const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(STATUS_LED_PIN);
