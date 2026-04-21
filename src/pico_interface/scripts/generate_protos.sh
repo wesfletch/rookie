@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2120
+
 set -o errexit
 set -o pipefail
 set -o nounset
@@ -80,10 +82,10 @@ function generate_python()
         --proto_path="${CPP_NANOPB_DIR}/generator/proto" \
         --python_out="${output_dir}" \
         --pyi_out="${output_dir}" \
-        ${PROTO_FILES}
+        "${PROTO_FILES}"
 
     if command -v uv &>/dev/null; then
-        pushd ${PYTHON_PKG_DIR} >>/dev/null || exit 1
+        pushd "${PYTHON_PKG_DIR}" >>/dev/null || exit 1
         echo "* Building the python package at ${PYTHON_PKG_DIR}"
         uv build
         popd >>/dev/null || exit 1
