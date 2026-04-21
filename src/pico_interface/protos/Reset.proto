@@ -1,6 +1,9 @@
 syntax = "proto3";
 
+import "nanopb.proto";
+
 // A command to soft reset the MCU.
 message Reset
 {
+    option (nanopb_msgopt).msgid = 2;
 }

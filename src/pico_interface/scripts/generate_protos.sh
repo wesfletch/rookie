@@ -41,6 +41,7 @@ function generate_cpp_nanopb()
 
     echo "* Generating headers for .proto files"
     for proto_file in ./*.proto; do
+        abs_proto="${PROTO_DIR}/${proto_file#./}"
         echo ">>> ${proto_file}:"
         "${_PYTHON}" \
             "${CPP_NANOPB_DIR}/generator/nanopb_generator.py" \
@@ -51,7 +52,10 @@ function generate_cpp_nanopb()
             --source-extension ".cpp" \
             --library-include-format '#include <pico_interface/%s>' \
             --generated-include-format '#include <pico_interface/protos/%s>' \
-            "${proto_file}" 
+            -I "${PROTO_DIR}" \
+            -I "${CPP_NANOPB_DIR}/generator/proto" \
+            -I /usr/include \
+            "${abs_proto}"
     done
 
     popd >>/dev/null || exit 1
@@ -73,6 +77,7 @@ function generate_python()
     # shellcheck disable=SC2086
     "${_PYTHON}" -m grpc_tools.protoc \
         --proto_path="${PROTO_DIR}" \
+        --proto_path="${CPP_NANOPB_DIR}/generator/proto" \
         --python_out="${output_dir}" \
         --pyi_out="${output_dir}" \
         ${PROTO_FILES}

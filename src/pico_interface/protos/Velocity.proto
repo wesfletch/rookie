@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "nanopb.proto";
+
 // The linear/angular velocity of the base.
 // Complies with ROS REP 103.
 // Ya know, like a geometry_msgs/Twist message, but less universal.
@@ -15,6 +17,7 @@ message Velocity
 // Set the velocities of the base.
 message VelocityCommand
 {
+    option (nanopb_msgopt).msgid = 3;
     // Sequence number, will be mirrored in the response.
     int32 seq = 1;
     // Desired state.
@@ -24,6 +27,7 @@ message VelocityCommand
 // Response to VelocityCommand.
 message VelocityResponse
 {
+    option (nanopb_msgopt).msgid = 4;
     // Sequence number mirrored from the command.
     int32 seq = 1;
     // Current motor speeds and settings.

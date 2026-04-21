@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "nanopb.proto";
+
 
 enum Direction
 {
@@ -25,6 +27,7 @@ message Motors
 // Directly set the speed of motors.
 message MotorsCommand
 {
+    option (nanopb_msgopt).msgid = 5;
     // Sequence number, will be mirrored in the response.
     int32 seq = 1;
     // Desired state.
@@ -34,6 +37,7 @@ message MotorsCommand
 // Response to MotorsCommand.
 message MotorsResponse
 {
+    option (nanopb_msgopt).msgid = 6;
     // Sequence number mirrored from the command.
     int32 seq = 1;
     // Current motor speeds and settings.
@@ -48,6 +52,7 @@ message MotorsResponse
 // Periodic, unsolicited report of current motor values.
 message MotorsReport
 {
+    option (nanopb_msgopt).msgid = 7;
     // Current state of the MCU.
     Motors current_motors = 1;
     // Status message.
