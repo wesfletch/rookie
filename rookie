@@ -7,7 +7,7 @@ set -o nounset
 
 SCRIPT_DIR="$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 
-COMMAND=""
+COMMAND="run_container"
 DUMP=0
 NO_CACHE=0
 ROS_DISTRO="jazzy"
@@ -79,13 +79,16 @@ function run_container()
 {
     dont_run_in_container; handle_error $?
 
+    local workspace_dir="/home/${USERNAME}/workspace"
+
     args=(
         --name "${CONTAINER_NAME:?}"
         -it
         --rm
         --privileged
         --user "${UID}"
-        --volume "${PWD}/src:/home/${USERNAME}/workspace"
+        --volume "${PWD}/src:${workspace_dir}"
+        --volume "${PWD}/.vscode:${workspace_dir}/.vscode"
         --volume /dev/bus/usb:/dev/bus/usb
         --volume "${HOME}/.ssh:${HOME}/.ssh"
         --volume /dev/serial/by-id/:/dev/serial/by-id/

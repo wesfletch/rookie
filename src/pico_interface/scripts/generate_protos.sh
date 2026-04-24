@@ -9,12 +9,12 @@ set -o nounset
 
 SCRIPT_DIR="$(dirname "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 
-PROTO_DIR="${SCRIPT_DIR}/../protos"
+PROTO_DIR="$(realpath "${SCRIPT_DIR}/../protos")"
 
-CPP_OUTPUT_DIR="${SCRIPT_DIR}/../include/pico_interface"
-CPP_NANOPB_DIR="${SCRIPT_DIR}/../nanopb"
+CPP_OUTPUT_DIR="$(realpath "${SCRIPT_DIR}/../include/pico_interface")"
+CPP_NANOPB_DIR="$(realpath "${SCRIPT_DIR}/../nanopb")"
 
-PYTHON_PKG_DIR="${SCRIPT_DIR}/../py/pico-interface"
+PYTHON_PKG_DIR="$(realpath "${SCRIPT_DIR}/../py/pico-interface")"
 PYTHON_OUTPUT_DIR="${PYTHON_PKG_DIR}/src/pico_interface"
 
 _PYTHON="$(which python3)"
@@ -73,16 +73,15 @@ function generate_python()
     mkdir -p "${output_dir}"
     rm -f "${output_dir}"/*_pb2.py*
 
-    PROTO_FILES="$(find "${PROTO_DIR}" -name "*.proto")"
+    mapfile -t PROTO_FILES < <(find "${PROTO_DIR}" -name "*.proto")
     echo "Found .proto files: ${PROTO_FILES[*]}"
 
-    # shellcheck disable=SC2086
     "${_PYTHON}" -m grpc_tools.protoc \
         --proto_path="${PROTO_DIR}" \
         --proto_path="${CPP_NANOPB_DIR}/generator/proto" \
         --python_out="${output_dir}" \
         --pyi_out="${output_dir}" \
-        "${PROTO_FILES}"
+        "${PROTO_FILES[@]}"
 
     if command -v uv &>/dev/null; then
         pushd "${PYTHON_PKG_DIR}" >>/dev/null || exit 1
