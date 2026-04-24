@@ -1,0 +1,14 @@
+{
+    "editor.formatOnSave": true,
+    "files.associations": {
+        "*.hpp": "cpp",
+        "*.cpp": "cpp"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "clang-format.executable": "/usr/bin/clang-format",
+    "clangd.arguments": [
+        "--query-driver=/usr/bin/g++,/usr/bin/gcc"
+    ]
+}
