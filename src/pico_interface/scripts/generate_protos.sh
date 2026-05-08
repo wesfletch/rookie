@@ -83,6 +83,8 @@ function generate_python()
         --pyi_out="${output_dir}" \
         "${PROTO_FILES[@]}"
 
+    cp "${CPP_NANOPB_DIR}/generator/proto/nanopb_pb2.py" "${PYTHON_OUTPUT_DIR}/"
+
     if command -v uv &>/dev/null; then
         pushd "${PYTHON_PKG_DIR}" >>/dev/null || exit 1
         echo "* Building the python package at ${PYTHON_PKG_DIR}"

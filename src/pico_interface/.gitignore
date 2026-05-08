@@ -2,3 +2,4 @@ build/*
 nanopb/
 .venv/
 include/*
+!include/PicoInterface.hpp

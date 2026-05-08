@@ -8,10 +8,12 @@ import "nanopb.proto";
 message Velocity
 {
     // Linear velocity; + is forward, - is backwards
-    float linear_vel = 1;
+    // In ROS-land, this would be twist.linear.x
+    optional float linear_vel = 1;
     // Angular velocity (rotation about center);
     // + is counter-clockwise, - is clockwise.
-    float angular_vel = 2;
+    // In ROS-land, this would be twist.angular.z
+    optional float angular_vel = 2;
 }
 
 // Set the velocities of the base.
@@ -19,7 +21,7 @@ message VelocityCommand
 {
     option (nanopb_msgopt).msgid = 3;
     // Sequence number, will be mirrored in the response.
-    int32 seq = 1;
+    uint32 seq = 1;
     // Desired state.
     Velocity commanded_velocity = 2;
 }
@@ -29,14 +31,20 @@ message VelocityResponse
 {
     option (nanopb_msgopt).msgid = 4;
     // Sequence number mirrored from the command.
-    int32 seq = 1;
+    uint32 seq = 1;
     // Current motor speeds and settings.
     // Doesn't necessarily match the commanded state -- check the `success` field.     
     Velocity current_velocity = 2;
     // Whether the VelocityCommand succeeded or not.
     bool success = 3;
     // Status message.
-    optional string status = 4;
+    optional string status = 4 [(nanopb).max_size = 64];
+}
+
+message VelocityReport
+{
+    option (nanopb_msgopt).msgid = 11;
+    Velocity velocity = 1;
 }
 
 // Periodic, unsolicited report of current motor values.

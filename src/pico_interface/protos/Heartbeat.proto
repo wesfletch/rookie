@@ -6,5 +6,5 @@ import "nanopb.proto";
 message Heartbeat
 {
     option (nanopb_msgopt).msgid = 1;
-    int32 seq = 1;
+    uint32 seq = 1;
 }

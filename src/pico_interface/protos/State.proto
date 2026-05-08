@@ -17,7 +17,7 @@ message StateCommand
 {
     option (nanopb_msgopt).msgid = 8;
     // Sequence number, will be mirrored in the response.
-    int32 seq = 1;
+    uint32 seq = 1;
     // Desired state.
     State command_state = 2;
 }
@@ -27,14 +27,14 @@ message StateResponse
 {
     option (nanopb_msgopt).msgid = 9;
     // Sequence number mirrored from the command.
-    int32 seq = 1;
+    uint32 seq = 1;
     // Current state of the MCU.
     // Doesn't necessarily match the commanded state -- check the `success` field.     
     State current_state = 2;
     // Whether the StateCommand succeeded or not.
     bool success = 3;
     // Status message.
-    optional string status = 4;
+    optional string status = 4 [(nanopb).max_size = 64];
 }
 
 // un-requested/unsolicited state info.
@@ -44,5 +44,5 @@ message StateReport
     // Current state of the MCU.
     State current_state = 1;
     // Status message.
-    optional string status = 2;
+    optional string status = 2 [(nanopb).max_size = 64];
 }
