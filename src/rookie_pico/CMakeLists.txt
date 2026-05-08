@@ -5,9 +5,9 @@ include(FetchContent)
 FetchContent_Declare(
     pico_sdk
     GIT_REPOSITORY https://github.com/raspberrypi/pico-sdk
-    GIT_TAG 1.5.1 # TODO: update this to 2.0
+    GIT_TAG 2.2.0
     SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/external/pico-sdk"
-    GIT_SUBMODULES_RECURSE FALSE
+    GIT_SUBMODULES "lib/tinyusb"
 )
 FetchContent_GetProperties(pico_sdk)
 if(NOT pico_sdk_POPULATED)

@@ -15,7 +15,7 @@
             "displayName": "RPi Pico cross-compile",
             "generator": "Ninja",
             "binaryDir": "build/pico",
-            "toolchainFile": "rookie_pico/external/pico-sdk/cmake/preload/toolchains/pico_arm_gcc.cmake",
+            "toolchainFile": "${sourceDir}/rookie_pico/external/pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m0plus_gcc.cmake",
             "cacheVariables": {
                 "BUILD_FIRMWARE": "ON",
                 "PICO_SDK_PATH": "${sourceDir}/rookie_pico/external/pico-sdk"
@@ -37,16 +37,28 @@
             "name": "dev-host",
             "description": "Main dev. workflow",
             "steps": [
-                { "type": "configure", "name": "host" },
-                { "type": "build", "name": "host" }
+                {
+                    "type": "configure",
+                    "name": "host"
+                },
+                {
+                    "type": "build",
+                    "name": "host"
+                }
             ]
         },
         {
             "name": "dev-pico",
             "description": "cross-compile workflow",
             "steps": [
-                { "type": "configure", "name": "pico" },
-                { "type": "build", "name": "pico"}
+                {
+                    "type": "configure",
+                    "name": "pico"
+                },
+                {
+                    "type": "build",
+                    "name": "pico"
+                }
             ]
         }
     ]
