@@ -9,6 +9,6 @@
     },
     "clang-format.executable": "/usr/bin/clang-format",
     "clangd.arguments": [
-        "--query-driver=/usr/bin/g++,/usr/bin/gcc"
+        "--query-driver=/usr/bin/*"
     ]
 }
