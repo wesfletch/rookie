@@ -2,21 +2,25 @@
 #define CLOSED_LOOP_CONTROLLER_HPP
 
 // CPP headers
-#include <algorithm>
 #include <memory>
 #include <stdlib.h>
 
 // Pico headers
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "pico/mutex.h"
+#include <pico/mutex.h>
+
+#include <pico_interface/protos/Velocity.pb.hpp>
 
 // Project headers
-#include <rookie_pico/Motors.hpp>
 #include <rookie_pico/Encoders.hpp>
 #include <rookie_pico/Flag.hpp>
+#include <rookie_pico/MessageHandler.hpp>
+#include <rookie_pico/Motors.hpp>
+#include <rookie_pico/OutboundQueue.hpp>
 
-class ClosedLoopController
+void twist_to_wheel_velocities(const Velocity& vel, float& left_vel, float& right_vel);
+void wheel_velocities_to_twist(Velocity& vel, const float& left_vel, const float& right_vel);
+
+class ClosedLoopController : public IMessageHandler
 {
 public:
 
@@ -24,7 +28,8 @@ public:
         std::shared_ptr<MDD10A> controller,
         std::shared_ptr<Encoder> encoder1,
         std::shared_ptr<Encoder> encoder2,
-        Flag* flag);
+        Flag* flag,
+        OutboundQueue* outbound);
 
     // bool init();
 
@@ -46,7 +51,10 @@ public:
 
     bool onCycle();
 
-    bool handleCommand(const std::string& command);
+    IMessageHandler::Result
+    handle(uint32_t msg_id, const uint8_t* payload, std::size_t len) override;
+
+    bool handleVelocityCommand(const VelocityCommand& cmd);
 
     std::string
     getStatus()
@@ -74,6 +82,8 @@ private:
     std::shared_ptr<MDD10A> controller;
     std::shared_ptr<Encoder> encoder1;
     std::shared_ptr<Encoder> encoder2;
+
+    OutboundQueue* _outbound;
 
     // bool FLAG = false;
     Flag* FLAG;

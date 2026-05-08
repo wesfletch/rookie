@@ -3,7 +3,6 @@
 
 // CPP headers
 #include <string>
-#include <map>
 #include <math.h>
 #include <vector>
 #include <memory>
@@ -195,7 +194,7 @@ public:
     absolute_time_t lastUpdateStamp = nil_time;
 
 protected:
-private: // FUNCTIONS
+private:
 
     void
     _setAngularVel(float new_vel)
@@ -206,8 +205,6 @@ private: // FUNCTIONS
 
         this->lastUpdateStamp = get_absolute_time();
     };
-
-private: // MEMBERS
 
     /* Critical section to protect read/write to data fields below. */
     critical_section_t criticalSection;

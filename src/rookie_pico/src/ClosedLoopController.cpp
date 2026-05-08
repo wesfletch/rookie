@@ -1,21 +1,42 @@
-
 #include <string>
 #include <utility>
 
-#include <rookie_pico/Motors.hpp>
 #include <rookie_pico/ClosedLoopController.hpp>
+#include <rookie_pico/Motors.hpp>
+#include <rookie_pico/RobotConfig.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
+#include <pico_interface/protos/Velocity.pb.hpp>
+
+void
+twist_to_wheel_velocities(const Velocity& vel, float& left_vel, float& right_vel)
+{
+    left_vel = (vel.linear_vel - vel.angular_vel * (robot::wheels::WHEELBASE_M / 2)) /
+               robot::wheels::WHEEL_RADIUS_M;
+    right_vel = (vel.linear_vel + vel.angular_vel * (robot::wheels::WHEELBASE_M / 2)) /
+                robot::wheels::WHEEL_RADIUS_M;
+}
+
+void
+wheel_velocities_to_twist(Velocity& vel, const float& left_vel, const float& right_vel)
+{
+    vel.linear_vel = (right_vel + left_vel) / 2;
+    vel.has_linear_vel = true;
+    vel.angular_vel = (right_vel - left_vel) / robot::wheels::WHEELBASE_M;
+    vel.has_angular_vel = true;
+}
 
 ClosedLoopController::ClosedLoopController(
     std::shared_ptr<MDD10A> controller,
     std::shared_ptr<Encoder> encoder1,
     std::shared_ptr<Encoder> encoder2,
-    Flag* flag)
+    Flag* flag,
+    OutboundQueue* outbound)
 {
     this->controller = std::move(controller);
     this->encoder1 = std::move(encoder1);
     this->encoder2 = std::move(encoder2);
+    this->_outbound = outbound;
 
     // initialize our mutexes
     mutex_init(&this->motor_1.mtx);
@@ -58,12 +79,12 @@ ClosedLoopController::onCycle()
     bool motor_2_dir = (motor_2_speed_rads >= 0);
 
     // convert radians/sec to RPM and dump the signs
-    float motor_1_rpm = std::abs((motor_1_speed_rads * 60) / (2 * M_PI));
-    float motor_2_rpm = std::abs((motor_2_speed_rads * 60) / (2 * M_PI));
+    double motor_1_rpm = std::abs((motor_1_speed_rads * 60.0f) / (2 * M_PI));
+    double motor_2_rpm = std::abs((motor_2_speed_rads * 60.0f) / (2 * M_PI));
 
     // get the PWM value that would be necessary to reach this speed
-    int motor_1_pwm = (motor_1_rpm / MOTOR_MAX_RPM) * 100;
-    int motor_2_pwm = (motor_2_rpm / MOTOR_MAX_RPM) * 100;
+    int motor_1_pwm = static_cast<int>((motor_1_rpm / robot::motor::MOTOR_MAX_RPM) * 100);
+    int motor_2_pwm = static_cast<int>((motor_2_rpm / robot::motor::MOTOR_MAX_RPM) * 100);
 
     // clamp to our valid pwm range
     motor_1_pwm = std::clamp(motor_1_pwm, 0, 100);
@@ -74,28 +95,65 @@ ClosedLoopController::onCycle()
     return true;
 }
 
-bool
-ClosedLoopController::handleCommand(const std::string& command)
+IMessageHandler::Result
+ClosedLoopController::handle(uint32_t msg_id, const uint8_t* payload, std::size_t len)
 {
     // If our flag is not OK, don't do anything with this.
     if (!(*this->FLAG))
     {
         this->status = "Ignoring command because: Flag disabled.\n";
-        return false;
+        return IMessageHandler::Result::ERROR;
     }
 
-    // Unpack the Velocity command.
-    pico_interface::Msg_Velocity vel;
-    pico_interface::message_error_t result = pico_interface::unpack_Velocity(command, vel);
-    if (result != pico_interface::E_MSG_SUCCESS)
+    pico_interface::message_error_t err;
+    switch (msg_id)
     {
-        printf("$ERR: %s\n", MESSAGE_GET_ERROR(result).c_str());
-        return false;
+        case nanopb::MessageDescriptor<VelocityCommand>::msgid():
+            VelocityCommand cmd;
+            err = pico_interface::decode_payload(cmd, payload, len);
+            if (err != pico_interface::E_MSG_SUCCESS)
+            {
+                return IMessageHandler::Result::ERROR;
+            }
+
+            if (!this->handleVelocityCommand(cmd))
+            {
+                return IMessageHandler::Result::ERROR;
+            };
+            break;
+        default:
+            return IMessageHandler::Result::NOT_MINE;
     }
 
-    this->setVelocities(vel.motor_1_velocity, vel.motor_2_velocity);
+    return IMessageHandler::Result::OK;
+}
+
+bool
+ClosedLoopController::handleVelocityCommand(const VelocityCommand& cmd)
+{
+    // Decompose our twist message into left/right wheel velocities
+    float left_vel = 0.0f;
+    float right_vel = 0.0f;
+    twist_to_wheel_velocities(cmd.commanded_velocity, left_vel, right_vel);
+
+    this->setVelocities(left_vel, right_vel);
     this->last_cmd_time = get_absolute_time();
 
+    // Enqueue a response
+    VelocityResponse resp = VelocityResponse_init_zero;
+
+    Velocity vel = Velocity_init_zero;
+    const auto [vel_left, vel_right] = this->getCurrentVelocities();
+    wheel_velocities_to_twist(vel, vel_left, vel_right);
+    resp.has_current_velocity = true;
+    resp.current_velocity = vel;
+
+    resp.seq = cmd.seq;
+    resp.success = true;
+    resp.has_status = true;
+    strncpy(resp.status, this->status.c_str(), sizeof(resp.status) - 1);
+
+    this->_outbound->try_enqueue(resp);
     return true;
 }
 
@@ -142,19 +200,16 @@ ClosedLoopController::getCurrentVelocities()
 void
 ClosedLoopController::report()
 {
-    // Report the current velocity of the wheels as reported by our encoders.
-    pico_interface::Msg_Velocity vel;
-    vel.motor_1_velocity = this->encoder1->getAngularVel();
-    vel.motor_2_velocity = this->encoder2->getAngularVel();
+    VelocityReport report = VelocityReport_init_zero;
+    Velocity vel = Velocity_init_zero;
 
-    std::string out;
-    pico_interface::message_error_t result =
-        pico_interface::pack_Velocity(vel, pico_interface::MSG_ID_VELOCITY_STATUS, out);
-    if (result != pico_interface::E_MSG_SUCCESS)
-    {
-        out = pico_interface::MESSAGE_GET_ERROR(result);
-    }
-    printf(out.c_str());
+    wheel_velocities_to_twist(
+        vel, this->encoder1->getAngularVel(), this->encoder2->getAngularVel());
+
+    report.velocity = vel;
+    report.has_velocity = true;
+
+    this->_outbound->try_enqueue(report);
 
     // Trigger our controller to report as well.
     this->controller->report();

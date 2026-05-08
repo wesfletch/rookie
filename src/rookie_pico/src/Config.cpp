@@ -1,7 +1,8 @@
-
 // CPP headers
 #include <stdlib.h>
-#include <stdio.h>
+
+#include <hardware/gpio.h>
+#include <pico/time.h>
 
 #include <rookie_pico/Config.hpp>
 
@@ -98,7 +99,7 @@ configure_status_LED(struct repeating_timer* timer)
     gpio_set_dir(STATUS_LED_PIN, GPIO_OUT);
 
     // configure the timer callback to toggle the LED
-    if (!add_repeating_timer_ms(500, status_led_timer_callback, NULL, timer))
+    if (!add_repeating_timer_ms(500, status_led_timer_callback, nullptr, timer))
     {
         return E_CONFIG_NO_ALARMS_AVAILABLE;
     }

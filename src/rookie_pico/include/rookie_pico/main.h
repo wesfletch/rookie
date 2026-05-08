@@ -2,19 +2,11 @@
 #define MAIN_HPP
 
 // general includes
-#include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
-// hardware includes
-#include "pico/multicore.h"
-#include "pico/util/queue.h"
-#include "hardware/uart.h"
-#include "hardware/irq.h"
-#include "hardware/i2c.h"
-#include "hardware/pwm.h"
-
 #include <pico_interface/PicoInterface.hpp>
+#include <rookie_pico/OutboundQueue.hpp>
 
 // TODO: where do I want these to go????
 typedef enum CMD_ERROR
@@ -36,7 +28,9 @@ static const cmd_error_desc cmd_error_descriptions[] = {
     { E_CMD_FAIL, "Command failed." },
 };
 
-pico_interface::Msg_Heartbeat heartbeat;
+volatile uint32_t heartbeat_seq = 0;
 struct repeating_timer heartbeat_timer;
+
+extern OutboundQueue outbound;
 
 #endif // MAIN_HPP

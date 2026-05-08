@@ -2,16 +2,16 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <cstring>
 
 // Pico headers
-#include "pico/stdlib.h"
 #include "hardware/pwm.h"
+
+#include <pico_interface/PicoInterface.hpp>
+#include <pico_interface/protos/Motors.pb.hpp>
 
 // Project headers
 #include <rookie_pico/Motors.hpp>
-#include <pico_interface/PicoInterface.hpp>
 
 pwm_error_t
 MDD10A::configure()
@@ -120,58 +120,17 @@ MDD10A::setMotor(MDD10A::MOTOR motor, bool dir, int speed)
     return E_PWM_SUCCESS;
 }
 
-/**
- * @brief Handle an incoming pico_interface::Motors command.
- * 
- * @param input 
- * @return true 
- * @return false 
- */
-bool
-MDD10A::handleMsg_Motors(const std::string input)
-{
-    pico_interface::Msg_Motors motors = {};
-    // attempt to unpack the message
-    pico_interface::message_error_t unpacked = pico_interface::unpack_Motors(input, motors);
-    if (unpacked != pico_interface::E_MSG_SUCCESS)
-    {
-        printf("$ERR: %s\n", MESSAGE_GET_ERROR(unpacked).c_str());
-        return false;
-    }
-
-    pwm_error_t status = this->setMotors(
-        (motors.motor_1_direction == pico_interface::Msg_Motors::DIRECTION::FORWARD) ? true : false,
-        motors.motor_1_pwm,
-        (motors.motor_2_direction == pico_interface::Msg_Motors::DIRECTION::FORWARD) ? true : false,
-        motors.motor_2_pwm);
-    if (status != E_PWM_SUCCESS)
-    {
-        printf("$ERR: Failed to set motor speeds.\n");
-        return false;
-    }
-
-    return true;
-}
-
 void
 MDD10A::report()
 {
-    std::string out;
+    MotorsReport report = MotorsReport_init_zero;
 
-    pico_interface::Msg_Motors commanded;
-    commanded.motor_1_direction =
-        static_cast<pico_interface::Msg_Motors::DIRECTION>(this->motor_1_dir_command);
-    commanded.motor_1_pwm = this->motor_1_pwm_command;
-    commanded.motor_2_direction =
-        static_cast<pico_interface::Msg_Motors::DIRECTION>(this->motor_2_dir_command);
-    commanded.motor_2_pwm = this->motor_2_pwm_command;
+    Motors motors = Motors_init_zero;
+    motors.motor_1_direction = static_cast<Direction>(this->motor_1_dir_command);
+    motors.motor_1_pwm = this->motor_1_pwm_command;
+    motors.motor_2_direction = static_cast<Direction>(this->motor_2_dir_command);
+    motors.motor_2_pwm = this->motor_2_pwm_command;
 
-    pico_interface::message_error_t result =
-        pico_interface::pack_Motors(commanded, pico_interface::MSG_ID_MOTORS_STATUS, out);
-    if (result != pico_interface::E_MSG_SUCCESS)
-    {
-        out = pico_interface::MESSAGE_GET_ERROR(result);
-    }
-
-    printf(out.c_str());
+    report.has_current_motors = true;
+    report.current_motors = motors;
 }

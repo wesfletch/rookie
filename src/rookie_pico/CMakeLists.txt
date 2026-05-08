@@ -51,6 +51,8 @@ add_library(${PROJECT_NAME}_lib
     src/Config.cpp
     src/Encoders.cpp
     src/Motors.cpp
+    src/OutboundQueue.cpp
+    src/System.cpp
 )
 target_include_directories(${PROJECT_NAME}_lib
     PUBLIC
@@ -100,17 +102,19 @@ target_link_libraries(encoder_test
     ${LIBS}
 )
 
-add_executable(command_test
-    ${HEADERS}
-    src/command_test.cpp
-)
-target_link_libraries(command_test
-    ${LIBS}
-)   
 
-# enable usb output, disable uart output
-pico_enable_stdio_usb(rookie 1)
-pico_enable_stdio_uart(rookie 0)
+option(OUTBOUND_USE_UART "Use UART for outbound transport instead of USB stdio" OFF)     
+if(OUTBOUND_USE_UART)
+    target_compile_definitions(rookie_pico_lib PUBLIC OUTBOUND_USE_UART)
+    pico_enable_stdio_usb(rookie 0)
+    pico_enable_stdio_uart(rookie 1)                 
+else()
+    # enable usb output, disable uart output
+    pico_enable_stdio_usb(rookie 1)
+    pico_enable_stdio_uart(rookie 0)
+endif()
+
+set_target_properties(rookie PROPERTIES SUFFIX ".elf")
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(rookie)

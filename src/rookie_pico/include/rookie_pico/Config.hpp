@@ -2,9 +2,10 @@
 #define CONFIG_HPP
 
 // hardware includes
-#include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "hardware/irq.h"
+
+#define IO_UART_ID uart0
 
 typedef enum CONFIG_ERROR
 {

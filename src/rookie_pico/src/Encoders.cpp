@@ -1,13 +1,11 @@
 // CPP headers
-#include <string>
-#include <vector>
+#include <map>
 #include <memory>
 
 // Pico headers
 #include <pico/stdlib.h>
 #include <pico/binary_info.h>
 #include <pico/critical_section.h>
-#include "hardware/i2c.h"
 #include <machine/endian.h>
 
 #include <rookie_pico/Encoders.hpp>
@@ -67,12 +65,12 @@ AMT102V_callback(uint gpio, [[maybe_unused]] uint32_t event_mask)
     {
         // CHANNEL A is high, get Channel B
         otherChannelState = gpio_get(quad->channelBPin);
-        if (otherChannelState == false)
+        if (!otherChannelState)
         {
             // If Channel A is going high, and channel B is low, A is leading
             delta = 1;
         }
-        else if (otherChannelState == true)
+        else if (otherChannelState)
         {
             // If channel A is going high, but B is already high, B is leading
             delta = -1;
@@ -86,12 +84,12 @@ AMT102V_callback(uint gpio, [[maybe_unused]] uint32_t event_mask)
     {
         // CHANNEL B is high, get channel A
         otherChannelState = gpio_get(quad->channelAPin);
-        if (otherChannelState == false)
+        if (!otherChannelState)
         {
             // If channel B is going High, but A is low, B is leading
             delta = -1;
         }
-        else if (otherChannelState == true)
+        else if (otherChannelState)
         {
             // if channel B is going High, but A is already High, A is leading
             delta = 1;
