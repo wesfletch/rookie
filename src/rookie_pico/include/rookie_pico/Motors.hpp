@@ -15,10 +15,6 @@
 
 // Motor Controller-specific definitions
 static const std::string MDD10A_NAME = "MDD10A";
-static constexpr uint8_t MDD10A_PWM_1_PIN = 16;
-static constexpr uint8_t MDD10A_PWM_2_PIN = 17;
-static constexpr uint8_t MDD10A_DIR_1_PIN = 18;
-static constexpr uint8_t MDD10A_DIR_2_PIN = 19;
 
 // PWM definitions
 // the "wrap" is the length in cycles of a single PWM pulse

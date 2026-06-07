@@ -13,10 +13,6 @@
 #include <pico/time.h>
 
 static const std::string ENCODER_NAME_AMT102V = "AMT-102V";
-static const uint LEFT_CHANNEL_A_GPIO = 21;
-static const uint LEFT_CHANNEL_B_GPIO = 20;
-static const uint RIGHT_CHANNEL_A_GPIO = 15;
-static const uint RIGHT_CHANNEL_B_GPIO = 14;
 
 static constexpr uint PULSES_PER_REVOLUTION = 2048;
 static constexpr uint COUNTS_PER_PULSE = 4;
