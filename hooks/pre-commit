@@ -19,7 +19,7 @@ function check_clang_format()
     [[ -z "${STAGED_CPP}" ]] && return 0
 
     if ! command -v clang-format &>/dev/null; then
-        echo "ERR: clang-format not found — install it to use this hook"
+        echo "ERR: clang-format not found, install it to use this hook"
         return 1
     fi
 
@@ -45,7 +45,7 @@ function check_shellcheck()
     [[ -z "${STAGED_SH}" ]] && return 0
 
     if ! command -v shellcheck &>/dev/null; then
-        echo "ERR: shellcheck not found — install it to use this hook"
+        echo "ERR: shellcheck not found, install it to use this hook"
         return 1
     fi
 
@@ -61,16 +61,41 @@ function check_shellcheck()
     return 0
 }
 
-failed=0
+function check_clang_tidy()
+{
+    [[ -z "${STAGED_CPP}" ]] && return 0
+
+    if ! command -v clang-tidy &>/dev/null; then
+        echo "ERR: clang-tidy not found, install to use this hook"
+        return 1
+    fi
+
+    local failed=0
+    while IFS= read -r file; do
+        if ! clang-tidy \
+            -p "${REPO_ROOT:?}/src/build/pico" \
+            --quiet \
+            "${REPO_ROOT}/${file}"; then
+            failed=1
+        fi
+    done <<< "${STAGED_CPP}"
+
+    return ${failed}
+}
+
+FAILED=0
 
 echo "* Checking clang-format on staged rookie_pico files"
-check_clang_format || failed=1
+check_clang_format || FAILED=1
 
 echo "* Checking shellcheck on staged shell scripts"
-check_shellcheck || failed=1
+check_shellcheck || FAILED=1
 
-if [[ "${failed}" -ne 0 ]]; then
+echo "* Checking clang-tidy on staged rookie_pico .cpp files"
+check_clang_tidy || FAILED=1
+
+if [[ "${FAILED}" -ne 0 ]]; then
     echo ""
-    echo "ERR: pre-commit checks failed — commit aborted"
+    echo "ERR: pre-commit checks failed - commit aborted"
     exit 1
 fi
