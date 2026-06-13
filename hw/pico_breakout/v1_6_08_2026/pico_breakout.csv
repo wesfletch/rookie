@@ -1,0 +1,18 @@
+"Ordered";"Id";"Designator";"Footprint";"Quantity";"Designation";"Supplier and ref";
+yes, x5;1;"A2";"RaspberryPi_Pico_SMD_HandSolder";1;"RaspberryPi_Pico";;"https://www.digikey.com/en/products/detail/raspberry-pi/SC0915/13624793";
+yes, x100;2;"C1, C2, C3";"C_0603_1608Metric";3;"100nF";;"https://www.digikey.com/en/products/detail/kemet/C0603C104K3RACTU/416044";
+x10;3;"J1";"JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical";1;"ENC1";;"https://www.digikey.com/en/products/detail/jst-sales-america-inc/B4B-XH-AM/1651035";
+x10;4;"J2";"JST_XH_B4B-XH-AM_1x04_P2.50mm_Vertical";1;"ENC2";;"https://www.digikey.com/en/products/detail/jst-sales-america-inc/B4B-XH-AM/1651035";
+yes, x10;5;"J3";"JST_XH_B5B-XH-AM_1x05_P2.50mm_Vertical";1;"MTR";;"https://www.digikey.com/en/products/detail/jst-sales-america-inc/B5B-XH-AM/1651037";
+no, I already have these;6;"J4";"PinHeader_1x03_P2.54mm_Vertical";1;"DBG";;;
+no, I already have these;7;"J5";"PinHeader_2x10_P2.54mm_Vertical";1;"BREAKOUT";;;
+no, I already have these;8;"J6";"PinHeader_1x05_P2.54mm_Vertical";1;"SPI_DBG";;;
+no, I already have these;9;"J7";"PinHeader_2x04_P2.54mm_Vertical";1;"ENC_DBG";;;
+no, I already have these;10;"J8";"PinHeader_1x04_P2.54mm_Vertical";1;"MTR_DBG";;;
+x100;11;"R1";"R_0603_1608Metric";1;"10k";;"https://www.digikey.com/en/products/detail/yageo/RC0603FR-0710KL/726880";
+n/a;12;"TP1";"TestPoint_Pad_D1.5mm";1;"VSYS";;;
+n/a;13;"TP2";"TestPoint_Pad_D1.5mm";1;"VBUS";;;
+n/a;14;"TP3";"TestPoint_Pad_D1.5mm";1;"3v3";;;
+yes, ordered 5001, x10; 15;"TP4, TP22";"TestPoint_Keystone_5000-5004_Miniature";2;"GND";;"https://www.digikey.com/en/products/detail/keystone-electronics/5001/255327";
+yes, x5;"U1";"LGA-14L_2P5X3P0X0P83-M";1;"LSM6DSV16BTR";;"https://www.digikey.com/en/products/detail/stmicroelectronics/LSM6DSV16BTR/18700578?s=N4IgTCBcDaIDIGUCyA2AIggagRhQIQBUAlEAXQF8g";
+yes, x20;17;"U2";"SOT402-1_NEX";1;"74LVC14APW";;"https://www.digikey.com/en/products/detail/nexperia-usa-inc/74LVC14APW-118/946659";

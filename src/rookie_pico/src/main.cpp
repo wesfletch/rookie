@@ -12,6 +12,7 @@
 #include <rookie_pico/MessageHandler.hpp>
 #include <rookie_pico/Motors.hpp>
 #include <rookie_pico/OutboundQueue.hpp>
+#include <rookie_pico/Pins.hpp>
 #include <rookie_pico/System.hpp>
 
 #include <pico_interface/PicoInterface.hpp>
@@ -177,8 +178,11 @@ main()
     System system(&outbound_queue);
 
     // Configure our motor controller.
-    std::shared_ptr<MDD10A> motor_controller = std::make_shared<MDD10A>(
-        MDD10A(MDD10A_DIR_1_PIN, MDD10A_PWM_1_PIN, MDD10A_DIR_2_PIN, MDD10A_PWM_2_PIN));
+    std::shared_ptr<MDD10A> motor_controller = std::make_shared<MDD10A>(MDD10A(
+        pins::motors::MDD10A_DIR_1_PIN,
+        pins::motors::MDD10A_PWM_1_PIN,
+        pins::motors::MDD10A_DIR_2_PIN,
+        pins::motors::MDD10A_PWM_2_PIN));
     pwm_error_t motor_status = motor_controller->configure();
     if (motor_status != E_PWM_SUCCESS)
     {
@@ -186,10 +190,10 @@ main()
     }
 
     // Configure our encoders...
-    std::shared_ptr<Encoder> leftEncoder =
-        std::make_shared<Encoder>(Encoder(LEFT_CHANNEL_A_GPIO, LEFT_CHANNEL_B_GPIO));
-    std::shared_ptr<Encoder> rightEncoder =
-        std::make_shared<Encoder>(Encoder(RIGHT_CHANNEL_A_GPIO, RIGHT_CHANNEL_B_GPIO));
+    std::shared_ptr<Encoder> leftEncoder = std::make_shared<Encoder>(
+        Encoder(pins::encoders::LEFT_CHANNEL_A_GPIO, pins::encoders::LEFT_CHANNEL_B_GPIO));
+    std::shared_ptr<Encoder> rightEncoder = std::make_shared<Encoder>(
+        Encoder(pins::encoders::RIGHT_CHANNEL_A_GPIO, pins::encoders::RIGHT_CHANNEL_B_GPIO));
     EncoderList encoders = { leftEncoder, rightEncoder };
     init_encoders(&encoders);
 
