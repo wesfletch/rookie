@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 // Pico includes
-#include "pico/stdlib.h"
 #include <pico/multicore.h>
 
 #include <rookie_pico/Encoders.hpp>
