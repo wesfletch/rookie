@@ -35,23 +35,23 @@ RUN chown -R ${USER}:${USER} /home/${USER}
 # Prerequisites for cross-compiling the rookie_pico code
 RUN sudo apt update && \
     sudo apt install --no-install-recommends -y \
-        cmake \
-        gcc-arm-none-eabi \
-        libnewlib-arm-none-eabi \
-        libstdc++-arm-none-eabi-newlib \
-	    ninja-build
+    cmake \
+    gcc-arm-none-eabi \
+    libnewlib-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib \
+    ninja-build
 
 # Other useful things for development
 RUN sudo apt update && \
     sudo apt install --no-install-recommends -y \
-        minicom \
-        cppcheck \
-        python3-serial \
-        python3-pip \
-        pipx \
-        gdb \
-        clangd \
-        clang-format
+    minicom \
+    cppcheck \
+    python3-serial \
+    python3-pip \
+    pipx \
+    gdb \
+    clangd \
+    clang-format
 
 # # Build the pico_interface lib, because doing it manually is annoying
 # COPY pico_interface /home/${USER}/pico_interface
@@ -66,16 +66,16 @@ RUN sudo apt update && \
 # TODO: just use rosdep for this...
 RUN sudo apt update \
     && sudo apt install -y --no-install-recommends \
-        ros-${ROS_DISTRO}-rviz2 \
-        ros-${ROS_DISTRO}-tf2-ros \
-        ros-${ROS_DISTRO}-xacro \
-        ros-${ROS_DISTRO}-joint-state-publisher \
-        ros-${ROS_DISTRO}-ros-gz \
-        ros-${ROS_DISTRO}-nav-msgs \
-        ros-${ROS_DISTRO}-robot-localization \
-        ros-${ROS_DISTRO}-teleop-twist-keyboard \
-        ros-${ROS_DISTRO}-navigation2 \
-        ros-${ROS_DISTRO}-slam-toolbox
+    ros-${ROS_DISTRO}-rviz2 \
+    ros-${ROS_DISTRO}-tf2-ros \
+    ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-joint-state-publisher \
+    ros-${ROS_DISTRO}-ros-gz \
+    ros-${ROS_DISTRO}-nav-msgs \
+    ros-${ROS_DISTRO}-robot-localization \
+    ros-${ROS_DISTRO}-teleop-twist-keyboard \
+    ros-${ROS_DISTRO}-navigation2 \
+    ros-${ROS_DISTRO}-slam-toolbox
 
 # We need this for nanopb
-RUN pip install grpcio-tools --break-system-packages
+RUN pip install grpcio-tools uv --break-system-packages
