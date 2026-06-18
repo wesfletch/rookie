@@ -60,14 +60,15 @@ target_include_directories(${PROJECT_NAME}_lib
         # ${pico_interface_INCLUDE_DIRS}
 )
 set(LIBS
-    pico_stdlib
-    pico_multicore
-    pico_sync 
-    hardware_uart
     hardware_gpio
     hardware_i2c
     hardware_pwm
+    hardware_spi
+    hardware_uart
     hardware_watchdog
+    pico_multicore
+    pico_stdlib
+    pico_sync 
 )
 target_link_libraries(${PROJECT_NAME}_lib
     ${LIBS}
@@ -101,6 +102,17 @@ add_executable(encoder_test
 target_link_libraries(encoder_test
     ${LIBS}
 )
+
+add_executable(imu_test
+    ${HEADERS}
+    src/Imu.cpp
+)
+target_link_libraries(imu_test
+    ${LIBS}
+)
+pico_enable_stdio_usb(imu_test 1)
+pico_add_extra_outputs(imu_test)
+
 
 
 option(OUTBOUND_USE_UART "Use UART for outbound transport instead of USB stdio" OFF)     
