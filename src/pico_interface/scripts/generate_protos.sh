@@ -85,6 +85,15 @@ function generate_python()
 
     cp "${CPP_NANOPB_DIR}/generator/proto/nanopb_pb2.py" "${PYTHON_OUTPUT_DIR}/"
 
+
+    # This is the same stupid protoc bug that I have to deal with EVERY SINGLE TIME I USE PROTOS
+    # WITH PYTHON. WHY DOES IT STILL DO THIS.
+    # protoc emits flat `import X_pb2`; rewrite to package-relative `from . import X_pb2`
+    # TODO: is it worth using protoletariat (https://github.com/cpcloud/protoletariat#example) for this?
+    sed -i \
+        -E 's/^import ([A-Za-z_][A-Za-z0-9_]*_pb2)( as .*)?$/from . import \1\2/' \
+        "${output_dir}"/*_pb2.py
+
     if command -v uv &>/dev/null; then
         pushd "${PYTHON_PKG_DIR}" >>/dev/null || exit 1
         echo "* Building the python package at ${PYTHON_PKG_DIR}"
