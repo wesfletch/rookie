@@ -8,6 +8,7 @@
 #include <rookie_pico/ClosedLoopController.hpp>
 #include <rookie_pico/Config.hpp>
 #include <rookie_pico/Encoders.hpp>
+#include <rookie_pico/Imu.hpp>
 #include <rookie_pico/main.h>
 #include <rookie_pico/MessageHandler.hpp>
 #include <rookie_pico/Motors.hpp>
@@ -175,6 +176,9 @@ main()
         printf("$ERR: failed to configure LED, returned CONFIG_ERROR=%d\n", led_status);
     }
 
+    // The time source we'll use throughout.
+    rookie::clock::SystemTimeSource time;
+
     System system(&outbound_queue);
 
     // Configure our motor controller.
@@ -202,6 +206,14 @@ main()
 
     ClosedLoopController controller(
         motor_controller, leftEncoder, rightEncoder, &controllerFlag, &outbound_queue);
+
+    // Configure the IMU...
+    rookie::imu::Imu imu(spi1, time);
+    if (imu.configure() != E_CONFIG_SUCCESS)
+    {
+        printf("Configure failed\n");
+        return EXIT_FAILURE;
+    }
 
     IMessageHandler* handlers[] = { &system, &controller };
 
@@ -253,6 +265,7 @@ main()
         // REPORT
         system.report();
         controller.report();
+        imu.report(outbound_queue);
 
         sleep_ms(20);
     }

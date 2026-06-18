@@ -1,7 +1,9 @@
 #include <cstdlib>
 
+#include <rookie_pico/Clock.hpp>
 #include <rookie_pico/Config.hpp>
 #include <rookie_pico/Imu.hpp>
+#include <rookie_pico/OutboundQueue.hpp>
 
 namespace rookie::imu
 {
@@ -139,6 +141,7 @@ Imu::_configure_imu()
 config_error_t
 Imu::configure()
 {
+    // printf("Configuring SPI...\n");
     _configure_spi();
 
     // Before we bother to setup the IMU, let's make sure it's actually connected.
@@ -148,8 +151,12 @@ Imu::configure()
         return E_CONFIG_FAILURE;
     }
 
+    // printf("Configuring IMU settings...\n");
     // Once we've gotten a positive ID, we can go ahead and configure the IMU proper
     _configure_imu();
+
+    // Give the IMU time to settle to avoid power-on transients
+    sleep_ms(100);
 
     // And finally, we need to do our gyro calibration
     if (!this->capture_gyro_bias(200))
@@ -168,6 +175,10 @@ Imu::_read_imu_data_raw(ImuReading& imu)
     // Sensor data is contiguous, starting at TEMP, so we can read it all at once
     uint8_t out[14];
     read_regs(rookie::imu::Register::OUT_TEMP_L, out, 14);
+
+    // Stamp immediately to minimize diff between IMU sample time and
+    // the time that we recorded reading the sample
+    imu.timestamp_us = _time.now_us();
 
     // Temperature (TEMP_L, TEMP_H)
     int16_t temp_raw = static_cast<int16_t>((out[1] << 8) | out[0]);
@@ -199,6 +210,10 @@ Imu::read_imu(ImuReading& out)
     out.angular_vel.x -= _gyro_bias.x;
     out.angular_vel.y -= _gyro_bias.y;
     out.angular_vel.z -= _gyro_bias.z;
+
+    // perform coordinate frame transforms
+    out.angular_vel = ImuMounting::to_body(out.angular_vel);
+    out.linear_accel = ImuMounting::to_body(out.linear_accel);
 }
 
 // TODO: periodically perform zero velocity updates for the gyro
@@ -207,7 +222,7 @@ Imu::capture_gyro_bias(const uint samples)
 {
     // The movement threshold, this is WAY above the noise for
     // this particular value of FS
-    constexpr float STILL_THRESH_DPS = 1.0f * DEG_TO_RAD;
+    constexpr float STILL_THRESH_RADPS = 5.0f * DEG_TO_RAD;
 
     float minv[3] = { +1e9f, +1e9f, +1e9f };
     float maxv[3] = { -1e9f, -1e9f, -1e9f };
@@ -234,11 +249,18 @@ Imu::capture_gyro_bias(const uint samples)
         sleep_ms(static_cast<uint>(1000.0f / IMU_FREQUENCY));
     }
 
+    // printf(
+    //     "still check: dx=%.3f dy=%.3f dz=%.3f dps\n",
+    //     (maxv[0] - minv[0]) / DEG_TO_RAD,
+    //     (maxv[1] - minv[1]) / DEG_TO_RAD,
+    //     (maxv[2] - minv[2]) / DEG_TO_RAD);
+
     // Make sure none of the axes moved during our sampling time
     for (int a = 0; a < 3; a++)
     {
-        if (maxv[a] - minv[a] > STILL_THRESH_DPS)
+        if ((maxv[a] - minv[a]) > STILL_THRESH_RADPS)
         {
+            // printf("You moved!\n");
             return false;
         }
     }
@@ -251,41 +273,30 @@ Imu::capture_gyro_bias(const uint samples)
     return true;
 }
 
-} // namespace rookie::imu
-
-int
-main()
+void
+Imu::report(OutboundQueue& out)
 {
-    stdio_init_all();
-    // stdio_set_translate_crlf(&stdio_usb, false);
+    // TODO: if I had the IMU FIFO set up, I would just drain it here instead
+    // of polling STATUS_REG. But I don't, so deal with it.
+    constexpr uint8_t XLDA = 1 << 0; // Accel. data available, 1st bit
+    constexpr uint8_t GDA = 1 << 1;  // Gyro data available, 2nd bit
+    constexpr uint8_t TDA = 1 << 2;  // Temp data available, 3rd bit
 
-    rookie::imu::Imu imu(spi1);
-    if (imu.configure() != E_CONFIG_SUCCESS)
+    uint8_t status = 0;
+    read_reg(Register::STATUS_REG, &status);
+    if ((status & (XLDA | GDA)) == (XLDA | GDA))
     {
-        printf("Configure failed\n");
-        return EXIT_FAILURE;
-    }
-    printf(
-        "gyro bias: p=%.3f r=%.3f y=%.3f\n",
-        imu.gyro_bias().x,
-        imu.gyro_bias().y,
-        imu.gyro_bias().z);
+        // Accelerometer OR gyro data is available.
+        // NOTE: we're doing it like this because we have them configured to
+        // run at the same frequency, 60Hz. If they were split, it might be worth
+        // checking them separately. But this keeps things a lot cleaner for the consumer
+        // of these messages.
+        ImuReading r;
+        read_imu(r);
+        ImuReport report = ImuReading::to_proto(r, (status & TDA));
 
-    while (true)
-    {
-        rookie::imu::ImuReading i;
-        imu.read_imu(i);
-
-        printf(
-            "T=%.1fC | gyro[rad/s] p=%7.2f r=%7.2f y=%7.2f | accel[m/s^2] x=%6.3f y=%6.3f "
-            "z=%6.3f\n",
-            i.temp_c,
-            i.angular_vel.x,
-            i.angular_vel.y,
-            i.angular_vel.z,
-            i.linear_accel.x,
-            i.linear_accel.y,
-            i.linear_accel.z);
-        sleep_ms(20);
+        out.try_enqueue(report);
     }
 }
+
+} // namespace rookie::imu

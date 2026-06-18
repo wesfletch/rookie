@@ -50,6 +50,7 @@ add_library(${PROJECT_NAME}_lib
     src/ClosedLoopController.cpp
     src/Config.cpp
     src/Encoders.cpp
+    src/Imu.cpp
     src/Motors.cpp
     src/OutboundQueue.cpp
     src/System.cpp
@@ -105,7 +106,7 @@ target_link_libraries(encoder_test
 
 add_executable(imu_test
     ${HEADERS}
-    src/Imu.cpp
+    src/imu_test.cpp
 )
 target_link_libraries(imu_test
     ${LIBS}

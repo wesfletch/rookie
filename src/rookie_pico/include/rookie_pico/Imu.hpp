@@ -12,7 +12,12 @@
 
 #include <rookie_pico/Clock.hpp>
 #include <rookie_pico/Config.hpp>
+#include <rookie_pico/Frames.hpp>
+#include <rookie_pico/OutboundQueue.hpp>
 #include <rookie_pico/Pins.hpp>
+#include <rookie_pico/Types.hpp>
+
+#include <pico_interface/protos/Imu.pb.hpp>
 
 namespace rookie::imu
 {
@@ -46,8 +51,6 @@ static constexpr uint8_t TEMPERATURE_OFFSET_C = 25;
 // RW is always bit 7 of our "address" byte
 static constexpr uint8_t READ_BIT = 1 << 7;  // MSB = 1 -> READ
 static constexpr uint8_t WRITE_BIT = 0 << 7; // MSB = 0 -> WRITE
-
-static constexpr uint8_t DATA_SIZE = 8;
 
 static constexpr uint8_t MAX_TRANSFER_BYTES = 32;
 
@@ -107,7 +110,7 @@ enum class Register : uint8_t
     OUTX_L_A = 0x2C,
     OUTX_H_A = 0x2D,
 
-    // Timestamp first data output register. 32-bit word, bit resolution is 21.75us.
+    // Timestamp output registers. 32-bit word, bit resolution is 21.75us.
     TIMESTAMP0 = 0x40,
     TIMESTAMP1 = 0x41,
     TIMESTAMP2 = 0x42,
@@ -129,21 +132,37 @@ enum class Register : uint8_t
 // use it to make sure our device is up
 static constexpr uint8_t WHO_AM_I_VALUE = 0x71;
 
-struct Vector3
-{
-    float x;
-    float y;
-    float z;
-};
-
 struct ImuReading
 {
+    // Time at capture
+    uint64_t timestamp_us;
     // Gyroscope readings, rad/s
     Vector3 angular_vel;
     // Accelerometer readings, m/s2
     Vector3 linear_accel;
     // Temperature sensor reading in degrees C
     float temp_c;
+
+    static ImuReport
+    to_proto(const ImuReading& in, bool include_temp = false)
+    {
+        ImuReport imu = ImuReport_init_zero;
+
+        imu.timestamp = in.timestamp_us;
+
+        imu.angular_vel = Vector3::to_proto(in.angular_vel);
+        imu.has_angular_vel = true;
+
+        imu.linear_accel = Vector3::to_proto(in.linear_accel);
+        imu.has_linear_accel = true;
+
+        if (include_temp)
+        {
+            imu.imu_temp = in.temp_c;
+            imu.has_imu_temp = true;
+        }
+        return imu;
+    }
 };
 
 class Imu
@@ -156,19 +175,15 @@ public:
 
     void read_imu(ImuReading& out);
 
-    void read_regs(const Register& reg, uint8_t* dst, size_t n);
-    void read_reg(const Register& reg, uint8_t* dst);
+    bool capture_gyro_bias(const uint samples);
 
-    void write_regs(const Register& reg, const uint8_t* src, size_t n);
-    void write_reg(const Register& reg, const uint8_t* src);
+    void report(OutboundQueue& out);
 
     bool
     is_ready() const
     {
         return _is_ready;
     };
-
-    bool capture_gyro_bias(const uint samples);
 
     Vector3
     gyro_bias() const
@@ -177,6 +192,12 @@ public:
     }
 
 private:
+
+    void read_regs(const Register& reg, uint8_t* dst, size_t n);
+    void read_reg(const Register& reg, uint8_t* dst);
+
+    void write_regs(const Register& reg, const uint8_t* src, size_t n);
+    void write_reg(const Register& reg, const uint8_t* src);
 
     void _configure_spi();
 
@@ -197,6 +218,12 @@ private:
 
     // Goes true only after setup is complete
     bool _is_ready = false;
+
+    // Determines the mountin of the IMU. Change this if the IMU is
+    // mounted in a different orientation.
+    // Currently: IMU Y axis is pointed along robot axis X
+    using ImuMounting = rookie::frames::
+        MountingFrame<frames::Axis::POS_Y, frames::Axis::NEG_X, frames::Axis::POS_Z>;
 
 }; // class Imu
 
