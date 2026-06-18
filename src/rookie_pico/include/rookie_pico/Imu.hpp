@@ -20,11 +20,14 @@ namespace rookie::imu
 // This is a guess, the LSM6DSV16 doesn't have a listed baudrate
 static constexpr uint IMU_BAUDRATE = 500 * 1000; // 500kHz
 
+// TODO: make these sensitivity values + FS less error-prone to use
 // Acceleration sensitivity, which is a function of the FS value selected,
+// CURRENT: FS == +/- 4g
 // NOTE: given in mg/LSB, so we're converting to g here
-static constexpr float ACCEL_SENSITIVITY = 0.488f / 1000.0f;
+static constexpr float ACCEL_SENSITIVITY = 0.122f / 1000.0f;
 
-// Gyro sensitivity;  a function of the FS value we select
+// Gyro sensitivity; a function of the FS value we select
+// CURRENT: FS == +/- 500dps
 // NOTE: given in mdps/LSB, so we're converting to dps here
 static constexpr float GYRO_SENSITIVITY = 17.50f / 1000.0f;
 

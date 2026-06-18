@@ -132,7 +132,7 @@ Imu::_configure_imu()
 
     // Set FS for accel measurements.
     // WARN: CHANGING THIS VALUE CHANGES THE INTERPRETATION OF THE DATA.
-    uint8_t ctrl8 = 0x03; // +/-16g
+    uint8_t ctrl8 = 0x01; // +/-4g
     write_reg(rookie::imu::Register::CTRL8, &ctrl8);
 }
 
