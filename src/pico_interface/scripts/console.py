@@ -11,7 +11,7 @@
 # ]
 #
 # [tool.uv.sources]
-# pico-interface = { path = "../py/pico-interface" }
+# pico-interface = { path = "../py/pico-interface", editable = true }
 # ///
 
 import argparse
@@ -30,21 +30,20 @@ from google.protobuf import json_format
 import pico_interface as pico_if
 
 _COLOR_TIMESTAMP = 1
-_COLOR_MSG_TYPE  = 2
-_COLOR_BODY      = 3
-_COLOR_HEADER    = 4
-_COLOR_PAYLOAD   = 5
-
+_COLOR_MSG_TYPE = 2
+_COLOR_BODY = 3
+_COLOR_HEADER = 4
+_COLOR_PAYLOAD = 5
 
 
 @dataclass
 class DisplayLine:
     timestamp: float
     msg_id: int
-    msg_type: str    # class name, or str(msg_id) if unknown
+    msg_type: str  # class name, or str(msg_id) if unknown
     header_hex: str
     payload_hex: str
-    body: str        # decoded JSON, or error string
+    body: str  # decoded JSON, or error string
 
     def __str__(self) -> str:
         return f"[{self.timestamp:.4f}]: <{self.msg_type}>: {self.body}"
@@ -258,17 +257,17 @@ def output_modal(parent: curses.window, message: str) -> None:
 
 
 _HELP_LINES: list[tuple[str, str]] = [
-    ("h",       "this help"),
-    ("q",       "quit"),
-    ("f",       "filter messages"),
-    ("s",       "highlight messages"),
-    ("SPACE",   "pause / resume"),
-    ("r",       "toggle raw / decoded view"),
-    ("w",       "compose + send a message  (^W to send, ESC cancel)"),
-    ("c",       "clear"),
-    ("d",       "detach"),
-    ("↑ / ↓",  "scroll  (while paused)"),
-    ("L",       "toggle log to file"),
+    ("h", "this help"),
+    ("q", "quit"),
+    ("f", "filter messages"),
+    ("s", "highlight messages"),
+    ("SPACE", "pause / resume"),
+    ("r", "toggle raw / decoded view"),
+    ("w", "compose + send a message  (^W to send, ESC cancel)"),
+    ("c", "clear"),
+    ("d", "detach"),
+    ("↑ / ↓", "scroll  (while paused)"),
+    ("L", "toggle log to file"),
 ]
 
 
@@ -277,11 +276,11 @@ def help_modal(parent: curses.window) -> None:
 
     max_y, max_x = parent.getmaxyx()
 
-    key_col_w  = max(len(k) for k, _ in _HELP_LINES) + 2
+    key_col_w = max(len(k) for k, _ in _HELP_LINES) + 2
     desc_col_w = max(len(d) for _, d in _HELP_LINES)
-    inner_w    = key_col_w + desc_col_w + 2   # 2 for the ·separator + space
+    inner_w = key_col_w + desc_col_w + 2  # 2 for the ·separator + space
 
-    modal_w = inner_w + 4   # 2 border + 2 padding
+    modal_w = inner_w + 4  # 2 border + 2 padding
     modal_h = len(_HELP_LINES) + 4  # border top/bot + header row + blank separator
 
     modal_y = (max_y - modal_h) // 2
@@ -328,14 +327,14 @@ def _render_decoded(
 ) -> None:
     dim = curses.A_DIM if dimmed else 0
     if colors_available:
-        ts_attr   = curses.color_pair(_COLOR_TIMESTAMP) | dim
-        type_attr = curses.color_pair(_COLOR_MSG_TYPE)  | dim
-        body_attr = curses.color_pair(_COLOR_BODY)      | dim
+        ts_attr = curses.color_pair(_COLOR_TIMESTAMP) | dim
+        type_attr = curses.color_pair(_COLOR_MSG_TYPE) | dim
+        body_attr = curses.color_pair(_COLOR_BODY) | dim
     else:
-        ts_attr   = curses.A_NORMAL | dim
-        type_attr = curses.A_BOLD   | dim
+        ts_attr = curses.A_NORMAL | dim
+        type_attr = curses.A_BOLD | dim
         body_attr = curses.A_NORMAL | dim
-    ts_str   = f"[{item.timestamp:.4f}]"
+    ts_str = f"[{item.timestamp:.4f}]"
     type_str = f"<{item.msg_type}>"
     try:
         window.addstr(row, col, ts_str, ts_attr)
@@ -361,16 +360,16 @@ def _render_raw(
 ) -> None:
     dim = curses.A_DIM if dimmed else 0
     if colors_available:
-        ts_attr      = curses.color_pair(_COLOR_TIMESTAMP) | dim
-        type_attr    = curses.color_pair(_COLOR_MSG_TYPE)  | dim
-        header_attr  = curses.color_pair(_COLOR_HEADER)    | dim
-        payload_attr = curses.color_pair(_COLOR_PAYLOAD)   | dim
+        ts_attr = curses.color_pair(_COLOR_TIMESTAMP) | dim
+        type_attr = curses.color_pair(_COLOR_MSG_TYPE) | dim
+        header_attr = curses.color_pair(_COLOR_HEADER) | dim
+        payload_attr = curses.color_pair(_COLOR_PAYLOAD) | dim
     else:
-        ts_attr      = curses.A_NORMAL | dim
-        type_attr    = curses.A_BOLD   | dim
-        header_attr  = curses.A_NORMAL | dim
-        payload_attr = curses.A_BOLD   | dim
-    ts_str   = f"[{item.timestamp:.4f}]"
+        ts_attr = curses.A_NORMAL | dim
+        type_attr = curses.A_BOLD | dim
+        header_attr = curses.A_NORMAL | dim
+        payload_attr = curses.A_BOLD | dim
+    ts_str = f"[{item.timestamp:.4f}]"
     type_str = f"<{item.msg_type} ({item.msg_id})>"
     try:
         window.addstr(row, col, ts_str, ts_attr)
@@ -406,7 +405,13 @@ def _render_item(
         _render_decoded(window, row, col, item, colors_available, dimmed)
 
 
-def _draw_status(window: curses.window, msg_count: int, filtered_count: int, config: ConsoleConfig, connected: bool) -> None:
+def _draw_status(
+    window: curses.window,
+    msg_count: int,
+    filtered_count: int,
+    config: ConsoleConfig,
+    connected: bool,
+) -> None:
     _, max_x = window.getmaxyx()
     if config.log_filter:
         parts: list[str] = [f"msgs: {filtered_count}/{msg_count}"]
@@ -425,7 +430,7 @@ def _draw_status(window: curses.window, msg_count: int, filtered_count: int, con
     if config.highlight:
         parts.append(f"hl: {config.highlight!r}")
     text = "  " + "  │  ".join(parts) + "  "
-    text = text[:max_x - 1].ljust(max_x - 1)
+    text = text[: max_x - 1].ljust(max_x - 1)
     try:
         window.addstr(0, 0, text, curses.A_REVERSE)
     except curses.error:
@@ -436,22 +441,22 @@ def _draw_status(window: curses.window, msg_count: int, filtered_count: int, con
 from google.protobuf.descriptor import FieldDescriptor as _FD
 
 _SCALAR_DEFAULTS = {
-    _FD.TYPE_DOUBLE:   0.0,
-    _FD.TYPE_FLOAT:    0.0,
-    _FD.TYPE_INT64:    0,
-    _FD.TYPE_UINT64:   0,
-    _FD.TYPE_INT32:    0,
-    _FD.TYPE_FIXED64:  0,
-    _FD.TYPE_FIXED32:  0,
-    _FD.TYPE_BOOL:     False,
-    _FD.TYPE_STRING:   "",
-    _FD.TYPE_BYTES:    b"",
-    _FD.TYPE_UINT32:   0,
-    _FD.TYPE_ENUM:     0,
+    _FD.TYPE_DOUBLE: 0.0,
+    _FD.TYPE_FLOAT: 0.0,
+    _FD.TYPE_INT64: 0,
+    _FD.TYPE_UINT64: 0,
+    _FD.TYPE_INT32: 0,
+    _FD.TYPE_FIXED64: 0,
+    _FD.TYPE_FIXED32: 0,
+    _FD.TYPE_BOOL: False,
+    _FD.TYPE_STRING: "",
+    _FD.TYPE_BYTES: b"",
+    _FD.TYPE_UINT32: 0,
+    _FD.TYPE_ENUM: 0,
     _FD.TYPE_SFIXED32: 0,
     _FD.TYPE_SFIXED64: 0,
-    _FD.TYPE_SINT32:   0,
-    _FD.TYPE_SINT64:   0,
+    _FD.TYPE_SINT32: 0,
+    _FD.TYPE_SINT64: 0,
 }
 
 
@@ -495,8 +500,8 @@ def edit_modal(parent: curses.window, msg_class) -> bytes | None:
 
     title = f"[ {msg_class.__name__} ]"
     hint = "  ESC: cancel | ^W: send  "
-    text_h = modal_h - 3   # rows between border+title and footer row
-    text_w = modal_w - 4   # usable cols (2 border + 2 margin)
+    text_h = modal_h - 3  # rows between border+title and footer row
+    text_w = modal_w - 4  # usable cols (2 border + 2 margin)
 
     cur_y = 0
     cur_x = 0
@@ -591,7 +596,7 @@ def edit_modal(parent: curses.window, msg_class) -> bytes | None:
         elif ch == curses.KEY_DC:
             line = lines[cur_y]
             if cur_x < len(line):
-                lines[cur_y] = line[:cur_x] + line[cur_x + 1:]
+                lines[cur_y] = line[:cur_x] + line[cur_x + 1 :]
             elif cur_y < len(lines) - 1:
                 lines[cur_y] += lines[cur_y + 1]
                 lines.pop(cur_y + 1)
@@ -627,11 +632,11 @@ def gui_loop(
     if colors_available:
         curses.start_color()
         curses.use_default_colors()
-        curses.init_pair(_COLOR_TIMESTAMP, curses.COLOR_BLUE,    -1)
-        curses.init_pair(_COLOR_MSG_TYPE,  curses.COLOR_MAGENTA, -1)
-        curses.init_pair(_COLOR_BODY,      curses.COLOR_GREEN,   -1)
-        curses.init_pair(_COLOR_HEADER,    curses.COLOR_CYAN,    -1)
-        curses.init_pair(_COLOR_PAYLOAD,   curses.COLOR_YELLOW,  -1)
+        curses.init_pair(_COLOR_TIMESTAMP, curses.COLOR_BLUE, -1)
+        curses.init_pair(_COLOR_MSG_TYPE, curses.COLOR_MAGENTA, -1)
+        curses.init_pair(_COLOR_BODY, curses.COLOR_GREEN, -1)
+        curses.init_pair(_COLOR_HEADER, curses.COLOR_CYAN, -1)
+        curses.init_pair(_COLOR_PAYLOAD, curses.COLOR_YELLOW, -1)
 
     attr: int = curses.A_NORMAL
 
@@ -651,7 +656,9 @@ def gui_loop(
     data_window.scrollok(True)
     data_window.idlok(True)
 
-    status_window: curses.window = curses.newwin(1, total_cols, start_row + data_rows, start_col)
+    status_window: curses.window = curses.newwin(
+        1, total_cols, start_row + data_rows, start_col
+    )
 
     current_row = 0
     msg_count: int = 0
@@ -752,12 +759,16 @@ def gui_loop(
             try:
                 dim = config.highlight != "" and not highlighted
                 data_window.addstr(current_row, 0, "▶ " if highlighted else "  ")
-                _render_item(data_window, current_row, 2, item, colors_available, config.raw, dim)
+                _render_item(
+                    data_window, current_row, 2, item, colors_available, config.raw, dim
+                )
                 data_window.refresh()
             except curses.error:
                 pass
 
-        _draw_status(status_window, msg_count, filtered_count, config, connected_event.is_set())
+        _draw_status(
+            status_window, msg_count, filtered_count, config, connected_event.is_set()
+        )
 
         # Input handling
         ch = window.getch()
@@ -781,7 +792,11 @@ def gui_loop(
         elif ch == ord("f"):  # 'FILTER'
             data_window.clear()
             config.log_filter = input_modal(data_window, "filter: ")
-            filtered_count = sum(1 for item in scrollback if config.log_filter in str(item)) if config.log_filter else 0
+            filtered_count = (
+                sum(1 for item in scrollback if config.log_filter in str(item))
+                if config.log_filter
+                else 0
+            )
         elif ch == ord("s"):  # 'SELECT'
             config.highlight = input_modal(data_window, "highlight: ")
         elif ch == ord(" "):  # 'PAUSE'
@@ -859,17 +874,20 @@ def main() -> None:
         description="pico_interface serial console"
     )
     parser.add_argument(
-        "--plain", "-p",
+        "--plain",
+        "-p",
         action="store_true",
         help="print messages to stdout instead of opening the curses UI",
     )
     parser.add_argument(
-        "--raw", "-r",
+        "--raw",
+        "-r",
         action="store_true",
         help="display raw hex bytes instead of decoded messages",
     )
     parser.add_argument(
-        "--timeout", "-t",
+        "--timeout",
+        "-t",
         type=float,
         metavar="SECONDS",
         help="stop capturing after SECONDS and exit",
@@ -880,7 +898,8 @@ def main() -> None:
         help="serial port to open (default: /dev/ttyACM0)",
     )
     parser.add_argument(
-        "--log", "-l",
+        "--log",
+        "-l",
         metavar="FILE",
         help="log all messages to FILE",
     )
@@ -928,7 +947,14 @@ def main() -> None:
             plain_loop(in_queue, ser_shutdown_event, raw=args.raw, log_file=log_file)
         else:
             config: ConsoleConfig = ConsoleConfig(raw=args.raw, log_path=args.log or "")
-            curses.wrapper(gui_loop, in_queue, out_queue, config, ser_shutdown_event, connected_event)
+            curses.wrapper(
+                gui_loop,
+                in_queue,
+                out_queue,
+                config,
+                ser_shutdown_event,
+                connected_event,
+            )
     except KeyboardInterrupt:
         ser_shutdown_event.set()
     finally:
