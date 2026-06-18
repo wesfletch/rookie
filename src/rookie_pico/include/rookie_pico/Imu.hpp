@@ -10,6 +10,7 @@
 #include <pico/binary_info.h>
 #include <hardware/spi.h>
 
+#include <rookie_pico/Clock.hpp>
 #include <rookie_pico/Config.hpp>
 #include <rookie_pico/Pins.hpp>
 
@@ -146,7 +147,7 @@ class Imu
 {
 public:
 
-    Imu(spi_inst_t* spi) : _spi(spi){};
+    Imu(spi_inst_t* spi, clock::ITimeSource& time) : _spi(spi), _time(time){};
 
     [[nodiscard]] config_error_t configure();
 
@@ -185,6 +186,10 @@ private:
     // SPI instance the IMU is connected to.
     spi_inst_t* _spi;
 
+    // Time source we'll use for timestamps
+    clock::ITimeSource& _time;
+
+    // Gyroscope bias captured at rest with `capture_gyro_bias`
     Vector3 _gyro_bias = { 0.0f, 0.0f, 0.0f };
 
     // Goes true only after setup is complete

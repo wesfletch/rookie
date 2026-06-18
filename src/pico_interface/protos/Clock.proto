@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+message ClockRequest
+{
+    option (nanopb_msgopt).msgid = 14;
+
+    uint32 seq = 1;
+}
+
+message ClockReport
+{
+    option (nanopb_msgopt).msgid = 12;
+    
+    uint32 seq = 1;
+    uint64 clock_us = 2;
+}
